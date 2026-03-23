@@ -14,6 +14,8 @@ class StorefrontController extends Controller
      */
     public function show(Business $business): Response
     {
+        abort_unless($business->is_active, 404);
+
         $business->load(['products' => fn ($q) => $q->active()->inStock()]);
 
         return Inertia::render('Storefront/Main', [
@@ -39,8 +41,8 @@ class StorefrontController extends Controller
         $business->load(['products' => fn ($q) => $q->active()]);
 
         return Inertia::render('Storefront/Main', [
-            'business'   => $business,
-            'isPreview'  => true,
+            'business' => $business,
+            'isPreview' => true,
         ]);
     }
 }

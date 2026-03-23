@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Enums\BusinessRole;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreBusinessRequest;
+use App\Http\Requests\Admin\UpdateBusinessSettingsRequest;
 use App\Models\Business;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -48,16 +49,16 @@ class BusinessController extends Controller
 
         // Add owner to the pivot table so they show up in ->members() queries
         $business->members()->attach(auth()->id(), [
-            'role'       => BusinessRole::Owner->value,
+            'role' => BusinessRole::Owner->value,
             'created_at' => now(),
         ]);
 
-        return to_route('admin.businesses.show', $business)
+        return to_route('businesses.show', $business)
             ->with('success', 'Business created successfully.');
     }
 
     /**
-     * Show the admin dashboard for a specific business.
+     * Show the admin dashboard (Overview) for a specific business.
      */
     public function show(Business $business): Response
     {
@@ -66,6 +67,44 @@ class BusinessController extends Controller
         return Inertia::render('Admin/Businesses/Show', [
             'business' => $business->loadCount('products', 'orders'),
         ]);
+    }
+
+    /**
+     * Toggle the business storefront on/off.
+     */
+    public function toggle(Business $business): RedirectResponse
+    {
+        $this->authorizeOwner($business);
+
+        $business->update(['is_active' => ! $business->is_active]);
+
+        $status = $business->is_active ? 'live' : 'offline';
+
+        return back()->with('success', "Storefront is now {$status}.");
+    }
+
+    /**
+     * Show the business settings form.
+     */
+    public function editSettings(Business $business): Response
+    {
+        $this->authorizeOwner($business);
+
+        return Inertia::render('Admin/Businesses/Settings', [
+            'business' => $business,
+        ]);
+    }
+
+    /**
+     * Update business settings (name, contact info, social links, etc.).
+     */
+    public function updateSettings(Business $business, UpdateBusinessSettingsRequest $request): RedirectResponse
+    {
+        $this->authorizeOwner($business);
+
+        $business->update($request->validated());
+
+        return back()->with('success', 'Settings saved.');
     }
 
     /**
@@ -78,7 +117,7 @@ class BusinessController extends Controller
 
         $business->delete();
 
-        return to_route('admin.businesses.index')
+        return to_route('businesses.index')
             ->with('success', 'Business deleted.');
     }
 

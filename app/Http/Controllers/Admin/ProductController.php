@@ -7,7 +7,6 @@ use App\Http\Requests\Admin\StoreProductRequest;
 use App\Http\Requests\Admin\UpdateProductRequest;
 use App\Models\Business;
 use App\Models\Product;
-use App\Services\BusinessContext;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -22,11 +21,12 @@ class ProductController extends Controller
     {
         abort_unless($business->isOwnedBy(auth()->user()), 403);
 
-        $products = Product::latest()->paginate(20);
+        $products = Product::with('category')->latest()->paginate(20);
 
         return Inertia::render('Admin/Products/Index', [
             'products' => $products,
             'business' => $business,
+            'categories' => $business->categories()->get(['id', 'name']),
         ]);
     }
 
@@ -49,7 +49,7 @@ class ProductController extends Controller
     {
         $business->products()->create($request->validated());
 
-        return to_route('admin.businesses.products.index', $business)
+        return to_route('businesses.products.index', $business)
             ->with('success', 'Product created.');
     }
 
@@ -62,7 +62,8 @@ class ProductController extends Controller
 
         return Inertia::render('Admin/Products/Edit', [
             'business' => $business,
-            'product'  => $product,
+            'product' => $product,
+            'categories' => $business->categories()->get(['id', 'name']),
         ]);
     }
 
@@ -87,7 +88,7 @@ class ProductController extends Controller
 
         $product->delete();
 
-        return to_route('admin.businesses.products.index', $business)
+        return to_route('businesses.products.index', $business)
             ->with('success', 'Product deleted.');
     }
 }

@@ -17,7 +17,11 @@ use Illuminate\Support\Str;
  * NOTE: paystack_secret and junipay_secret are intentionally excluded from $fillable.
  * They must only be written via PaymentService::storeKey() to guarantee encryption.
  */
-#[Fillable(['name', 'slug', 'theme_id', 'theme_settings', 'meta_pixel_id', 'ai_enabled'])]
+#[Fillable([
+    'name', 'slug', 'owner_id', 'is_active',
+    'description', 'contact_email', 'phone', 'address', 'website', 'social_links',
+    'theme_id', 'theme_settings', 'meta_pixel_id', 'ai_enabled',
+])]
 class Business extends Model
 {
     /** @use HasFactory<BusinessFactory> */
@@ -35,8 +39,10 @@ class Business extends Model
     protected function casts(): array
     {
         return [
+            'is_active' => 'boolean',
             'theme_settings' => 'array',
-            'ai_enabled'     => 'boolean',
+            'social_links' => 'array',
+            'ai_enabled' => 'boolean',
         ];
     }
 
@@ -56,6 +62,12 @@ class Business extends Model
         return $this->hasMany(Product::class);
     }
 
+    /** @return HasMany<Category, $this> */
+    public function categories(): HasMany
+    {
+        return $this->hasMany(Category::class)->orderBy('sort_order');
+    }
+
     /** @return HasMany<Order, $this> */
     public function orders(): HasMany
     {
@@ -68,7 +80,7 @@ class Business extends Model
         return $this->belongsToMany(User::class, 'business_users')
             ->using(BusinessUser::class)
             ->withPivot('role')
-            ->withTimestamps();
+            ->withTimestamps('created_at', 'created_at');
     }
 
     // -------------------------------------------------------------------------

@@ -19,14 +19,15 @@ class StoreProductRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name'        => ['required', 'string', 'max:255'],
+            'category_id' => ['nullable', 'integer', 'exists:categories,id'],
+            'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string', 'max:5000'],
-            'price'       => ['required', 'numeric', 'min:0', 'max:999999.99'],
-            'stock'       => ['required', 'integer', 'min:0'],
-            'is_active'   => ['boolean'],
-            'images'      => ['nullable', 'array', 'max:10'],
-            'images.*'    => ['string', 'max:2048'],
-            'metadata'    => ['nullable', 'array'],
+            'price' => ['required', 'numeric', 'min:0', 'max:999999.99'],
+            'stock' => ['required', 'integer', 'min:0'],
+            'is_active' => ['boolean'],
+            'images' => ['nullable', 'array', 'max:10'],
+            'images.*' => ['string', 'max:2048'],
+            'metadata' => ['nullable', 'array'],
         ];
     }
 }

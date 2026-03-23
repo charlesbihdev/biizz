@@ -31,10 +31,25 @@ export type ThemeSchema = Record<string, SchemaField>;
 
 // ─── Business ────────────────────────────────────────────────────────────────
 
+export interface SocialLinks {
+    instagram?: string;
+    whatsapp?:  string;
+    facebook?:  string;
+    tiktok?:    string;
+    twitter?:   string;
+}
+
 export interface Business {
     id:              number;
     name:            string;
     slug:            string;
+    is_active:       boolean;
+    description:     string | null;
+    contact_email:   string | null;
+    phone:           string | null;
+    address:         string | null;
+    website:         string | null;
+    social_links:    SocialLinks;
     theme_id:        ThemeId;
     theme_settings:  ThemeSettings;
     meta_pixel_id:   string | null;
@@ -57,6 +72,8 @@ export interface ProductImage {
 export interface Product {
     id:          number;
     business_id: number;
+    category_id: number | null;
+    category:    { id: number; name: string } | null;
     name:        string;
     description: string | null;
     price:       string; // decimal comes as string from Laravel

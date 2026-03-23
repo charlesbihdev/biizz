@@ -6,7 +6,21 @@
       "Bash(php -r \"echo PHP_VERSION;\")",
       "Read(//c/Users/MENSAH COLOMBUS/.config/herd/bin//**)",
       "Read(//c/Program Files/**)",
-      "Bash(npm run:*)"
+      "Bash(npm run:*)",
+      "Bash(find 'c:\\\\Users\\\\MENSAH COLOMBUS\\\\Herd\\\\biizz\\\\resources\\\\js\\\\components' -iname *colorpicker* -o -iname *fileupload* -o -iname *toggle*)",
+      "Bash(grep -E \"\\\\.\\(ts|tsx\\)$\")",
+      "Bash(\"C:\\\\Users\\\\MENSAH COLOMBUS\\\\Herd\\\\bin\\\\php.bat\" artisan wayfinder:generate)",
+      "Bash(where php:*)",
+      "Read(//c/Users/MENSAH COLOMBUS/Herd//**)",
+      "Bash(\"C:\\\\Users\\\\MENSAH COLOMBUS\\\\.config\\\\herd\\\\bin\\\\php.bat\" artisan wayfinder:generate)",
+      "Bash(\"C:/Users/MENSAH COLOMBUS/.config/herd/bin/php.bat\" artisan make:controller DashboardController --no-interaction)",
+      "Bash(\"C:/Users/MENSAH COLOMBUS/.config/herd/bin/php.bat\" artisan migrate --no-interaction)",
+      "Bash(\"C:/Users/MENSAH COLOMBUS/.config/herd/bin/php.bat\" artisan wayfinder:generate)",
+      "Bash(npx shadcn@latest add textarea --yes)",
+      "Bash(vendor/bin/pint --dirty --format agent)",
+      "Bash(\"C:/Users/MENSAH COLOMBUS/.config/herd/bin/php.bat\" vendor/bin/pint --dirty --format agent)",
+      "Bash(npx shadcn@latest add alert-dialog --yes)",
+      "Bash(npx shadcn@latest add alert-dialog --overwrite)"
     ]
   }
 }
