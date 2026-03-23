@@ -2,10 +2,10 @@
 // Shows a browser mockup of a live biizz storefront.
 
 const MOCK_PRODUCTS = [
-    { name: 'Ankara Tote Bag', price: 'GHS 85', color: 'bg-amber-100' },
-    { name: 'Wax Print Scarf', price: 'GHS 40', color: 'bg-orange-100' },
-    { name: 'Kente Clutch',    price: 'GHS 120', color: 'bg-yellow-100' },
-    { name: 'Batik Sandals',   price: 'GHS 65',  color: 'bg-red-100' },
+    { name: 'Ankara Tote Bag',  price: 'GHS 85',  badge: 'Bestseller', swatch: 'bg-amber-200' },
+    { name: 'Wax Print Scarf',  price: 'GHS 40',  badge: null,         swatch: 'bg-orange-200' },
+    { name: 'Kente Clutch',     price: 'GHS 120', badge: 'New',        swatch: 'bg-yellow-200' },
+    { name: 'Batik Sandals',    price: 'GHS 65',  badge: null,         swatch: 'bg-red-100' },
 ];
 
 export default function StorefrontPreview() {
@@ -21,55 +21,83 @@ export default function StorefrontPreview() {
                 </h2>
 
                 {/* Browser chrome mockup */}
-                <div className="overflow-hidden rounded-2xl border border-site-border bg-site-surface shadow-2xl shadow-brand/5">
+                <div className="overflow-hidden rounded-2xl border border-zinc-200 shadow-xl shadow-black/8">
 
                     {/* Browser bar */}
-                    <div className="flex items-center gap-3 border-b border-site-border bg-site-bg px-4 py-3">
+                    <div className="flex items-center gap-3 border-b border-zinc-200 bg-zinc-50 px-4 py-3">
                         <div className="flex gap-1.5">
-                            <span className="h-3 w-3 rounded-full bg-zinc-700" />
-                            <span className="h-3 w-3 rounded-full bg-zinc-700" />
-                            <span className="h-3 w-3 rounded-full bg-zinc-700" />
+                            <span className="h-3 w-3 rounded-full bg-zinc-300" />
+                            <span className="h-3 w-3 rounded-full bg-zinc-300" />
+                            <span className="h-3 w-3 rounded-full bg-zinc-300" />
                         </div>
                         <div className="flex flex-1 items-center justify-center">
-                            <div className="flex h-6 items-center gap-2 rounded-md bg-zinc-800 px-3 text-xs text-zinc-500">
-                                <span className="text-brand">⬤</span>
+                            <div className="flex h-6 items-center gap-2 rounded-md border border-zinc-200 bg-white px-3 text-xs text-zinc-400">
+                                <span className="h-2 w-2 rounded-full bg-green-400" />
                                 zaras-boutique.biizz.app
                             </div>
                         </div>
                     </div>
 
-                    {/* Storefront content preview */}
-                    <div className="bg-white p-0">
-                        {/* Store hero */}
-                        <div className="flex items-center justify-between bg-zinc-900 px-6 py-5">
+                    {/* Storefront content */}
+                    <div className="bg-white">
+
+                        {/* Store header */}
+                        <div className="flex items-center justify-between border-b border-zinc-100 bg-zinc-900 px-6 py-4">
                             <div>
-                                <h3 className="font-bold text-white">Zara's Boutique</h3>
-                                <p className="text-xs text-zinc-400">Premium African Fashion</p>
+                                <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-500">
+                                    Accra · Est. 2021
+                                </p>
+                                <h3 className="text-base font-bold text-white">Zara's Boutique</h3>
                             </div>
-                            <button className="rounded-full bg-green-500 px-4 py-1.5 text-xs font-semibold text-white">
-                                Chat on WhatsApp
-                            </button>
+                            <div className="flex items-center gap-3">
+                                <button className="flex items-center gap-1.5 rounded-full border border-zinc-700 px-3 py-1 text-xs text-zinc-300">
+                                    🔍 Search
+                                </button>
+                                <button className="rounded-full bg-green-500 px-3 py-1.5 text-xs font-semibold text-white">
+                                    WhatsApp
+                                </button>
+                            </div>
                         </div>
 
-                        {/* Product grid */}
-                        <div className="grid grid-cols-4 gap-px bg-zinc-100">
+                        {/* Category strip */}
+                        <div className="flex gap-4 overflow-x-auto border-b border-zinc-100 bg-white px-6 py-3 text-xs">
+                            {['All', 'Bags', 'Scarves', 'Footwear', 'Jewellery'].map((c, i) => (
+                                <span
+                                    key={c}
+                                    className={`whitespace-nowrap font-medium ${i === 0 ? 'text-zinc-900 underline underline-offset-4 decoration-brand' : 'text-zinc-400'}`}
+                                >
+                                    {c}
+                                </span>
+                            ))}
+                        </div>
+
+                        {/* Product grid — no gap-px, real store spacing */}
+                        <div className="grid grid-cols-4 gap-4 bg-white p-4">
                             {MOCK_PRODUCTS.map((p) => (
-                                <div key={p.name} className="bg-white p-3">
-                                    <div className={`mb-2 aspect-square rounded-lg ${p.color} flex items-center justify-center text-2xl`}>
+                                <div key={p.name} className="group relative overflow-hidden rounded-xl border border-zinc-100 bg-white">
+                                    {p.badge && (
+                                        <span className="absolute left-2 top-2 z-10 rounded-full bg-zinc-900 px-2 py-0.5 text-[9px] font-semibold text-white">
+                                            {p.badge}
+                                        </span>
+                                    )}
+                                    <div className={`aspect-square ${p.swatch} flex items-center justify-center text-3xl`}>
                                         👜
                                     </div>
-                                    <p className="text-xs font-medium text-zinc-900 line-clamp-1">{p.name}</p>
-                                    <p className="text-xs font-bold text-zinc-900">{p.price}</p>
-                                    <button className="mt-2 w-full rounded bg-zinc-900 py-1 text-[10px] font-semibold text-white">
-                                        Add to cart
-                                    </button>
+                                    <div className="p-3">
+                                        <p className="text-[11px] font-semibold text-zinc-800 line-clamp-1">{p.name}</p>
+                                        <div className="mt-1.5 flex items-center justify-between">
+                                            <p className="text-[11px] font-bold text-zinc-900">{p.price}</p>
+                                            <button className="rounded-md bg-zinc-900 px-2 py-0.5 text-[9px] font-semibold text-white">
+                                                Add
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
                             ))}
                         </div>
                     </div>
                 </div>
 
-                {/* Caption */}
                 <p className="mt-6 text-center text-sm text-site-muted">
                     Every store gets its own URL, theme, payment setup, and AI agent — out of the box.
                 </p>

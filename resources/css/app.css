@@ -18,20 +18,20 @@
      * border-brand, bg-brand-sky, etc. in any component.
      * ─────────────────────────────────────────────────────────────────────── */
 
-    /* Core brand — electric teal-green, slightly deepened for light-bg legibility */
-    --color-brand:         oklch(0.65 0.155 175);
-    --color-brand-hover:   oklch(0.57 0.142 175);
-    --color-brand-dim:     oklch(0.65 0.155 175 / 10%);
+    /* Core brand — deep coral/terracotta. Warm, premium, distinctly non-AI. */
+    --color-brand:         oklch(0.55 0.19 26);
+    --color-brand-hover:   oklch(0.49 0.20 26);
+    --color-brand-dim:     oklch(0.55 0.19 26 / 8%);
 
-    /* Gradient end — sky blue */
-    --color-brand-sky:     oklch(0.58 0.175 220);
+    /* Dark card ink — for mixed dark/light card layouts */
+    --color-site-ink:      oklch(0.12 0.012 260);
 
-    /* Landing page surface system — light mode */
-    --color-site-bg:       oklch(1 0 0);          /* pure white                */
-    --color-site-surface:  oklch(0.97 0 0);       /* zinc-50 — cards / panels  */
-    --color-site-border:   oklch(0.92 0 0);       /* zinc-200 — subtle borders */
-    --color-site-muted:    oklch(0.52 0 0);       /* zinc-500 — muted text     */
-    --color-site-fg:       oklch(0.09 0 0);       /* near black — primary text */
+    /* Landing page surface system — warm off-white */
+    --color-site-bg:       oklch(0.986 0.006 65);   /* warm off-white, like fine paper  */
+    --color-site-surface:  oklch(0.975 0.005 65);   /* slightly deeper warm surface     */
+    --color-site-border:   oklch(0.89 0.007 65);    /* warm subtle border               */
+    --color-site-muted:    oklch(0.50 0.010 250);   /* medium slate-gray muted text     */
+    --color-site-fg:       oklch(0.12 0.012 260);   /* deep charcoal-slate              */
 
     /* Tailwind utility mappings for site tokens */
     /* (these let us write text-site-fg, bg-site-bg, etc.) */
@@ -127,8 +127,8 @@
     --card-foreground: oklch(0.985 0 0);
     --popover: oklch(0.145 0 0);
     --popover-foreground: oklch(0.985 0 0);
-    /* Brand teal as the primary action color in dark mode */
-    --primary: oklch(0.79 0.152 175);
+    /* Brand coral as primary in dark mode */
+    --primary: oklch(0.72 0.18 26);
     --primary-foreground: oklch(0.09 0 0);
     --secondary: oklch(0.269 0 0);
     --secondary-foreground: oklch(0.985 0 0);
@@ -195,19 +195,17 @@
     animation: nav-slide-down 0.3s ease both;
 }
 
-/* ── Landing page grid background texture (light mode) ───────────────────── */
+/* ── Landing page dot grid (Tailwind-style) ───────────────────────────────── */
 .bg-grid {
-    background-image:
-        linear-gradient(oklch(0.88 0 0 / 80%) 1px, transparent 1px),
-        linear-gradient(90deg, oklch(0.88 0 0 / 80%) 1px, transparent 1px);
-    background-size: 64px 64px;
+    background-image: radial-gradient(circle, oklch(0.78 0.008 65) 1px, transparent 1px);
+    background-size: 22px 22px;
 }
 
-/* ── Card hover glow — teal border trace ─────────────────────────────────── */
+/* ── Card lift — clean shadow on hover, no glow ──────────────────────────── */
 .card-glow {
-    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 .card-glow:hover {
-    border-color: oklch(0.65 0.155 175 / 50%);
-    box-shadow: 0 0 0 1px oklch(0.65 0.155 175 / 12%), 0 8px 32px oklch(0.65 0.155 175 / 8%);
+    box-shadow: 0 4px 20px oklch(0 0 0 / 9%), 0 1px 4px oklch(0 0 0 / 6%);
+    transform: translateY(-2px);
 }

@@ -11,11 +11,11 @@ export default function HeroSection() {
     return (
         <section className="relative flex min-h-screen items-center overflow-hidden bg-site-bg bg-grid px-6 pt-16">
 
-            {/* Ambient glow — subtle teal tint on white */}
+            {/* Ambient warmth — barely-there coral tint, not a glow */}
             <div
-                className="animate-glow-pulse pointer-events-none absolute left-1/2 top-1/3 h-[700px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full"
+                className="pointer-events-none absolute left-1/2 top-1/3 h-[700px] w-[700px] -translate-x-1/2 -translate-y-1/2 rounded-full"
                 style={{
-                    background: 'radial-gradient(circle, oklch(0.65 0.155 175 / 8%) 0%, transparent 65%)',
+                    background: 'radial-gradient(circle, oklch(0.55 0.19 26 / 5%) 0%, transparent 60%)',
                 }}
             />
 
@@ -23,7 +23,7 @@ export default function HeroSection() {
 
                 {/* Badge */}
                 <div className={`animate-fade-up ${STAGGER[0]} mb-6 inline-flex items-center gap-2 rounded-full border border-site-border bg-site-surface px-4 py-1.5`}>
-                    <span className="h-1.5 w-1.5 rounded-full bg-brand" />
+                    <span className="h-1.5 w-1.5 rounded-full bg-brand animate-pulse" />
                     <span className="text-xs font-medium tracking-wide text-site-muted uppercase">
                         E-commerce OS for Africa
                     </span>
@@ -34,7 +34,7 @@ export default function HeroSection() {
                     Sell like a brand.{' '}
                     <span
                         className="bg-clip-text text-transparent"
-                        style={{ backgroundImage: 'linear-gradient(135deg, oklch(0.65 0.155 175), oklch(0.58 0.175 220))' }}
+                        style={{ backgroundImage: 'linear-gradient(135deg, oklch(0.55 0.19 26), oklch(0.45 0.18 18))' }}
                     >
                         Run like a business.
                     </span>

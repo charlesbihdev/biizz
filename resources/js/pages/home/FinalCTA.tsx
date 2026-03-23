@@ -7,7 +7,7 @@ export default function FinalCTA() {
             {/* Subtle teal glow on white */}
             <div
                 className="pointer-events-none absolute left-1/2 top-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full"
-                style={{ background: 'radial-gradient(circle, oklch(0.65 0.155 175 / 7%) 0%, transparent 65%)' }}
+                style={{ background: 'radial-gradient(circle, oklch(0.55 0.19 26 / 6%) 0%, transparent 65%)' }}
             />
 
             <div className="relative z-10 mx-auto max-w-2xl text-center">
