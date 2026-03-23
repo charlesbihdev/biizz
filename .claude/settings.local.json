@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(composer require:*)",
+      "Bash(php composer.phar require laravel/socialite spatie/laravel-data:^4.0 --no-interaction)",
+      "Bash(php -r \"echo PHP_VERSION;\")",
+      "Read(//c/Users/MENSAH COLOMBUS/.config/herd/bin//**)",
+      "Read(//c/Program Files/**)"
+    ]
+  }
+}
