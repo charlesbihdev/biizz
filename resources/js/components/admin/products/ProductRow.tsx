@@ -1,5 +1,5 @@
 import { Link } from '@inertiajs/react';
-import { Pencil, Trash2 } from 'lucide-react';
+import { Eye, Pencil, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { DeleteProductDialog } from '@/components/admin/products/DeleteProductDialog';
 import { edit } from '@/routes/businesses/products';
@@ -8,9 +8,10 @@ import type { Business, Product } from '@/types';
 type Props = {
     business: Business;
     product: Product;
+    onView: (product: Product) => void;
 };
 
-export function ProductRow({ business, product }: Props) {
+export function ProductRow({ business, product, onView }: Props) {
     const [deleteOpen, setDeleteOpen] = useState(false);
     const b = { business: business.slug };
 
@@ -53,6 +54,13 @@ export function ProductRow({ business, product }: Props) {
                 </td>
                 <td className="py-3 pl-3 pr-4 text-right">
                     <div className="flex items-center justify-end gap-2">
+                        <button
+                            type="button"
+                            onClick={() => onView(product)}
+                            className="rounded-lg p-1.5 text-site-muted transition hover:bg-site-surface hover:text-site-fg"
+                        >
+                            <Eye className="h-4 w-4" />
+                        </button>
                         <Link
                             href={edit({ ...b, product: product.id }).url}
                             className="rounded-lg p-1.5 text-site-muted transition hover:bg-site-surface hover:text-site-fg"

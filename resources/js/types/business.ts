@@ -5,18 +5,17 @@ export type ThemeId = 'classic' | 'boutique';
 export interface ThemeSettings {
     primary_color?:     string;
     accent_color?:      string;
+    color_scheme?:      string;
     hero_image?:        string;
     show_featured?:     boolean;
     show_testimonials?: boolean;
-    store_tagline?:     string;
+    show_hero?:         boolean;
     layout_style?:      'grid' | 'masonry' | 'list';
-    store_description?: string;
-    store_address?:     string;
-    whatsapp_number?:   string;
+    products_per_page?: '12' | '24' | '36';
     [key: string]: unknown; // forward-compatible unknown keys
 }
 
-export type FieldType = 'color' | 'file' | 'boolean' | 'text' | 'select';
+export type FieldType = 'color' | 'palette' | 'file' | 'boolean' | 'text' | 'select';
 
 export interface SchemaField {
     type:         FieldType;
@@ -29,6 +28,17 @@ export interface SchemaField {
 
 export type ThemeSchema = Record<string, SchemaField>;
 
+// ─── Category ────────────────────────────────────────────────────────────────
+
+export interface Category {
+    id:          number;
+    business_id: number;
+    name:        string;
+    slug:        string;
+    description: string | null;
+    sort_order:  number;
+}
+
 // ─── Business ────────────────────────────────────────────────────────────────
 
 export interface SocialLinks {
@@ -39,34 +49,58 @@ export interface SocialLinks {
     twitter?:   string;
 }
 
+export type BusinessType = 'physical' | 'digital';
+
+export type BusinessCategory =
+    | 'accessories' | 'automotive' | 'bakery' | 'beauty' | 'books'
+    | 'crafts' | 'digital' | 'drinks' | 'education' | 'electronics'
+    | 'fashion' | 'footwear' | 'furniture' | 'general' | 'groceries'
+    | 'jewelry' | 'kids' | 'pharmacy' | 'phones' | 'photography'
+    | 'restaurant' | 'sports';
+
 export interface Business {
-    id:              number;
-    name:            string;
-    slug:            string;
-    is_active:       boolean;
-    description:     string | null;
-    contact_email:   string | null;
-    phone:           string | null;
-    address:         string | null;
-    website:         string | null;
-    social_links:    SocialLinks;
-    theme_id:        ThemeId;
-    theme_settings:  ThemeSettings;
-    meta_pixel_id:   string | null;
-    ai_enabled:      boolean;
-    has_paystack:    boolean;
-    has_junipay:     boolean;
-    products?:       Product[];
-    created_at:      string;
-    updated_at:      string;
+    id:                number;
+    name:              string;
+    slug:              string;
+    is_active:         boolean;
+    logo_url:          string | null;
+    tagline:           string | null;
+    business_type:     BusinessType;
+    business_category: BusinessCategory | null;
+    description:       string | null;
+    contact_email:     string | null;
+    phone:             string | null;
+    address:           string | null;
+    website:           string | null;
+    social_links:      SocialLinks;
+    theme_id:          ThemeId;
+    theme_settings:    ThemeSettings;
+    meta_pixel_id:     string | null;
+    ai_enabled:        boolean;
+    has_paystack:      boolean;
+    has_junipay:       boolean;
+    products?:         Product[];
+    categories?:       Category[];
+    created_at:        string;
+    updated_at:        string;
 }
 
 // ─── Product ─────────────────────────────────────────────────────────────────
 
 export interface ProductImage {
-    url:   string;
-    alt?:  string;
-    order?: number;
+    id:         number;
+    product_id: number;
+    url:        string;
+    alt?:       string;
+    sort_order: number;
+}
+
+export interface ProductFile {
+    id:        number;
+    url:       string;
+    filename:  string;
+    file_size: number | null;
+    mime_type: string | null;
 }
 
 export interface Product {
@@ -80,7 +114,33 @@ export interface Product {
     stock:       number;
     is_active:   boolean;
     images:      ProductImage[];
+    files:       ProductFile[];
     metadata:    Record<string, unknown>;
+    created_at:  string;
+    updated_at:  string;
+}
+
+// ─── Pagination ───────────────────────────────────────────────────────────────
+
+export interface PaginatedData<T> {
+    data:             T[];
+    current_page:     number;
+    last_page:        number;
+    per_page:         number;
+    total:            number;
+    next_page_url:    string | null;
+    prev_page_url:    string | null;
+}
+
+// ─── Customer ────────────────────────────────────────────────────────────────
+
+export interface Customer {
+    id:          number;
+    business_id: number;
+    name:        string;
+    email:       string | null;
+    phone:       string | null;
+    notes:       string | null;
     created_at:  string;
     updated_at:  string;
 }
@@ -103,6 +163,8 @@ export interface OrderItem {
 export interface Order {
     id:               number;
     business_id:      number;
+    customer_id:      number | null;
+    customer:         Customer | null;
     customer_name:    string | null;
     customer_email:   string | null;
     customer_phone:   string | null;

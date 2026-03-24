@@ -49,6 +49,11 @@ class HandleInertiaRequests extends Middleware
             'businesses' => $request->user()
                 ? $request->user()->ownedBusinesses()->get(['id', 'name', 'slug'])->toArray()
                 : [],
+            'flash' => [
+                'success' => fn () => $request->session()->get('success'),
+                'error' => fn () => $request->session()->get('error'),
+                'warning' => fn () => $request->session()->get('warning'),
+            ],
             // business is only set on routes that go through ResolveBusiness middleware
             // never includes payment keys — only safe presentation fields
             'business' => $business ? [

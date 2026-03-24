@@ -22,6 +22,7 @@ import {
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { show } from '@/routes/businesses';
 import { index as categoriesIndex } from '@/routes/businesses/categories';
+import { index as ordersIndex } from '@/routes/businesses/orders';
 import { edit as paymentsEdit } from '@/routes/businesses/payments';
 import { index as productsIndex } from '@/routes/businesses/products';
 import { edit as settingsEdit } from '@/routes/businesses/settings';
@@ -95,7 +96,7 @@ export function NavBusiness({ business }: { business: Business }) {
         { title: 'Overview',   href: show(b).url,            icon: LayoutDashboard, exact: true },
         { title: 'Products',   href: productsIndex(b).url,   icon: Package },
         { title: 'Categories', href: categoriesIndex(b).url, icon: FolderOpen },
-        { title: 'Orders',     href: null,                   icon: ShoppingBag,    soon: true },
+        { title: 'Orders',     href: ordersIndex(b).url,     icon: ShoppingBag },
     ];
 
     const storefrontItems: NavEntry[] = [

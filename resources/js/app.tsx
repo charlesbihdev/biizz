@@ -1,8 +1,9 @@
 import { createInertiaApp } from '@inertiajs/react';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
-import { StrictMode } from 'react';
+import React, { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { TooltipProvider } from '@/components/ui/tooltip';
+import ToastProvider from '@/components/toast-provider';
 import '../css/app.css';
 import { initializeTheme } from '@/hooks/use-appearance';
 
@@ -10,11 +11,22 @@ const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
-    resolve: (name) =>
-        resolvePageComponent(
+    resolve: async (name) => {
+        const page = await resolvePageComponent(
             `./pages/${name}.tsx`,
             import.meta.glob('./pages/**/*.tsx'),
-        ),
+        ) as { default: React.ComponentType };
+
+        const Original = page.default;
+        return {
+            ...page,
+            default: (props: Record<string, unknown>) => (
+                <ToastProvider>
+                    <Original {...props} />
+                </ToastProvider>
+            ),
+        };
+    },
     setup({ el, App, props }) {
         const root = createRoot(el);
 

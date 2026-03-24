@@ -1,4 +1,5 @@
 import { FileUploader } from '@/components/admin/theme/FileUploader';
+import { PalettePicker } from '@/components/admin/theme/PalettePicker';
 import { Label } from '@/components/ui/label';
 import type { Business, SchemaField as SchemaFieldType, ThemeSettings } from '@/types';
 
@@ -34,6 +35,17 @@ export function SchemaField({ fieldKey, field, business, value, onChange }: Prop
                         className="w-28 rounded-lg border border-site-border px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/30"
                     />
                 </div>
+            )}
+
+            {field.type === 'palette' && (
+                <PalettePicker
+                    value={value as string | undefined}
+                    onChange={(primary, accent, id) => {
+                        onChange('primary_color', primary);
+                        onChange('accent_color', accent);
+                        onChange(fieldKey, id);
+                    }}
+                />
             )}
 
             {field.type === 'file' && (

@@ -1,80 +1,43 @@
-import type { CartItem, Product } from '@/types/business';
+import type { CartItem, Category, Product } from '@/types/business';
+import ProductCard from './ProductCard';
 
 interface Props {
-    products:  Product[];
-    onAddToCart: (item: CartItem) => void;
-    primaryColor?: string;
+    products:       Product[];
+    onAddToCart:    (item: CartItem) => void;
+    accentColor?:   string;
+    activeCategory: Category | null;
+    isDigital?:     boolean;
 }
 
-export default function ProductGrid({ products, onAddToCart, primaryColor }: Props) {
-    if (products.length === 0) {
-        return (
-            <div className="py-20 text-center text-zinc-500">
-                <p className="text-lg">No products available yet.</p>
-            </div>
-        );
-    }
+export default function ProductGrid({ products, onAddToCart, accentColor, activeCategory, isDigital }: Props) {
+    const heading = activeCategory ? activeCategory.name : 'All Products';
 
     return (
-        <section className="px-4 py-12 sm:px-6 lg:px-8">
+        <section id="products" className="px-4 py-10 sm:px-6 lg:px-8">
             <div className="mx-auto max-w-7xl">
-                <h2 className="mb-8 text-2xl font-bold text-zinc-900">Our Products</h2>
-                <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
-                    {products.map((product) => (
-                        <ProductCard
-                            key={product.id}
-                            product={product}
-                            onAddToCart={onAddToCart}
-                            primaryColor={primaryColor}
-                        />
-                    ))}
+                <div className="mb-6 flex items-baseline justify-between">
+                    <h2 className="text-xl font-bold text-zinc-900">{heading}</h2>
+                    <p className="text-sm text-zinc-500">{products.length} item{products.length !== 1 ? 's' : ''}</p>
                 </div>
-            </div>
-        </section>
-    );
-}
 
-interface CardProps {
-    product:      Product;
-    onAddToCart:  (item: CartItem) => void;
-    primaryColor?: string;
-}
-
-function ProductCard({ product, onAddToCart, primaryColor }: CardProps) {
-    const image = product.images[0]?.url;
-    const price = parseFloat(product.price);
-
-    return (
-        <div className="group flex flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm transition hover:shadow-md">
-            <div className="aspect-square overflow-hidden bg-zinc-100">
-                {image ? (
-                    <img
-                        src={image}
-                        alt={product.name}
-                        className="h-full w-full object-cover transition duration-300 group-hover:scale-105"
-                    />
+                {products.length === 0 ? (
+                    <div className="rounded-2xl border border-dashed border-zinc-300 py-20 text-center">
+                        <p className="text-sm text-zinc-400">No products in this category yet.</p>
+                    </div>
                 ) : (
-                    <div className="flex h-full items-center justify-center text-zinc-300">
-                        <span className="text-4xl">📦</span>
+                    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 lg:gap-5">
+                        {products.map((product) => (
+                            <ProductCard
+                                key={product.id}
+                                product={product}
+                                onAddToCart={onAddToCart}
+                                accentColor={accentColor}
+                                isDigital={isDigital}
+                            />
+                        ))}
                     </div>
                 )}
             </div>
-            <div className="flex flex-1 flex-col p-3">
-                <p className="line-clamp-2 text-sm font-medium text-zinc-900">{product.name}</p>
-                <p className="mt-1 text-sm font-bold text-zinc-900">
-                    {price.toLocaleString('en-GH', { style: 'currency', currency: 'GHS', minimumFractionDigits: 2 })}
-                </p>
-                <div className="mt-auto pt-3">
-                    <button
-                        onClick={() => onAddToCart({ id: product.id, name: product.name, price, quantity: 1, image })}
-                        disabled={product.stock === 0}
-                        className="w-full rounded-lg py-2 text-xs font-semibold text-white transition disabled:cursor-not-allowed disabled:opacity-40"
-                        style={{ backgroundColor: primaryColor ?? '#1a1a1a' }}
-                    >
-                        {product.stock === 0 ? 'Out of Stock' : 'Add to Cart'}
-                    </button>
-                </div>
-            </div>
-        </div>
+        </section>
     );
 }

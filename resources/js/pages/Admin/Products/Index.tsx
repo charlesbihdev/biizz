@@ -1,22 +1,20 @@
+import { Link } from '@inertiajs/react';
 import { Plus } from 'lucide-react';
 import { useState } from 'react';
-import { AddProductModal } from '@/components/admin/products/AddProductModal';
+import { ProductDetailModal } from '@/components/admin/products/ProductDetailModal';
 import { ProductRow } from '@/components/admin/products/ProductRow';
 import AppSidebarLayout from '@/layouts/app/app-sidebar-layout';
 import { show } from '@/routes/businesses';
-import { index } from '@/routes/businesses/products';
+import { create, index } from '@/routes/businesses/products';
 import type { Business, Product } from '@/types';
-
-type Category = { id: number; name: string };
 
 type Props = {
     business: Business;
     products: { data: Product[]; total: number };
-    categories: Category[];
 };
 
-export default function ProductsIndex({ business, products, categories }: Props) {
-    const [addOpen, setAddOpen] = useState(false);
+export default function ProductsIndex({ business, products }: Props) {
+    const [viewingProduct, setViewingProduct] = useState<Product | null>(null);
     const b = { business: business.slug };
 
     return (
@@ -32,14 +30,13 @@ export default function ProductsIndex({ business, products, categories }: Props)
                         <h1 className="text-xl font-bold text-site-fg">Products</h1>
                         <p className="mt-0.5 text-sm text-site-muted">{products.total} total</p>
                     </div>
-                    <button
-                        type="button"
-                        onClick={() => setAddOpen(true)}
+                    <Link
+                        href={create(b).url}
                         className="inline-flex items-center gap-2 rounded-full bg-brand px-5 py-2 text-sm font-bold text-white transition hover:bg-brand-hover"
                     >
                         <Plus className="h-4 w-4" />
                         Add product
-                    </button>
+                    </Link>
                 </div>
 
                 {products.data.length === 0 ? (
@@ -48,13 +45,12 @@ export default function ProductsIndex({ business, products, categories }: Props)
                         <p className="mt-1 text-xs text-site-muted">
                             Add your first product to start selling.
                         </p>
-                        <button
-                            type="button"
-                            onClick={() => setAddOpen(true)}
+                        <Link
+                            href={create(b).url}
                             className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-brand hover:underline"
                         >
                             <Plus className="h-4 w-4" /> Add product
-                        </button>
+                        </Link>
                     </div>
                 ) : (
                     <div className="overflow-hidden rounded-xl border border-site-border bg-white">
@@ -74,6 +70,7 @@ export default function ProductsIndex({ business, products, categories }: Props)
                                         key={product.id}
                                         business={business}
                                         product={product}
+                                        onView={setViewingProduct}
                                     />
                                 ))}
                             </tbody>
@@ -82,11 +79,10 @@ export default function ProductsIndex({ business, products, categories }: Props)
                 )}
             </div>
 
-            <AddProductModal
+            <ProductDetailModal
                 business={business}
-                categories={categories}
-                open={addOpen}
-                onOpenChange={setAddOpen}
+                product={viewingProduct}
+                onClose={() => setViewingProduct(null)}
             />
         </AppSidebarLayout>
     );

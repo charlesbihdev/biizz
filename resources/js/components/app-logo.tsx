@@ -1,14 +1,13 @@
 export default function AppLogo() {
     return (
         <>
-            <div className="flex aspect-square size-8 items-center justify-center rounded-lg bg-brand text-base font-black text-white">
-                b
-            </div>
-            <div className="ml-1 grid flex-1 text-left text-sm">
-                <span className="mb-0.5 truncate leading-tight font-bold">
-                    biizz
-                </span>
-            </div>
+            {/* Compact slot — visible when sidebar is collapsed to icon mode */}
+            <span className="text-base font-black leading-none text-brand">b.</span>
+
+            {/* Full text — hidden in collapsed sidebar */}
+            <span className="text-sm font-bold tracking-tight text-site-fg">
+                biizz<span className="text-brand">.</span>app
+            </span>
         </>
     );
 }

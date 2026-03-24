@@ -11,6 +11,11 @@ declare module '@inertiajs/core' {
             businesses:  { id: number; name: string; slug: string }[];
             // Present only on routes that go through ResolveBusiness middleware
             business:    Business | null;
+            flash: {
+                success?: string | null;
+                error?:   string | null;
+                warning?: string | null;
+            };
             [key: string]: unknown;
         };
     }

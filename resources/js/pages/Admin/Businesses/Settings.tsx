@@ -1,31 +1,17 @@
 import { useForm } from '@inertiajs/react';
-import { CheckCircle2, Facebook, Globe, Instagram, LoaderCircle, MessageCircle, Twitter } from 'lucide-react';
+import { CheckCircle2, Facebook, Globe, Instagram, LoaderCircle, Lock, MessageCircle, Package, Twitter, Zap } from 'lucide-react';
+import { FileUploader } from '@/components/admin/theme/FileUploader';
 import InputError from '@/components/input-error';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { BUSINESS_CATEGORIES } from '@/data/businessCategories';
 import AppSidebarLayout from '@/layouts/app/app-sidebar-layout';
 import { show } from '@/routes/businesses';
 import { update as settingsUpdate } from '@/routes/businesses/settings';
-import type { Business, SocialLinks } from '@/types';
+import type { Business, BusinessCategory, SocialLinks } from '@/types';
 
-function FormSection({ title, description, children }: {
-    title: string;
-    description: string;
-    children: React.ReactNode;
-}) {
-    return (
-        <div className="grid gap-6 md:grid-cols-[240px_1fr]">
-            <div>
-                <p className="text-sm font-semibold text-site-fg">{title}</p>
-                <p className="mt-1 text-xs leading-relaxed text-site-muted">{description}</p>
-            </div>
-            <div className="rounded-2xl border border-site-border bg-white p-6">
-                <div className="flex flex-col gap-5">{children}</div>
-            </div>
-        </div>
-    );
-}
+import { FormSection } from '@/components/admin/form-section';
 
 function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
     return (
@@ -42,12 +28,15 @@ export default function BusinessSettings({ business }: { business: Business }) {
     const sl: SocialLinks = business.social_links ?? {};
 
     const { data, setData, submit, processing, errors, recentlySuccessful } = useForm({
-        name:          business.name ?? '',
-        description:   business.description ?? '',
-        contact_email: business.contact_email ?? '',
-        phone:         business.phone ?? '',
-        address:       business.address ?? '',
-        website:       business.website ?? '',
+        name:              business.name ?? '',
+        logo_url:          business.logo_url ?? '',
+        tagline:           business.tagline ?? '',
+        business_category: (business.business_category ?? '') as BusinessCategory | '',
+        description:       business.description ?? '',
+        contact_email:     business.contact_email ?? '',
+        phone:             business.phone ?? '',
+        address:           business.address ?? '',
+        website:           business.website ?? '',
         social_links: {
             instagram: sl.instagram ?? '',
             whatsapp:  sl.whatsapp  ?? '',
@@ -68,10 +57,10 @@ export default function BusinessSettings({ business }: { business: Business }) {
                 { title: 'Business Settings', href: '#' },
             ]}
         >
-            <div className="mx-auto max-w-3xl p-6 lg:p-8">
+            <div className="p-6 lg:p-8">
 
                 <div className="mb-8">
-                    <h1 className="text-2xl font-bold text-site-fg">Business Settings</h1>
+                    <h1 className="text-xl font-bold text-site-fg">Business Settings</h1>
                     <p className="mt-1 text-sm text-site-muted">
                         Update your business profile, contact details, and social presence.
                     </p>
@@ -81,6 +70,76 @@ export default function BusinessSettings({ business }: { business: Business }) {
                     onSubmit={(e) => { e.preventDefault(); submit(settingsUpdate(b)); }}
                     className="flex flex-col gap-8"
                 >
+                    {/* ── Brand ── */}
+                    <FormSection
+                        title="Brand"
+                        description="Your logo and tagline appear on your storefront across all themes."
+                    >
+                        <Field label="Logo" error={errors.logo_url}>
+                            <FileUploader
+                                business={business}
+                                value={data.logo_url}
+                                onChange={(url) => setData('logo_url', url)}
+                            />
+                            <p className="text-xs text-site-muted">PNG, JPG or SVG. Falls back to your business name if not set.</p>
+                        </Field>
+
+                        <Field label="Tagline" error={errors.tagline}>
+                            <Input
+                                value={data.tagline}
+                                onChange={(e) => setData('tagline', e.target.value)}
+                                placeholder="Dress to impress, every day."
+                                maxLength={150}
+                                className="border-site-border focus-visible:ring-brand/30"
+                            />
+                            <p className="text-right text-[11px] text-site-muted/60">{data.tagline.length}/150</p>
+                        </Field>
+                    </FormSection>
+
+                    {/* ── Store Type ── */}
+                    <FormSection
+                        title="Store Type"
+                        description="Choose what kind of store you run and your industry category."
+                    >
+                        <div className="flex flex-col gap-2">
+                            <Label>Business type</Label>
+                            <div className="flex items-center gap-3 rounded-xl border border-site-border bg-zinc-50 p-4">
+                                {business.business_type === 'digital' ? (
+                                    <Zap className="h-5 w-5 text-brand" />
+                                ) : (
+                                    <Package className="h-5 w-5 text-brand" />
+                                )}
+                                <div className="flex-1">
+                                    <p className="text-sm font-semibold capitalize text-site-fg">
+                                        {business.business_type}
+                                    </p>
+                                    <p className="text-xs text-site-muted">
+                                        {business.business_type === 'digital'
+                                            ? 'Files and downloads. 5% per-sale commission.'
+                                            : 'Goods with stock management. Subscription billing.'}
+                                    </p>
+                                </div>
+                                <span className="flex items-center gap-1 rounded-full bg-zinc-200 px-2.5 py-1 text-[11px] font-medium text-zinc-500">
+                                    <Lock className="h-3 w-3" />
+                                    Locked
+                                </span>
+                            </div>
+                        </div>
+
+                        <Field label="Category" error={errors.business_category}>
+                            <select
+                                value={data.business_category}
+                                onChange={(e) => setData('business_category', e.target.value as BusinessCategory | '')}
+                                className="w-full rounded-lg border border-site-border bg-white px-3 py-2 text-sm text-site-fg focus:outline-none focus:ring-2 focus:ring-brand/30"
+                            >
+                                <option value="">Select a category…</option>
+                                {BUSINESS_CATEGORIES.map((cat) => (
+                                    <option key={cat.value} value={cat.value}>{cat.label}</option>
+                                ))}
+                            </select>
+                        </Field>
+                    </FormSection>
+
                     {/* ── Profile ── */}
                     <FormSection
                         title="Profile"
@@ -163,27 +222,29 @@ export default function BusinessSettings({ business }: { business: Business }) {
                         title="Social & Links"
                         description="Connect your social profiles to build trust with customers."
                     >
-                        {(
-                            [
-                                { key: 'instagram', label: 'Instagram', icon: Instagram,     placeholder: 'https://instagram.com/yourbrand' },
-                                { key: 'whatsapp',  label: 'WhatsApp',  icon: MessageCircle, placeholder: '+233 20 000 0000' },
-                                { key: 'facebook',  label: 'Facebook',  icon: Facebook,      placeholder: 'https://facebook.com/yourbrand' },
-                                { key: 'tiktok',    label: 'TikTok',    icon: Globe,         placeholder: 'https://tiktok.com/@yourbrand' },
-                                { key: 'twitter',   label: 'X / Twitter', icon: Twitter,     placeholder: 'https://x.com/yourbrand' },
-                            ] as const
-                        ).map(({ key, label, icon: Icon, placeholder }) => (
-                            <Field key={key} label={label}>
-                                <div className="flex items-center rounded-lg border border-site-border bg-white focus-within:ring-2 focus-within:ring-brand/30">
-                                    <Icon className="ml-3 h-4 w-4 shrink-0 text-site-muted" />
-                                    <Input
-                                        value={data.social_links[key]}
-                                        onChange={(e) => setSocial(key, e.target.value)}
-                                        placeholder={placeholder}
-                                        className="border-0 focus-visible:ring-0"
-                                    />
-                                </div>
-                            </Field>
-                        ))}
+                        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+                            {(
+                                [
+                                    { key: 'instagram', label: 'Instagram', icon: Instagram,     placeholder: 'https://instagram.com/yourbrand' },
+                                    { key: 'whatsapp',  label: 'WhatsApp',  icon: MessageCircle, placeholder: '+233 20 000 0000' },
+                                    { key: 'facebook',  label: 'Facebook',  icon: Facebook,      placeholder: 'https://facebook.com/yourbrand' },
+                                    { key: 'tiktok',    label: 'TikTok',    icon: Globe,         placeholder: 'https://tiktok.com/@yourbrand' },
+                                    { key: 'twitter',   label: 'X / Twitter', icon: Twitter,     placeholder: 'https://x.com/yourbrand' },
+                                ] as const
+                            ).map(({ key, label, icon: Icon, placeholder }) => (
+                                <Field key={key} label={label}>
+                                    <div className="flex items-center rounded-lg border border-site-border bg-white focus-within:ring-2 focus-within:ring-brand/30">
+                                        <Icon className="ml-3 h-4 w-4 shrink-0 text-site-muted" />
+                                        <Input
+                                            value={data.social_links[key]}
+                                            onChange={(e) => setSocial(key, e.target.value)}
+                                            placeholder={placeholder}
+                                            className="border-0 focus-visible:ring-0"
+                                        />
+                                    </div>
+                                </Field>
+                            ))}
+                        </div>
                     </FormSection>
 
                     {/* ── Save ── */}

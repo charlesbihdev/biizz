@@ -13,7 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 #[ScopedBy([BusinessScope::class])]
-#[Fillable(['business_id', 'category_id', 'name', 'description', 'price', 'stock', 'is_active', 'images', 'metadata'])]
+#[Fillable(['business_id', 'category_id', 'name', 'description', 'price', 'stock', 'is_active', 'metadata'])]
 class Product extends Model
 {
     /** @use HasFactory<ProductFactory> */
@@ -25,7 +25,6 @@ class Product extends Model
             'price' => 'decimal:2',
             'stock' => 'integer',
             'is_active' => 'boolean',
-            'images' => 'array',
             'metadata' => 'array',
         ];
     }
@@ -44,6 +43,18 @@ class Product extends Model
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class);
+    }
+
+    /** @return HasMany<ProductImage, $this> */
+    public function images(): HasMany
+    {
+        return $this->hasMany(ProductImage::class)->orderBy('sort_order');
+    }
+
+    /** @return HasMany<ProductFile, $this> */
+    public function files(): HasMany
+    {
+        return $this->hasMany(ProductFile::class);
     }
 
     /** @return HasMany<OrderItem, $this> */

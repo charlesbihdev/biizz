@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Business;
+use App\Models\Product;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -18,10 +19,40 @@ class MediaController extends Controller
     {
         abort_unless($business->isOwnedBy(auth()->user()), 403);
 
-        $request->validate(['file' => ['required', 'image', 'max:5120']]);
+        $request->validate(['file' => ['required', 'image', 'max:6144']]);
 
-        $path = $request->file('file')->store("businesses/{$business->id}", 'public');
+        $path = $request->file('file')->store("businesses/{$business->id}", 's3');
 
-        return response()->json(['url' => Storage::disk('public')->url($path)]);
+        return response()->json(['url' => Storage::disk('s3')->url($path)]);
+    }
+
+    /**
+     * Upload a downloadable file for a digital product (PDF, ZIP, EPUB — up to 50 MB).
+     */
+    public function storeFile(Request $request, Business $business, Product $product): JsonResponse
+    {
+        abort_unless($business->isOwnedBy(auth()->user()), 403);
+
+        $request->validate([
+            'file' => ['required', 'file', 'max:51200', 'mimes:pdf,zip,epub'],
+        ]);
+
+        $uploaded = $request->file('file');
+
+        $path = $uploaded->store("businesses/{$business->id}/files", 's3');
+
+        $file = $product->files()->create([
+            'url' => Storage::disk('s3')->url($path),
+            'filename' => $uploaded->getClientOriginalName(),
+            'file_size' => $uploaded->getSize(),
+            'mime_type' => $uploaded->getMimeType(),
+        ]);
+
+        return response()->json([
+            'id' => $file->id,
+            'url' => $file->url,
+            'filename' => $file->filename,
+            'file_size' => $file->file_size,
+        ]);
     }
 }

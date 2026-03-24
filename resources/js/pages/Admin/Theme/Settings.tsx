@@ -1,14 +1,15 @@
 import { router } from '@inertiajs/react';
-import { LoaderCircle } from 'lucide-react';
+import { Eye, LoaderCircle, X } from 'lucide-react';
 import { useState } from 'react';
 import { LivePreview } from '@/components/admin/theme/LivePreview';
 import { SchemaField } from '@/components/admin/theme/SchemaField';
 import { ThemePicker } from '@/components/admin/theme/ThemePicker';
+import { FormSection } from '@/components/admin/form-section';
 import AppSidebarLayout from '@/layouts/app/app-sidebar-layout';
 import { show } from '@/routes/businesses';
 import { edit, update } from '@/routes/businesses/theme';
-import { SCHEMA_MAP } from '@/types/theme';
 import type { Business, ThemeId, ThemeSettings } from '@/types';
+import { SCHEMA_MAP } from '@/types/theme';
 
 export default function ThemeSettings({ business }: { business: Business }) {
     const b = { business: business.slug };
@@ -16,8 +17,10 @@ export default function ThemeSettings({ business }: { business: Business }) {
     const [activeTheme, setActiveTheme] = useState<ThemeId>(business.theme_id as ThemeId);
     const [settings, setSettings] = useState<ThemeSettings>({ ...business.theme_settings });
     const [saving, setSaving] = useState(false);
+    const [previewOpen, setPreviewOpen] = useState(false);
 
     const schema = SCHEMA_MAP[activeTheme];
+    const isCompactField = (fieldType: string): boolean => fieldType === 'boolean' || fieldType === 'select';
 
     const handleFieldChange = (key: string, value: ThemeSettings[string]) => {
         setSettings((prev) => ({ ...prev, [key]: value }));
@@ -28,7 +31,7 @@ export default function ThemeSettings({ business }: { business: Business }) {
 
         router.visit(update(b).url, {
             method: 'patch',
-            data: settings as Record<string, unknown>,
+            data: settings as any,
             preserveScroll: true,
             onFinish: () => setSaving(false),
         });
@@ -41,61 +44,85 @@ export default function ThemeSettings({ business }: { business: Business }) {
                 { title: 'Theme', href: edit(b).url },
             ]}
         >
-            <div className="flex h-[calc(100vh-4rem)] flex-col lg:flex-row lg:overflow-hidden">
-
-                {/* Settings panel */}
-                <div className="flex w-full flex-col gap-6 overflow-y-auto p-6 lg:w-80 lg:shrink-0 lg:p-6 xl:w-96">
+            <div className="p-6 lg:p-8">
+                <div className="mb-8 flex items-center justify-between">
                     <div>
                         <h1 className="text-xl font-bold text-site-fg">Theme</h1>
-                        <p className="mt-0.5 text-sm text-site-muted">
-                            Customise how your store looks.
-                        </p>
+                        <p className="mt-1 text-sm text-site-muted">Customise how your store looks.</p>
                     </div>
+                    <button
+                        type="button"
+                        onClick={() => setPreviewOpen(true)}
+                        className="flex items-center gap-2 rounded-full border border-site-border px-4 py-2 text-sm font-medium text-site-fg transition hover:border-zinc-400 hover:bg-site-surface"
+                    >
+                        <Eye className="h-4 w-4" />
+                        Preview
+                    </button>
+                </div>
 
-                    <div>
-                        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-site-muted">
-                            Layout
-                        </p>
+                <div className="flex flex-col gap-8">
+                    <FormSection title="Layout" description="Choose the base structure of your store.">
                         <ThemePicker
                             business={business}
                             activeTheme={activeTheme}
                             onChange={setActiveTheme}
                         />
+                    </FormSection>
+
+                    <FormSection title="Settings" description="Customize fonts, colors, and layout preferences.">
+                        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+                            {Object.entries(schema).map(([key, field]) => (
+                                <div key={key} className={isCompactField(field.type) ? '' : 'lg:col-span-2'}>
+                                    <SchemaField
+                                        fieldKey={key}
+                                        field={field}
+                                        business={business}
+                                        value={settings[key]}
+                                        onChange={handleFieldChange}
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                    </FormSection>
+
+                    {/* ── Save ── */}
+                    <div className="flex items-center justify-end gap-3">
+                        <button
+                            type="button"
+                            onClick={handleSave}
+                            disabled={saving}
+                            className="flex items-center gap-2 rounded-full bg-brand px-6 py-2.5 text-sm font-bold text-white transition hover:bg-brand-hover disabled:opacity-60"
+                        >
+                            {saving && <LoaderCircle className="h-4 w-4 animate-spin" />}
+                            Save changes
+                        </button>
                     </div>
-
-                    <div className="flex flex-col gap-5">
-                        <p className="text-xs font-semibold uppercase tracking-wide text-site-muted">
-                            Settings
-                        </p>
-                        {Object.entries(schema).map(([key, field]) => (
-                            <SchemaField
-                                key={key}
-                                fieldKey={key}
-                                field={field}
-                                business={business}
-                                value={settings[key]}
-                                onChange={handleFieldChange}
-                            />
-                        ))}
-                    </div>
-
-                    <button
-                        type="button"
-                        onClick={handleSave}
-                        disabled={saving}
-                        className="flex items-center justify-center gap-2 rounded-full bg-brand py-2.5 text-sm font-bold text-white transition hover:bg-brand-hover disabled:opacity-60"
-                    >
-                        {saving && <LoaderCircle className="h-4 w-4 animate-spin" />}
-                        Save changes
-                    </button>
                 </div>
-
-                {/* Live preview */}
-                <div className="hidden flex-1 p-4 lg:flex lg:p-6 lg:pl-0">
-                    <LivePreview slug={business.slug} settings={settings} />
-                </div>
-
             </div>
+
+            {/* ── LivePreview (hidden, loads in bg for instant modal open) ── */}
+            <div aria-hidden className="hidden">
+                <LivePreview slug={business.slug} settings={settings} />
+            </div>
+
+            {/* ── Preview modal ── */}
+            {previewOpen && (
+                <div className="fixed inset-0 z-50 flex flex-col bg-white">
+                    <div className="flex items-center justify-between border-b border-site-border px-4 py-3">
+                        <p className="text-sm font-semibold text-site-fg">Storefront Preview</p>
+                        <button
+                            type="button"
+                            onClick={() => setPreviewOpen(false)}
+                            className="rounded-full p-1.5 text-site-muted transition hover:bg-site-surface hover:text-site-fg"
+                        >
+                            <X className="h-4 w-4" />
+                        </button>
+                    </div>
+                    <div className="flex-1">
+                        <LivePreview slug={business.slug} settings={settings} />
+                    </div>
+                </div>
+            )}
         </AppSidebarLayout>
     );
 }

@@ -2,13 +2,16 @@
 
 namespace App\Models;
 
+use App\Models\Scopes\BusinessScope;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
+use Illuminate\Database\Eloquent\Attributes\ScopedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
 #[Fillable(['business_id', 'name', 'slug', 'description', 'sort_order'])]
+#[ScopedBy([BusinessScope::class])]
 class Category extends Model
 {
     protected static function booted(): void

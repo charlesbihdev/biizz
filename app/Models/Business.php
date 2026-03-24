@@ -19,6 +19,7 @@ use Illuminate\Support\Str;
  */
 #[Fillable([
     'name', 'slug', 'owner_id', 'is_active',
+    'logo_url', 'tagline', 'business_type', 'business_category',
     'description', 'contact_email', 'phone', 'address', 'website', 'social_links',
     'theme_id', 'theme_settings', 'meta_pixel_id', 'ai_enabled',
 ])]
@@ -74,13 +75,19 @@ class Business extends Model
         return $this->hasMany(Order::class);
     }
 
+    /** @return HasMany<Customer, $this> */
+    public function customers(): HasMany
+    {
+        return $this->hasMany(Customer::class);
+    }
+
     /** @return BelongsToMany<User, $this> */
     public function members(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'business_users')
             ->using(BusinessUser::class)
             ->withPivot('role')
-            ->withTimestamps('created_at', 'created_at');
+            ->withTimestamps();
     }
 
     // -------------------------------------------------------------------------

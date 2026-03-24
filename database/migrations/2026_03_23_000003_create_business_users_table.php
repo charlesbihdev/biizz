@@ -13,8 +13,7 @@ return new class extends Migration
             $table->foreignId('business_id')->constrained()->cascadeOnDelete();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->string('role', 20)->default('owner');
-            $table->timestamp('created_at')->nullable();
-            // No updated_at — membership changes are delete + re-insert (audit-friendly)
+            $table->timestamps();
 
             $table->unique(['business_id', 'user_id']);
         });

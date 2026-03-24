@@ -20,7 +20,13 @@
       "Bash(vendor/bin/pint --dirty --format agent)",
       "Bash(\"C:/Users/MENSAH COLOMBUS/.config/herd/bin/php.bat\" vendor/bin/pint --dirty --format agent)",
       "Bash(npx shadcn@latest add alert-dialog --yes)",
-      "Bash(npx shadcn@latest add alert-dialog --overwrite)"
+      "Bash(npx shadcn@latest add alert-dialog --overwrite)",
+      "Bash(find '/c/Users/MENSAH COLOMBUS/Herd/biizz/resources/js/components/admin' -name *.tsx)",
+      "Bash(vendor/bin/pint app/Http/Middleware/HandleInertiaRequests.php --format agent)",
+      "Bash(\"/c/Users/MENSAH COLOMBUS/.config/herd/bin/php84/php.exe\" vendor/bin/pint app/Http/Middleware/HandleInertiaRequests.php --format agent)",
+      "Bash(\"/c/Users/MENSAH COLOMBUS/.config/herd/bin/php84/php.exe\" vendor/bin/pint app/Models/Category.php app/Http/Controllers/Admin/CategoryController.php --format agent)",
+      "Bash(\"/c/Users/MENSAH COLOMBUS/.config/herd/bin/php84/php.exe\" vendor/bin/pint app/Http/Requests/Admin/StoreProductRequest.php app/Http/Requests/Admin/UpdateProductRequest.php app/Http/Controllers/Admin/ProductController.php database/migrations/2026_03_23_000003_create_categories_table.php database/migrations/2026_03_23_000004_create_products_table.php --format agent)",
+      "Bash(\"/c/Users/MENSAH COLOMBUS/.config/herd/bin/php84/php.exe\" artisan migrate:fresh --seed --no-interaction)"
     ]
   }
 }

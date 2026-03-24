@@ -1,9 +1,10 @@
 import BoutiqueLayout from '@/Themes/Boutique/Layout';
 import ClassicLayout from '@/Themes/Classic/Layout';
-import type { Business, Product } from '@/types';
+import type { Business, PaginatedData, Product } from '@/types/business';
 
 type Props = {
-    business: Business & { products?: Product[] };
+    business:   Business;
+    products:   PaginatedData<Product>;
     isPreview?: boolean;
 };
 
@@ -12,9 +13,8 @@ const THEME_MAP = {
     boutique: BoutiqueLayout,
 } as const;
 
-export default function StorefrontMain({ business, isPreview = false }: Props) {
+export default function StorefrontMain({ business, products, isPreview = false }: Props) {
     const ThemeLayout = THEME_MAP[business.theme_id as keyof typeof THEME_MAP] ?? ClassicLayout;
-    const products = business.products ?? [];
 
     return (
         <>

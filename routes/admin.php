@@ -3,6 +3,7 @@
 use App\Http\Controllers\Admin\BusinessController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\MediaController;
+use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ThemeSettingsController;
@@ -73,7 +74,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::delete('/{category}', 'destroy')->name('destroy');
             });
 
+            // Orders
+            Route::prefix('orders')->name('orders.')->controller(OrderController::class)->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::get('/{order}', 'show')->name('show');
+                Route::patch('/{order}/status', 'updateStatus')->name('updateStatus');
+            });
+
             // Media uploads (theme images etc.)
             Route::post('media', [MediaController::class, 'store'])->name('media.store');
+
+            // Digital product file uploads (50 MB limit)
+            Route::post('products/{product}/files', [MediaController::class, 'storeFile'])->name('products.files.store');
         });
 });

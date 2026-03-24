@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Business;
 use App\Models\Category;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -54,7 +55,11 @@ class CategoryController extends Controller
     {
         abort_unless($business->isOwnedBy(auth()->user()), 403);
 
-        $category->delete();
+        try {
+            $category->delete();
+        } catch (QueryException) {
+            return back()->with('error', 'Reassign or delete all products in this category first.');
+        }
 
         return back()->with('success', 'Category deleted.');
     }

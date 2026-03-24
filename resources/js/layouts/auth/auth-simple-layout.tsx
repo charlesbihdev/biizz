@@ -12,10 +12,8 @@ export default function AuthSimpleLayout({
             <div className="w-full max-w-sm">
                 <div className="flex flex-col gap-6">
                     <div className="flex flex-col items-center gap-4">
-                        <Link href={home().url} className="flex items-center gap-2">
-                            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-brand text-lg font-black text-white">
-                                b
-                            </div>
+                        <Link href={home().url} className="text-xl font-bold tracking-tight text-site-fg">
+                            biizz<span className="text-brand">.</span>app
                         </Link>
 
                         <div className="space-y-1.5 text-center">

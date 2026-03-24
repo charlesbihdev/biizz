@@ -25,7 +25,7 @@ export default function PaymentSettings({ business, providers }: Props) {
                 { title: 'Payments', href: edit(b).url },
             ]}
         >
-            <div className="mx-auto max-w-xl p-6 lg:p-8">
+            <div className="p-6 lg:p-8">
                 <div className="mb-8">
                     <h1 className="text-xl font-bold text-site-fg">Payment providers</h1>
                     <p className="mt-1 text-sm text-site-muted">

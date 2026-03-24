@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(\"/c/Users/MENSAH COLOMBUS/.config/herd/bin/php84/php.exe\" artisan make:controller Admin/OrderController --no-interaction)",
+      "Bash(\"/c/Users/MENSAH COLOMBUS/.config/herd/bin/php84/php.exe\" vendor/bin/pint app/Http/Controllers/Admin/OrderController.php routes/admin.php --format agent)",
+      "Bash(\"/c/Users/MENSAH COLOMBUS/.config/herd/bin/php84/php.exe\" artisan wayfinder:generate --no-interaction)",
+      "Bash(\"/c/Users/MENSAH COLOMBUS/.config/herd/bin/php84/php.exe\" artisan test --compact)",
+      "Bash(\"/c/Users/MENSAH COLOMBUS/.config/herd/bin/php84/php.exe\" artisan config:clear)",
+      "Bash(mv \"database/migrations/2026_03_23_000005_create_orders_table.php\" \"database/migrations/2026_03_23_000007_create_orders_table.php\")",
+      "Bash(mv \"database/migrations/2026_03_23_000006_create_order_items_table.php\" \"database/migrations/2026_03_23_000008_create_order_items_table.php\")",
+      "Bash(\"/c/Users/MENSAH COLOMBUS/.config/herd/bin/php84/php.exe\" artisan make:model Customer --factory --no-interaction)",
+      "Bash(php vendor/bin/pint --dirty)",
+      "Bash(\"C:/Users/MENSAH COLOMBUS/.config/herd/bin/php.bat\" vendor/bin/pint --dirty)",
+      "Bash(\"C:/Users/MENSAH COLOMBUS/.config/herd/bin/php.bat\" artisan test --compact)"
+    ]
+  }
+}

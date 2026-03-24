@@ -13,75 +13,81 @@ use Inertia\Response;
 
 class ProductController extends Controller
 {
-    /**
-     * List all products for the active business.
-     * BusinessScope automatically scopes the query.
-     */
     public function index(Business $business): Response
     {
         abort_unless($business->isOwnedBy(auth()->user()), 403);
 
-        $products = Product::with('category')->latest()->paginate(20);
+        $products = Product::with(['category', 'images'])->latest()->paginate(20);
 
         return Inertia::render('Admin/Products/Index', [
-            'products' => $products,
             'business' => $business,
-            'categories' => $business->categories()->get(['id', 'name']),
+            'products' => $products,
         ]);
     }
 
-    /**
-     * Show the form for creating a new product.
-     */
     public function create(Business $business): Response
     {
         abort_unless($business->isOwnedBy(auth()->user()), 403);
 
         return Inertia::render('Admin/Products/Create', [
             'business' => $business,
+            'categories' => $business->categories()->get(['id', 'name']),
         ]);
     }
 
-    /**
-     * Store a new product, scoped to the active business.
-     */
     public function store(StoreProductRequest $request, Business $business): RedirectResponse
     {
-        $business->products()->create($request->validated());
+        $validated = $request->validated();
+        $images = $validated['images'] ?? [];
+        unset($validated['images']);
+
+        $product = $business->products()->create($validated);
+
+        foreach ($images as $i => $img) {
+            $product->images()->create([
+                'url' => $img['url'],
+                'alt' => $img['alt'] ?? null,
+                'sort_order' => $i,
+            ]);
+        }
 
         return to_route('businesses.products.index', $business)
             ->with('success', 'Product created.');
     }
 
-    /**
-     * Show the form for editing a product.
-     */
     public function edit(Business $business, Product $product): Response
     {
         abort_unless($business->isOwnedBy(auth()->user()), 403);
 
         return Inertia::render('Admin/Products/Edit', [
             'business' => $business,
-            'product' => $product,
+            'product' => $product->load(['images', 'files']),
             'categories' => $business->categories()->get(['id', 'name']),
         ]);
     }
 
-    /**
-     * Update a product.
-     */
     public function update(UpdateProductRequest $request, Business $business, Product $product): RedirectResponse
     {
-        $product->update($request->validated());
+        $validated = $request->validated();
+        $images = $validated['images'] ?? null;
+        unset($validated['images']);
+
+        $product->update($validated);
+
+        if ($images !== null) {
+            $product->images()->delete();
+            foreach ($images as $i => $img) {
+                $product->images()->create([
+                    'url' => $img['url'],
+                    'alt' => $img['alt'] ?? null,
+                    'sort_order' => $i,
+                ]);
+            }
+        }
 
         return back()->with('success', 'Product updated.');
     }
 
-    /**
-     * Delete a product.
-     * Will fail if the product has been ordered (restrictOnDelete) — by design.
-     * Use deactivation (is_active = false) to hide products from storefront instead.
-     */
     public function destroy(Business $business, Product $product): RedirectResponse
     {
         abort_unless($business->isOwnedBy(auth()->user()), 403);

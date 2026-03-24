@@ -1,5 +1,11 @@
 import type { ThemeSchema } from '@/types/business';
 
+/**
+ * Boutique theme schema.
+ *
+ * Logo, tagline, WhatsApp, address, and description live in Business Settings,
+ * not here — they are shared across all themes.
+ */
 export const BoutiqueSchema: ThemeSchema = {
     hero_image: {
         type:       'file',
@@ -11,11 +17,6 @@ export const BoutiqueSchema: ThemeSchema = {
         label:   'Primary Brand Color',
         default: '#000000',
     },
-    store_tagline: {
-        type:        'text',
-        label:       'Store Tagline',
-        placeholder: 'Your brand statement',
-    },
     show_testimonials: {
         type:    'boolean',
         label:   'Display Customer Reviews',
@@ -26,10 +27,5 @@ export const BoutiqueSchema: ThemeSchema = {
         label:   'Product Grid Layout',
         options: ['grid', 'masonry', 'list'],
         default: 'grid',
-    },
-    whatsapp_number: {
-        type:        'text',
-        label:       'WhatsApp Contact Number',
-        placeholder: '+233 XX XXX XXXX',
     },
 };

@@ -16,6 +16,9 @@ class UpdateBusinessSettingsRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:100'],
+            'logo_url' => ['nullable', 'string', 'max:2048'],
+            'tagline' => ['nullable', 'string', 'max:150'],
+            'business_category' => ['nullable', 'string', 'max:60'],
             'description' => ['nullable', 'string', 'max:500'],
             'contact_email' => ['nullable', 'email', 'max:150'],
             'phone' => ['nullable', 'string', 'max:30'],
