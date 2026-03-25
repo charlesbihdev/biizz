@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\UpdateProductRequest;
 use App\Models\Business;
 use App\Models\Product;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -38,18 +39,11 @@ class ProductController extends Controller
     public function store(StoreProductRequest $request, Business $business): RedirectResponse
     {
         $validated = $request->validated();
-        $images = $validated['images'] ?? [];
         unset($validated['images']);
 
         $product = $business->products()->create($validated);
 
-        foreach ($images as $i => $img) {
-            $product->images()->create([
-                'url' => $img['url'],
-                'alt' => $img['alt'] ?? null,
-                'sort_order' => $i,
-            ]);
-        }
+        $this->syncImages($request, $product, $business);
 
         return to_route('businesses.products.index', $business)
             ->with('success', 'Product created.');
@@ -69,23 +63,41 @@ class ProductController extends Controller
     public function update(UpdateProductRequest $request, Business $business, Product $product): RedirectResponse
     {
         $validated = $request->validated();
-        $images = $validated['images'] ?? null;
+        $hasImages = $request->has('images');
         unset($validated['images']);
 
         $product->update($validated);
 
-        if ($images !== null) {
+        if ($hasImages) {
             $product->images()->each(fn ($img) => $img->delete());
-            foreach ($images as $i => $img) {
-                $product->images()->create([
-                    'url' => $img['url'],
-                    'alt' => $img['alt'] ?? null,
-                    'sort_order' => $i,
-                ]);
-            }
+            $this->syncImages($request, $product, $business);
         }
 
-        return back()->with('success', 'Product updated.');
+        return to_route('businesses.products.edit', [$business, $product])
+            ->with('success', 'Product updated.');
+    }
+
+    private function syncImages(StoreProductRequest|UpdateProductRequest $request, Product $product, Business $business): void
+    {
+        $count = is_array($request->input('images')) ? count($request->input('images')) : 0;
+
+        for ($i = 0; $i < $count; $i++) {
+            if ($request->hasFile("images.$i.file")) {
+                $path = $request->file("images.$i.file")->storePublicly("businesses/{$business->id}", 's3');
+                $url  = Storage::disk('s3')->url($path);
+            } else {
+                $url = $request->input("images.$i.url");
+                if (!$url || str_starts_with($url, 'blob:')) {
+                    continue;
+                }
+            }
+
+            $product->images()->create([
+                'url'        => $url,
+                'alt'        => $request->input("images.$i.alt"),
+                'sort_order' => $i,
+            ]);
+        }
     }
 
     public function destroy(Business $business, Product $product): RedirectResponse

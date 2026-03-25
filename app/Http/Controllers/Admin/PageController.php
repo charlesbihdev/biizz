@@ -56,7 +56,8 @@ class PageController extends Controller
     {
         $page->update($request->validated());
 
-        return back()->with('success', 'Page updated.');
+        return to_route('businesses.pages.edit', [$business, $page])
+            ->with('success', 'Page updated.');
     }
 
     public function destroy(Business $business, Page $page): RedirectResponse
@@ -75,6 +76,7 @@ class PageController extends Controller
 
         $page->update(['is_published' => ! $page->is_published]);
 
-        return back()->with('success', $page->is_published ? 'Page published.' : 'Page unpublished.');
+        return to_route('businesses.pages.edit', [$business, $page])
+            ->with('success', $page->is_published ? 'Page published.' : 'Page unpublished.');
     }
 }

@@ -51,9 +51,10 @@ export default function ThemeSettings({ business }: { business: Business }) {
         }
 
         router.visit(update(b).url, {
-            method: 'patch',
-            data: resolvedSettings as any,
+            method: 'post',
+            data: { _method: 'patch', ...resolvedSettings as any },
             preserveScroll: true,
+            preserveState: true,
             onFinish: () => setSaving(false),
         });
     };

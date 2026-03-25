@@ -32,7 +32,8 @@
       "Bash(\"/c/Users/MENSAH COLOMBUS/.config/herd/bin/php.bat\" artisan test --compact)",
       "Read(//c/Users/MENSAH/ COLOMBUS/Herd/biizz/resources/js/types/**)",
       "Bash(\"C:/Users/MENSAH COLOMBUS/.config/herd/bin/php84/php.exe\" vendor/bin/pint --dirty --format agent)",
-      "Bash(php vendor/bin/pint --dirty --format agent)"
+      "Bash(php vendor/bin/pint --dirty --format agent)",
+      "WebFetch(domain:inertiajs.com)"
     ]
   }
 }

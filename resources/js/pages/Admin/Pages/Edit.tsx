@@ -1,4 +1,4 @@
-import { router, useForm } from '@inertiajs/react';
+import { useForm } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
 import { RichDescriptionEditor } from '@/components/admin/products/RichDescriptionEditor';
 import InputError from '@/components/input-error';
@@ -19,14 +19,6 @@ const PAGE_TYPES: { value: PageType | ''; label: string }[] = [
     { value: 'acceptable_use', label: 'Acceptable Use' },
 ];
 
-type FormData = {
-    title:        string;
-    slug:         string;
-    type:         PageType | '';
-    content:      string;
-    is_published: boolean;
-};
-
 type Props = {
     business: Business;
     page:     Page;
@@ -36,17 +28,18 @@ export default function EditPage({ business, page }: Props) {
     const b  = { business: business.slug };
     const bp = { ...b, page: page.id };
 
-    const { data, setData, processing, errors } = useForm<FormData>({
+    const { data, setData, post, processing, errors } = useForm({
+        _method:      'patch' as string,
         title:        page.title,
         slug:         page.slug,
-        type:         page.type ?? '',
+        type:         page.type ?? '' as PageType | '',
         content:      page.content ?? '',
         is_published: page.is_published,
     });
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        router.patch(update(bp).url, data as Record<string, unknown>);
+        post(update(bp).url, { preserveScroll: true, preserveState: true, forceFormData: true });
     };
 
     return (

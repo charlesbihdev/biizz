@@ -1,6 +1,5 @@
-import { router, useForm } from '@inertiajs/react';
+import { useForm } from '@inertiajs/react';
 import { CheckCircle2, Facebook, Globe, Instagram, LoaderCircle, Lock, MessageCircle, Package, Twitter, Zap } from 'lucide-react';
-import { useState } from 'react';
 import { FileUploader } from '@/components/admin/theme/FileUploader';
 import InputError from '@/components/input-error';
 import { Input } from '@/components/ui/input';
@@ -8,7 +7,6 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { BUSINESS_CATEGORIES } from '@/data/businessCategories';
 import AppSidebarLayout from '@/layouts/app/app-sidebar-layout';
-import { uploadMedia } from '@/lib/media-upload';
 import { show } from '@/routes/businesses';
 import { update as settingsUpdate } from '@/routes/businesses/settings';
 import type { Business, BusinessCategory, SocialLinks } from '@/types';
@@ -29,14 +27,10 @@ export default function BusinessSettings({ business }: { business: Business }) {
     const b = { business: business.slug };
     const sl: SocialLinks = business.social_links ?? {};
 
-    const [pendingLogoFile, setPendingLogoFile]       = useState<File | null>(null);
-    const [pendingFaviconFile, setPendingFaviconFile] = useState<File | null>(null);
-    const [pendingSeoImageFile, setPendingSeoImageFile] = useState<File | null>(null);
-    const [saving, setSaving] = useState(false);
-
-    const { data, setData, submit, processing, errors, recentlySuccessful } = useForm({
+    const { data, setData, post, processing, errors, recentlySuccessful } = useForm({
+        _method:           'patch' as string,
         name:              business.name ?? '',
-        logo_url:          business.logo_url ?? '',
+        logo:              null as File | null,
         tagline:           business.tagline ?? '',
         business_category: (business.business_category ?? '') as BusinessCategory | '',
         description:       business.description ?? '',
@@ -51,50 +45,20 @@ export default function BusinessSettings({ business }: { business: Business }) {
             tiktok:    sl.tiktok    ?? '',
             twitter:   sl.twitter   ?? '',
         },
-        favicon_url:      business.favicon_url ?? '',
-        seo_title:        business.seo_title ?? '',
-        seo_description:  business.seo_description ?? '',
-        seo_image:        business.seo_image ?? '',
-        show_branding:    business.show_branding ?? true,
+        favicon:         null as File | null,
+        seo_title:       business.seo_title ?? '',
+        seo_description: business.seo_description ?? '',
+        seo_image:       null as File | null,
+        show_branding:   business.show_branding ?? true,
     });
 
     const setSocial = (key: keyof SocialLinks, value: string) => {
         setData('social_links', { ...data.social_links, [key]: value });
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-
-        const hasPending = pendingLogoFile || pendingFaviconFile || pendingSeoImageFile;
-
-        if (hasPending) {
-            setSaving(true);
-            try {
-                const patch: Record<string, unknown> = { ...data };
-
-                if (pendingLogoFile) {
-                    patch.logo_url = await uploadMedia(pendingLogoFile, business.slug);
-                    setPendingLogoFile(null);
-                }
-                if (pendingFaviconFile) {
-                    patch.favicon_url = await uploadMedia(pendingFaviconFile, business.slug);
-                    setPendingFaviconFile(null);
-                }
-                if (pendingSeoImageFile) {
-                    patch.seo_image = await uploadMedia(pendingSeoImageFile, business.slug);
-                    setPendingSeoImageFile(null);
-                }
-
-                router.patch(settingsUpdate(b).url, patch, {
-                    onFinish: () => setSaving(false),
-                });
-            } catch {
-                setSaving(false);
-            }
-            return;
-        }
-
-        submit(settingsUpdate(b));
+        post(settingsUpdate(b).url, { preserveScroll: true, preserveState: true, forceFormData: true });
     };
 
     return (
@@ -122,35 +86,21 @@ export default function BusinessSettings({ business }: { business: Business }) {
                         title="Brand"
                         description="Your logo and tagline appear on your storefront across all themes."
                     >
-                        <Field label="Logo" error={errors.logo_url}>
+                        <Field label="Logo" error={errors.logo}>
                             <FileUploader
                                 business={business}
-                                value={data.logo_url}
-                                onChange={(file) => {
-                                    if (file) {
-                                        setPendingLogoFile(file);
-                                    } else {
-                                        setPendingLogoFile(null);
-                                        setData('logo_url', '');
-                                    }
-                                }}
+                                value={business.logo_url ?? undefined}
+                                onChange={(file) => setData('logo', file ?? null)}
                             />
                             <p className="text-xs text-site-muted">PNG, JPG or SVG. Falls back to your business name if not set.</p>
                         </Field>
 
-                        <Field label="Favicon" error={errors.favicon_url}>
+                        <Field label="Favicon" error={errors.favicon}>
                             <FileUploader
                                 business={business}
-                                value={data.favicon_url}
+                                value={business.favicon_url ?? undefined}
                                 dimensions="32×32 px recommended"
-                                onChange={(file) => {
-                                    if (file) {
-                                        setPendingFaviconFile(file);
-                                    } else {
-                                        setPendingFaviconFile(null);
-                                        setData('favicon_url', '');
-                                    }
-                                }}
+                                onChange={(file) => setData('favicon', file ?? null)}
                             />
                             <p className="text-xs text-site-muted">Small icon shown in browser tabs. Falls back to your logo if not set.</p>
                         </Field>
@@ -342,16 +292,9 @@ export default function BusinessSettings({ business }: { business: Business }) {
                             <Field label="Social Share Image" error={errors.seo_image}>
                                 <FileUploader
                                     business={business}
-                                    value={data.seo_image}
+                                    value={business.seo_image ?? undefined}
                                     dimensions="1200×630 px"
-                                    onChange={(file) => {
-                                        if (file) {
-                                            setPendingSeoImageFile(file);
-                                        } else {
-                                            setPendingSeoImageFile(null);
-                                            setData('seo_image', '');
-                                        }
-                                    }}
+                                    onChange={(file) => setData('seo_image', file ?? null)}
                                 />
                                 <p className="text-xs text-site-muted">Shown when your store is shared on social media. Falls back to logo.</p>
                             </Field>
@@ -397,10 +340,10 @@ export default function BusinessSettings({ business }: { business: Business }) {
                         )}
                         <button
                             type="submit"
-                            disabled={processing || saving}
+                            disabled={processing}
                             className="flex items-center gap-2 rounded-full bg-brand px-6 py-2.5 text-sm font-bold text-white transition hover:bg-brand-hover disabled:opacity-60"
                         >
-                            {(processing || saving) && <LoaderCircle className="h-4 w-4 animate-spin" />}
+                            {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
                             Save changes
                         </button>
                     </div>

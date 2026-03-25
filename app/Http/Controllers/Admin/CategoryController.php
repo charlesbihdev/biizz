@@ -34,7 +34,8 @@ class CategoryController extends Controller
 
         $business->categories()->create($validated);
 
-        return back()->with('success', 'Category created.');
+        return to_route('businesses.categories.index', $business)
+            ->with('success', 'Category created.');
     }
 
     public function update(Request $request, Business $business, Category $category): RedirectResponse
@@ -48,7 +49,8 @@ class CategoryController extends Controller
 
         $category->update($validated);
 
-        return back()->with('success', 'Category updated.');
+        return to_route('businesses.categories.index', $business)
+            ->with('success', 'Category updated.');
     }
 
     public function destroy(Business $business, Category $category): RedirectResponse
@@ -58,9 +60,11 @@ class CategoryController extends Controller
         try {
             $category->delete();
         } catch (QueryException) {
-            return back()->with('error', 'Reassign or delete all products in this category first.');
+            return to_route('businesses.categories.index', $business)
+                ->with('error', 'Reassign or delete all products in this category first.');
         }
 
-        return back()->with('success', 'Category deleted.');
+        return to_route('businesses.categories.index', $business)
+            ->with('success', 'Category deleted.');
     }
 }

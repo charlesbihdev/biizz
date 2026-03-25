@@ -16,8 +16,8 @@ class UpdateBusinessSettingsRequest extends FormRequest
     {
         return [
             'name' => ['required', 'string', 'max:100'],
-            'logo_url' => ['nullable', 'string', 'max:2048'],
-            'favicon_url' => ['nullable', 'string', 'max:2048'],
+            'logo'    => ['nullable', 'file', 'image', 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:6144'],
+            'favicon' => ['nullable', 'file', 'image', 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:2048'],
             'tagline' => ['nullable', 'string', 'max:150'],
             'business_category' => ['nullable', 'string', 'max:60'],
             'description' => ['nullable', 'string', 'max:500'],
@@ -32,7 +32,7 @@ class UpdateBusinessSettingsRequest extends FormRequest
             'social_links.twitter' => ['nullable', 'url', 'max:200'],
             'seo_title' => ['nullable', 'string', 'max:255'],
             'seo_description' => ['nullable', 'string', 'max:300'],
-            'seo_image' => ['nullable', 'string', 'max:2048'],
+            'seo_image' => ['nullable', 'file', 'image', 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:6144'],
             'show_branding' => ['boolean'],
         ];
     }

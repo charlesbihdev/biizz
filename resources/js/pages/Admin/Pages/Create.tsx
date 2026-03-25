@@ -1,4 +1,4 @@
-import { router, useForm } from '@inertiajs/react';
+import { useForm } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
 import { useEffect } from 'react';
 import { RichDescriptionEditor } from '@/components/admin/products/RichDescriptionEditor';
@@ -44,7 +44,7 @@ type Props = {
 export default function CreatePage({ business }: Props) {
     const b = { business: business.slug };
 
-    const { data, setData, processing, errors } = useForm<FormData>({
+    const { data, setData, post, processing, errors } = useForm<FormData>({
         title:        '',
         slug:         '',
         type:         '',
@@ -59,7 +59,7 @@ export default function CreatePage({ business }: Props) {
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        router.post(store(b).url, data as Record<string, unknown>);
+        post(store(b).url, { preserveScroll: true, preserveState: true });
     };
 
     return (

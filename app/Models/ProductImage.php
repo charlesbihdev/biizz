@@ -19,7 +19,7 @@ class ProductImage extends Model
     {
         parent::boot();
 
-        static::deleting(function (ProductImage $image): void {
+        static::deleted(function (ProductImage $image): void {
             $path = ltrim((string) parse_url($image->url, PHP_URL_PATH), '/');
 
             if ($path !== '') {

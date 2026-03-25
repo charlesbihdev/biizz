@@ -18,7 +18,7 @@ function toSlug(name: string): string {
 }
 
 export default function CreateBusiness() {
-    const { data, setData, submit, processing, errors } = useForm({
+    const { data, setData, post, processing, errors } = useForm({
         name: '',
         slug: '',
         business_type: 'physical' as BusinessType,
@@ -53,7 +53,7 @@ export default function CreateBusiness() {
                 <form
                     onSubmit={(e) => {
                         e.preventDefault();
-                        submit(store());
+                        post(store().url, { preserveScroll: true, preserveState: true });
                     }}
                     className="flex flex-col gap-6"
                 >

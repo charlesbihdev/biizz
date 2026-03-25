@@ -1,7 +1,6 @@
-import { router, useForm } from '@inertiajs/react';
-import ProductForm, { type ProductFormData } from '@/components/admin/products/ProductForm';
+import { useForm } from '@inertiajs/react';
+import ProductForm from '@/components/admin/products/ProductForm';
 import AppSidebarLayout from '@/layouts/app/app-sidebar-layout';
-import { uploadMedia } from '@/lib/media-upload';
 import { show } from '@/routes/businesses';
 import { edit, index, update } from '@/routes/businesses/products';
 import type { Business, Category, Product } from '@/types';
@@ -15,7 +14,8 @@ type Props = {
 export default function EditProduct({ business, product, categories }: Props) {
     const b = { business: business.slug };
 
-    const { data, setData, processing, errors } = useForm<ProductFormData>({
+    const { data, setData, post, processing, errors } = useForm({
+        _method:     'patch' as string,
         name:        product.name,
         slug:        product.slug ?? '',
         description: product.description ?? '',
@@ -26,25 +26,15 @@ export default function EditProduct({ business, product, categories }: Props) {
         images:      product.images.map((img) => ({ url: img.url, alt: img.alt ?? '' })),
     });
 
-    const handleSubmit = async () => {
-        const hasPending = data.images.some((img) => img.file);
-
-        if (!hasPending) {
-            router.patch(update({ ...b, product: product.id }).url, data as any);
-            return;
-        }
-
-        const resolved = await Promise.all(
-            data.images.map(async (img) => {
-                if (!img.file) { return { url: img.url, alt: img.alt }; }
-                const url = await uploadMedia(img.file, business.slug);
-                URL.revokeObjectURL(img.url);
-                return { url, alt: img.alt };
-            }),
-        );
-
-        router.patch(update({ ...b, product: product.id }).url, { ...data, images: resolved } as any);
+    const handleSubmit = () => {
+        post(update({ ...b, product: product.id }).url, {
+            preserveScroll: true,
+            preserveState:  true,
+            forceFormData:  true,
+        });
     };
+
+    const { _method: _, ...productData } = data;
 
     return (
         <AppSidebarLayout
@@ -63,12 +53,12 @@ export default function EditProduct({ business, product, categories }: Props) {
                 <ProductForm
                     business={business}
                     categories={categories}
-                    data={data}
+                    data={productData}
                     errors={errors}
                     processing={processing}
                     submitLabel="Save changes"
-                    onSubmit={() => { void handleSubmit(); }}
-                    onChange={(key, value) => setData(key, value)}
+                    onSubmit={handleSubmit}
+                    onChange={(key, value) => setData(key, value as never)}
                 />
             </div>
         </AppSidebarLayout>

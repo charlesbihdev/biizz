@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\StoreBusinessRequest;
 use App\Http\Requests\Admin\UpdateBusinessSettingsRequest;
 use App\Models\Business;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -80,7 +81,8 @@ class BusinessController extends Controller
 
         $status = $business->is_active ? 'live' : 'offline';
 
-        return back()->with('success', "Storefront is now {$status}.");
+        return to_route('businesses.show', $business)
+            ->with('success', "Storefront is now {$status}.");
     }
 
     /**
@@ -102,9 +104,19 @@ class BusinessController extends Controller
     {
         $this->authorizeOwner($business);
 
-        $business->update($request->validated());
+        $data = $request->safe()->except(['logo', 'favicon', 'seo_image']);
 
-        return back()->with('success', 'Settings saved.');
+        foreach (['logo' => 'logo_url', 'favicon' => 'favicon_url', 'seo_image' => 'seo_image'] as $field => $column) {
+            if ($request->hasFile($field)) {
+                $path         = $request->file($field)->storePublicly("businesses/{$business->id}", 's3');
+                $data[$column] = Storage::disk('s3')->url($path);
+            }
+        }
+
+        $business->update($data);
+
+        return to_route('businesses.settings.edit', $business)
+            ->with('success', 'Settings saved.');
     }
 
     /**

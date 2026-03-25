@@ -47,18 +47,22 @@ function CategoryFormDialog({
     const b = { business: business.slug };
     const isEdit = !!category;
 
-    const { data, setData, submit, processing, errors, reset } = useForm({
+    const { data, setData, post, processing, errors, reset } = useForm({
+        _method:     (isEdit ? 'patch' : '') as string,
         name:        category?.name ?? '',
         description: category?.description ?? '',
     });
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        if (isEdit) {
-            submit(update({ ...b, category: category.id }));
-        } else {
-            submit(store(b));
-        }
+        const options = {
+            preserveScroll: true,
+            preserveState:  true,
+            forceFormData:  true,
+            onSuccess: () => { reset(); onOpenChange(false); },
+        };
+        const url = isEdit ? update({ ...b, category: category.id }).url : store(b).url;
+        post(url, options);
     };
 
     return (

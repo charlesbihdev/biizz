@@ -30,9 +30,10 @@ class UpdateProductRequest extends FormRequest
             'price' => ['sometimes', 'required', 'numeric', 'min:0', 'max:999999.99'],
             'stock' => ['sometimes', 'required', 'integer', 'min:0'],
             'is_active' => ['boolean'],
-            'images' => ['nullable', 'array', 'max:8'],
-            'images.*.url' => ['required', 'string', 'url', 'max:2048'],
-            'images.*.alt' => ['nullable', 'string', 'max:255'],
+            'images'        => ['nullable', 'array', 'max:8'],
+            'images.*.file' => ['nullable', 'file', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:6144'],
+            'images.*.alt'  => ['nullable', 'string', 'max:255'],
+            'images.*.url'  => ['nullable', 'string', 'max:2048'],
             'metadata' => ['nullable', 'array'],
         ];
     }
