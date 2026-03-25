@@ -135,15 +135,15 @@ export default function ClassicShopPage({ business, products, priceRange, filter
                     ) : (
                         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-3 xl:grid-cols-4 lg:gap-5">
                             {products.data.map((product) => (
-                                <a key={product.id} href={`/s/${slug}/p/${product.slug}`} className="block">
-                                    <ProductCard
-                                        product={product}
-                                        onAddToCart={onAddToCart}
-                                        accentColor={accent}
-                                        primaryColor={primary}
-                                        isDigital={isDigital}
-                                    />
-                                </a>
+                                <ProductCard
+                                    key={product.id}
+                                    product={product}
+                                    onAddToCart={onAddToCart}
+                                    accentColor={accent}
+                                    primaryColor={primary}
+                                    isDigital={isDigital}
+                                    businessSlug={slug}
+                                />
                             ))}
                         </div>
                     )}

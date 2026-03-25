@@ -1,3 +1,4 @@
+import { Link, router } from '@inertiajs/react';
 import { useEffect, useRef, useState } from 'react';
 import { Facebook, Home, Instagram, Menu, MessageCircle, Search, ShoppingCart, Twitter, X } from 'lucide-react';
 import type { Business, Page } from '@/types/business';
@@ -55,7 +56,7 @@ export default function StorefrontNav({ business, pages, itemCount, onCartOpen }
     const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (searchQuery.trim()) {
-            window.location.href = `/s/${slug}?q=${encodeURIComponent(searchQuery.trim())}`;
+            router.visit(`/s/${slug}?q=${encodeURIComponent(searchQuery.trim())}`);
         }
     };
 
@@ -77,12 +78,12 @@ export default function StorefrontNav({ business, pages, itemCount, onCartOpen }
                     >
                         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 sm:px-6 lg:px-8">
                             <div className="flex items-center gap-3">
-                                <a
+                                <Link
                                     href={`/s/${slug}/contact`}
                                     className="text-xs text-white/80 transition hover:text-white"
                                 >
                                     Help &amp; Support
-                                </a>
+                                </Link>
                                 {socialIcons.map(({ Icon, href, label }) => (
                                     <a
                                         key={label}
@@ -125,7 +126,7 @@ export default function StorefrontNav({ business, pages, itemCount, onCartOpen }
                             >
                                 <Menu className="h-5 w-5" />
                             </button>
-                            <a href={`/s/${slug}`} className="shrink-0 transition-opacity hover:opacity-80">
+                            <Link href={`/s/${slug}`} className="shrink-0 transition-opacity hover:opacity-80">
                                 {logo_url ? (
                                     <img
                                         src={logo_url}
@@ -135,7 +136,7 @@ export default function StorefrontNav({ business, pages, itemCount, onCartOpen }
                                 ) : (
                                     <span className="text-xl font-bold lg:text-2xl" style={{ color: accent }}>{name}</span>
                                 )}
-                            </a>
+                            </Link>
                         </div>
 
                         {/* Center: search bar — truly centered via grid */}
@@ -330,7 +331,7 @@ function NavLink({
 }) {
     const inactiveColor = primary + 'b3'; // 70% opacity
     return (
-        <a
+        <Link
             href={href}
             className="flex shrink-0 items-center gap-1.5 border-b-2 px-3 py-3 text-sm font-semibold transition"
             style={active ? { color: accent, borderColor: accent } : { color: inactiveColor, borderColor: 'transparent' }}
@@ -339,7 +340,7 @@ function NavLink({
         >
             {icon}
             {children}
-        </a>
+        </Link>
     );
 }
 
@@ -354,12 +355,12 @@ function DrawerSection({ label, children }: { label: string; children: React.Rea
 
 function DrawerLink({ href, active, accent, children }: { href: string; active?: boolean; accent?: string; children: React.ReactNode }) {
     return (
-        <a
+        <Link
             href={href}
             className="rounded-lg px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50"
             style={active && accent ? { color: accent, backgroundColor: accent + '1a' } : undefined}
         >
             {children}
-        </a>
+        </Link>
     );
 }

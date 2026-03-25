@@ -1,5 +1,6 @@
 import { Link, router } from '@inertiajs/react';
 import { ShoppingBag } from 'lucide-react';
+import { useState } from 'react';
 import AppSidebarLayout from '@/layouts/app/app-sidebar-layout';
 import { show } from '@/routes/businesses';
 import { index, show as orderShow } from '@/routes/businesses/orders';
@@ -41,12 +42,16 @@ const ALL_TABS = ['all', 'pending', 'paid', 'fulfilled', 'cancelled', 'refunded'
 export default function OrdersIndex({ business, orders, statuses: _statuses }: Props) {
     const b = { business: business.slug };
     const activeStatus = (new URLSearchParams(window.location.search)).get('status') ?? 'all';
+    const [switching, setSwitching] = useState(false);
 
     const switchTab = (tab: string) => {
+        if (switching || tab === activeStatus) { return; }
+        setSwitching(true);
         router.visit(index(b).url, {
             data: tab === 'all' ? {} : { status: tab },
             preserveState: true,
             preserveScroll: true,
+            onFinish: () => setSwitching(false),
         });
     };
 
@@ -70,7 +75,8 @@ export default function OrdersIndex({ business, orders, statuses: _statuses }: P
                             key={tab}
                             type="button"
                             onClick={() => switchTab(tab)}
-                            className={`shrink-0 rounded-t px-4 py-2 text-sm font-medium capitalize transition ${
+                            disabled={switching}
+                            className={`shrink-0 rounded-t px-4 py-2 text-sm font-medium capitalize transition disabled:opacity-60 ${
                                 activeStatus === tab
                                     ? 'border-b-2 border-brand text-brand'
                                     : 'text-site-muted hover:text-site-fg'

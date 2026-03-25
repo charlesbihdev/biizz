@@ -1,3 +1,4 @@
+import { Link } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import { Facebook, Instagram, Mail, MapPin, MessageCircle, Phone, Twitter } from 'lucide-react';
 import type { Business, Page } from '@/types/business';
@@ -65,6 +66,18 @@ export default function StoreFooter({ business, pages }: Props) {
     const bodyColor  = primary + '99'; // 60% opacity — description, address
 
     const footerLink = (href: string, label: ReactNode) => (
+        <Link
+            href={href}
+            className="transition"
+            style={{ color: linkColor }}
+            onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = primary; }}
+            onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = linkColor; }}
+        >
+            {label}
+        </Link>
+    );
+
+    const footerContactLink = (href: string, label: ReactNode) => (
         <a
             href={href}
             className="transition"
@@ -165,19 +178,19 @@ export default function StoreFooter({ business, pages }: Props) {
                                 {phone && (
                                     <li className="flex items-center gap-2.5">
                                         <Phone className="h-4 w-4 shrink-0" style={{ color: accent }} />
-                                        {footerLink(`tel:${phone}`, phone)}
+                                        {footerContactLink(`tel:${phone}`, phone)}
                                     </li>
                                 )}
                                 {contact_email && (
                                     <li className="flex items-center gap-2.5">
                                         <Mail className="h-4 w-4 shrink-0" style={{ color: accent }} />
-                                        {footerLink(`mailto:${contact_email}`, contact_email)}
+                                        {footerContactLink(`mailto:${contact_email}`, contact_email)}
                                     </li>
                                 )}
                                 {whatsappHref && (
                                     <li className="flex items-center gap-2.5">
                                         <MessageCircle className="h-4 w-4 shrink-0" style={{ color: accent }} />
-                                        {footerLink(whatsappHref, whatsapp)}
+                                        {footerContactLink(whatsappHref, whatsapp)}
                                     </li>
                                 )}
                             </ul>

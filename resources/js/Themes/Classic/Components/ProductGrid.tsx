@@ -8,9 +8,10 @@ interface Props {
     primaryColor?:  string;
     activeCategory: Category | null;
     isDigital?:     boolean;
+    businessSlug?:  string;
 }
 
-export default function ProductGrid({ products, onAddToCart, accentColor, primaryColor, activeCategory, isDigital }: Props) {
+export default function ProductGrid({ products, onAddToCart, accentColor, primaryColor, activeCategory, isDigital, businessSlug }: Props) {
     const heading   = activeCategory ? activeCategory.name : 'All Products';
     const primary   = primaryColor ?? '#18181b';
     const textMuted = primary + '80'; // 50% opacity
@@ -37,6 +38,7 @@ export default function ProductGrid({ products, onAddToCart, accentColor, primar
                                 accentColor={accentColor}
                                 primaryColor={primaryColor}
                                 isDigital={isDigital}
+                                businessSlug={businessSlug}
                             />
                         ))}
                     </div>

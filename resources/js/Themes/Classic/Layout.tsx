@@ -1,5 +1,4 @@
 import { router } from '@inertiajs/react';
-import { useMemo } from 'react';
 import type { Business, PaginatedData, Page, Product } from '@/types/business';
 import ClassicThemeShell from './ThemeShell';
 import CategoryFilter from './Components/CategoryFilter';
@@ -19,10 +18,7 @@ export default function ClassicLayout({ business, products, pages }: Props) {
     const accent  = s.accent_color  ?? primary;
     const categories = business.categories ?? [];
 
-    const activeCategorySlug = useMemo(() => {
-        const params = new URLSearchParams(window.location.search);
-        return params.get('category') ?? null;
-    }, []);
+    const activeCategorySlug = new URLSearchParams(window.location.search).get('category') ?? null;
 
     const handleCategoryChange = (slug: string | null) => {
         const url = new URL(window.location.href);
@@ -60,6 +56,7 @@ export default function ClassicLayout({ business, products, pages }: Props) {
                         primaryColor={primary}
                         activeCategory={activeCategory}
                         isDigital={business.business_type === 'digital'}
+                        businessSlug={business.slug}
                     />
 
                     <Pagination data={products} accentColor={accent} />

@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import type { Business, CartItem, Page } from '@/types/business';
-import { useCart } from '@/Themes/Shared/Hooks/useCart';
+import { useCartStore } from '@/stores/cartStore';
 import { useMetaPixel } from '@/Themes/Shared/Hooks/useMetaPixel';
 import CartDrawer from '@/Themes/Shared/Components/CartDrawer';
 import StorefrontNav from './Components/StorefrontNav';
@@ -18,7 +18,7 @@ interface Props {
 }
 
 export default function ClassicThemeShell({ business, pages, children }: Props) {
-    const { items, addToCart, removeFromCart, updateQuantity, total, itemCount } = useCart();
+    const { items, addToCart, removeFromCart, updateQuantity, total, itemCount } = useCartStore();
     const { trackEvent } = useMetaPixel(business.meta_pixel_id ?? '');
     const [cartOpen, setCartOpen] = useState(false);
 

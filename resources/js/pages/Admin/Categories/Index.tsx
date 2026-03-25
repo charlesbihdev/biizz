@@ -1,5 +1,5 @@
 import { router, useForm } from '@inertiajs/react';
-import { FolderOpen, Pencil, Plus, Trash2 } from 'lucide-react';
+import { FolderOpen, LoaderCircle, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import {
     AlertDialog,
@@ -96,6 +96,7 @@ function CategoryFormDialog({
                         disabled={processing}
                         className="flex items-center justify-center gap-2 rounded-full bg-brand py-2.5 text-sm font-bold text-white transition hover:bg-brand-hover disabled:opacity-60"
                     >
+                        {processing && <LoaderCircle className="h-3.5 w-3.5 animate-spin" />}
                         {isEdit ? 'Save changes' : 'Create category'}
                     </button>
                 </form>
@@ -109,10 +110,15 @@ export default function CategoriesIndex({ business, categories }: Props) {
     const [addOpen, setAddOpen] = useState(false);
     const [editTarget, setEditTarget] = useState<Category | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<Category | null>(null);
+    const [deleting, setDeleting] = useState(false);
 
     const handleDelete = () => {
         if (!deleteTarget) { return; }
-        router.visit(destroy({ ...b, category: deleteTarget.id }).url, { method: 'delete' });
+        setDeleting(true);
+        router.visit(destroy({ ...b, category: deleteTarget.id }).url, {
+            method: 'delete',
+            onFinish: () => setDeleting(false),
+        });
     };
 
     return (
@@ -231,8 +237,10 @@ export default function CategoriesIndex({ business, categories }: Props) {
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={handleDelete}
-                            className="bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-600"
+                            disabled={deleting}
+                            className="inline-flex items-center gap-2 bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-600 disabled:opacity-60"
                         >
+                            {deleting && <LoaderCircle className="h-3.5 w-3.5 animate-spin" />}
                             Delete
                         </AlertDialogAction>
                     </AlertDialogFooter>

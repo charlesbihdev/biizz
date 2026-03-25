@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
 import type { Business, CartItem, Page } from '@/types/business';
-import { useCart } from '@/Themes/Shared/Hooks/useCart';
+import { useCartStore as useCart } from '@/stores/cartStore';
 import { useMetaPixel } from '@/Themes/Shared/Hooks/useMetaPixel';
 import CartDrawer from '@/Themes/Shared/Components/CartDrawer';
 import StorefrontNav from './Components/StorefrontNav';
