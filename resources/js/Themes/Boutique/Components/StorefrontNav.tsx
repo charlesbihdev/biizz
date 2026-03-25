@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react';
 import { MessageCircle, ShoppingBag } from 'lucide-react';
-import type { Business } from '@/types/business';
+import type { Business, Page } from '@/types/business';
 
 interface Props {
     business:   Business;
+    pages:      Page[];
     itemCount:  number;
     onCartOpen: () => void;
 }
 
-export default function BoutiqueNav({ business, itemCount, onCartOpen }: Props) {
+export default function BoutiqueNav({ business, pages: _pages, itemCount, onCartOpen }: Props) {
     const [scrolled, setScrolled] = useState(false);
     const { name, logo_url, social_links: social } = business;
 

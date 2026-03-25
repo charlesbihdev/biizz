@@ -1,19 +1,20 @@
 interface Category {
     id:   number;
     name: string;
+    slug: string;
 }
 
 interface Props {
     categories:   Category[];
-    activeId:     number | null;
-    onChange:     (id: number | null) => void;
-    primaryColor?: string;
+    activeSlug:   string | null;
+    onChange:     (slug: string | null) => void;
+    accentColor?: string;
 }
 
-export default function CategoryFilter({ categories, activeId, onChange, primaryColor }: Props) {
+export default function CategoryFilter({ categories, activeSlug, onChange, accentColor }: Props) {
     if (categories.length === 0) { return null; }
 
-    const accent = primaryColor ?? '#1a1a1a';
+    const accent = accentColor ?? '#1a1a1a';
 
     return (
         <div className="border-b border-zinc-100 bg-white">
@@ -25,7 +26,7 @@ export default function CategoryFilter({ categories, activeId, onChange, primary
                         onClick={() => onChange(null)}
                         className="shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition"
                         style={
-                            activeId === null
+                            activeSlug === null
                                 ? { backgroundColor: accent, color: '#fff' }
                                 : { backgroundColor: '#f4f4f5', color: '#52525b' }
                         }
@@ -37,10 +38,10 @@ export default function CategoryFilter({ categories, activeId, onChange, primary
                         <button
                             key={cat.id}
                             type="button"
-                            onClick={() => onChange(cat.id)}
+                            onClick={() => onChange(cat.slug)}
                             className="shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition"
                             style={
-                                activeId === cat.id
+                                activeSlug === cat.slug
                                     ? { backgroundColor: accent, color: '#fff' }
                                     : { backgroundColor: '#f4f4f5', color: '#52525b' }
                             }

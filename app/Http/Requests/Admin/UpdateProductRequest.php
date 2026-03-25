@@ -4,6 +4,7 @@ namespace App\Http\Requests\Admin;
 
 use App\Models\Business;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateProductRequest extends FormRequest
 {
@@ -21,6 +22,10 @@ class UpdateProductRequest extends FormRequest
         return [
             'category_id' => ['sometimes', 'required', 'integer', 'exists:categories,id'],
             'name' => ['sometimes', 'required', 'string', 'max:255'],
+            'slug' => [
+                'sometimes', 'nullable', 'string', 'max:255', 'regex:/^[a-z0-9\-]+$/',
+                Rule::unique('products')->where('business_id', $this->route('business')->id)->ignore($this->route('product')),
+            ],
             'description' => ['nullable', 'string', 'max:5000'],
             'price' => ['sometimes', 'required', 'numeric', 'min:0', 'max:999999.99'],
             'stock' => ['sometimes', 'required', 'integer', 'min:0'],

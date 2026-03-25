@@ -11,13 +11,38 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Str;
 
 #[ScopedBy([BusinessScope::class])]
-#[Fillable(['business_id', 'category_id', 'name', 'description', 'price', 'stock', 'is_active', 'metadata'])]
+#[Fillable(['business_id', 'category_id', 'name', 'slug', 'description', 'price', 'stock', 'is_active', 'metadata'])]
 class Product extends Model
 {
     /** @use HasFactory<ProductFactory> */
     use HasFactory;
+
+    protected static function boot(): void
+    {
+        parent::boot();
+
+        static::creating(function (Product $product): void {
+            if (empty($product->slug)) {
+                $base = Str::slug($product->name);
+                $slug = $base;
+                $i = 1;
+                while (
+                    static::withoutGlobalScopes()->where('business_id', $product->business_id)->where('slug', $slug)->exists()
+                ) {
+                    $slug = $base.'-'.$i++;
+                }
+                $product->slug = $slug;
+            }
+        });
+
+        static::deleting(function (Product $product): void {
+            $product->images()->each(fn (ProductImage $img) => $img->delete());
+            $product->files()->each(fn (ProductFile $file) => $file->delete());
+        });
+    }
 
     protected function casts(): array
     {

@@ -1,5 +1,5 @@
 import { router } from '@inertiajs/react';
-import { CheckCircle2, Loader2, Unplug } from 'lucide-react';
+import { CheckCircle2, Loader2, LoaderCircle, Unplug } from 'lucide-react';
 import { useState } from 'react';
 import { destroy, store } from '@/routes/businesses/payments';
 import type { Business } from '@/types';
@@ -14,8 +14,9 @@ type Props = {
 
 export function ProviderCard({ business, providerId, label, regions, connected }: Props) {
     const b = { business: business.slug };
-    const [key, setKey] = useState('');
-    const [saving, setSaving] = useState(false);
+    const [key,          setKey]          = useState('');
+    const [saving,       setSaving]       = useState(false);
+    const [disconnecting, setDisconnecting] = useState(false);
 
     const handleConnect = (e: React.FormEvent) => {
         e.preventDefault();
@@ -40,9 +41,11 @@ export function ProviderCard({ business, providerId, label, regions, connected }
             return;
         }
 
+        setDisconnecting(true);
         router.visit(destroy({ ...b, provider: providerId }).url, {
             method: 'delete',
             preserveScroll: true,
+            onFinish: () => setDisconnecting(false),
         });
     };
 
@@ -65,9 +68,13 @@ export function ProviderCard({ business, providerId, label, regions, connected }
                     <button
                         type="button"
                         onClick={handleDisconnect}
-                        className="inline-flex items-center gap-1.5 rounded-full border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-50"
+                        disabled={disconnecting}
+                        className="inline-flex items-center gap-1.5 rounded-full border border-red-200 px-3 py-1.5 text-xs font-semibold text-red-600 transition hover:bg-red-50 disabled:opacity-60"
                     >
-                        <Unplug className="h-3 w-3" />
+                        {disconnecting
+                            ? <LoaderCircle className="h-3 w-3 animate-spin" />
+                            : <Unplug className="h-3 w-3" />
+                        }
                         Disconnect
                     </button>
                 )}

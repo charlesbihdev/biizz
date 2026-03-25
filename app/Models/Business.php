@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\DefaultPages;
 use Database\Factories\BusinessFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -19,9 +20,10 @@ use Illuminate\Support\Str;
  */
 #[Fillable([
     'name', 'slug', 'owner_id', 'is_active',
-    'logo_url', 'tagline', 'business_type', 'business_category',
+    'logo_url', 'favicon_url', 'tagline', 'business_type', 'business_category',
     'description', 'contact_email', 'phone', 'address', 'website', 'social_links',
     'theme_id', 'theme_settings', 'meta_pixel_id', 'ai_enabled',
+    'seo_title', 'seo_description', 'seo_image', 'show_branding',
 ])]
 class Business extends Model
 {
@@ -35,12 +37,19 @@ class Business extends Model
                 $business->slug = Str::slug($business->name);
             }
         });
+
+        static::created(function (Business $business): void {
+            foreach (DefaultPages::stubs() as $stub) {
+                $business->pages()->create($stub);
+            }
+        });
     }
 
     protected function casts(): array
     {
         return [
             'is_active' => 'boolean',
+            'show_branding' => 'boolean',
             'theme_settings' => 'array',
             'social_links' => 'array',
             'ai_enabled' => 'boolean',
@@ -67,6 +76,12 @@ class Business extends Model
     public function categories(): HasMany
     {
         return $this->hasMany(Category::class)->orderBy('sort_order');
+    }
+
+    /** @return HasMany<Page, $this> */
+    public function pages(): HasMany
+    {
+        return $this->hasMany(Page::class)->orderBy('sort_order');
     }
 
     /** @return HasMany<Order, $this> */

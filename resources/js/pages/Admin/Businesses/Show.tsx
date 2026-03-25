@@ -1,5 +1,5 @@
 import { router } from '@inertiajs/react';
-import { DollarSign, ExternalLink, Package, ShoppingBag, Trash2, TrendingUp } from 'lucide-react';
+import { DollarSign, ExternalLink, LoaderCircle, Package, ShoppingBag, Trash2, TrendingUp } from 'lucide-react';
 import { useState } from 'react';
 import {
     AlertDialog,
@@ -23,14 +23,24 @@ type BusinessWithCounts = Business & {
 
 export default function ShowBusiness({ business }: { business: BusinessWithCounts }) {
     const [deleteOpen, setDeleteOpen] = useState(false);
+    const [toggling,   setToggling]   = useState(false);
+    const [deleting,   setDeleting]   = useState(false);
     const b = { business: business.slug };
 
     const handleToggle = () => {
-        router.patch(toggle(b).url, {}, { preserveScroll: true });
+        setToggling(true);
+        router.patch(toggle(b).url, {}, {
+            preserveScroll: true,
+            onFinish: () => setToggling(false),
+        });
     };
 
     const handleDelete = () => {
-        router.visit(destroy(b).url, { method: 'delete' });
+        setDeleting(true);
+        router.visit(destroy(b).url, {
+            method: 'delete',
+            onFinish: () => setDeleting(false),
+        });
     };
 
     const stats = [
@@ -80,12 +90,14 @@ export default function ShowBusiness({ business }: { business: BusinessWithCount
                     <button
                         type="button"
                         onClick={handleToggle}
-                        className={`shrink-0 rounded-full px-4 py-2 text-xs font-bold transition ${
+                        disabled={toggling}
+                        className={`inline-flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-xs font-bold transition disabled:opacity-60 ${
                             business.is_active
                                 ? 'bg-white text-emerald-700 ring-1 ring-emerald-300 hover:bg-emerald-700 hover:text-white hover:ring-emerald-700'
                                 : 'bg-amber-500 text-white hover:bg-amber-600'
                         }`}
                     >
+                        {toggling && <LoaderCircle className="h-3.5 w-3.5 animate-spin" />}
                         {business.is_active ? 'Take offline' : 'Go live'}
                     </button>
                 </div>
@@ -135,8 +147,10 @@ export default function ShowBusiness({ business }: { business: BusinessWithCount
                         <AlertDialogCancel>Cancel</AlertDialogCancel>
                         <AlertDialogAction
                             onClick={handleDelete}
-                            className="bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-600"
+                            disabled={deleting}
+                            className="inline-flex items-center gap-2 bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-600 disabled:opacity-60"
                         >
+                            {deleting && <LoaderCircle className="h-3.5 w-3.5 animate-spin" />}
                             Delete business
                         </AlertDialogAction>
                     </AlertDialogFooter>

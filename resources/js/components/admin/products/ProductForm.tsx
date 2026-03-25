@@ -1,6 +1,6 @@
 import { Link } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import InputError from '@/components/input-error';
 import { ImageUploader, type UploadedImage } from '@/components/admin/products/ImageUploader';
 import { RichDescriptionEditor } from '@/components/admin/products/RichDescriptionEditor';
@@ -11,6 +11,7 @@ import type { Business, Category } from '@/types';
 
 export interface ProductFormData {
     name:        string;
+    slug:        string;
     description: string;
     price:       string;
     stock:       string;
@@ -30,10 +31,28 @@ interface Props {
     onChange:   <K extends keyof ProductFormData>(key: K, value: ProductFormData[K]) => void;
 }
 
+function slugify(text: string): string {
+    return text
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .trim()
+        .replace(/[\s]+/g, '-')
+        .replace(/-+/g, '-');
+}
+
 export default function ProductForm({
     business, categories, data, errors, processing, submitLabel, onSubmit, onChange,
 }: Props) {
     const isDigital = business.business_type === 'digital';
+
+    const [slugManuallyEdited, setSlugManuallyEdited] = useState(!!data.slug);
+
+    useEffect(() => {
+        if (!slugManuallyEdited) {
+            onChange('slug', slugify(data.name));
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [data.name]);
 
     const [richText, setRichText] = useState(
         () => /<[a-z][\s\S]*>/i.test(data.description ?? ''),
@@ -58,6 +77,22 @@ export default function ProductForm({
                         className="border-site-border focus-visible:ring-brand/30"
                     />
                     <InputError message={errors.name} />
+                </div>
+
+                {/* Slug */}
+                <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="slug">Slug</Label>
+                    <Input
+                        id="slug"
+                        value={data.slug}
+                        onChange={(e) => {
+                            setSlugManuallyEdited(true);
+                            onChange('slug', e.target.value);
+                        }}
+                        placeholder="e.g. white-linen-dress"
+                        className="border-site-border font-mono text-sm focus-visible:ring-brand/30"
+                    />
+                    <InputError message={errors.slug} />
                 </div>
 
                 {/* Description */}

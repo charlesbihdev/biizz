@@ -42,7 +42,7 @@ return new class extends Migration
             // Meta
             $table->string('meta_pixel_id', 50)->nullable();
             $table->boolean('ai_enabled')->default(false);
-            $table->boolean('is_active')->default(true);
+            $table->boolean('is_active')->default(false);
             $table->timestamps();
         });
 

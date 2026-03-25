@@ -35,7 +35,7 @@ export function CreateBusinessModal({ open, onOpenChange }: Props) {
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-xl">
+            <DialogContent className="sm:max-w-xl max-h-[95vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>Create a business</DialogTitle>
                 </DialogHeader>
@@ -109,11 +109,10 @@ export function CreateBusinessModal({ open, onOpenChange }: Props) {
                                     key={value}
                                     type="button"
                                     onClick={() => setData('business_type', value)}
-                                    className={`flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition ${
-                                        data.business_type === value
+                                    className={`flex flex-col items-start gap-2 rounded-xl border p-4 text-left transition ${data.business_type === value
                                             ? 'border-brand bg-brand/5 ring-1 ring-brand'
                                             : 'border-site-border hover:border-zinc-400'
-                                    }`}
+                                        }`}
                                 >
                                     <Icon
                                         className={`h-5 w-5 ${data.business_type === value ? 'text-brand' : 'text-site-muted'}`}

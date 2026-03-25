@@ -4,14 +4,15 @@ import { Label } from '@/components/ui/label';
 import type { Business, SchemaField as SchemaFieldType, ThemeSettings } from '@/types';
 
 type Props = {
-    fieldKey: string;
-    field: SchemaFieldType;
-    business: Business;
-    value: ThemeSettings[string];
-    onChange: (key: string, value: ThemeSettings[string]) => void;
+    fieldKey:    string;
+    field:       SchemaFieldType;
+    business:    Business;
+    value:       ThemeSettings[string];
+    allSettings?: ThemeSettings;
+    onChange:    (key: string, value: ThemeSettings[string] | File) => void;
 };
 
-export function SchemaField({ fieldKey, field, business, value, onChange }: Props) {
+export function SchemaField({ fieldKey, field, business, value, allSettings, onChange }: Props) {
     const id = `field-${fieldKey}`;
 
     return (
@@ -40,10 +41,14 @@ export function SchemaField({ fieldKey, field, business, value, onChange }: Prop
             {field.type === 'palette' && (
                 <PalettePicker
                     value={value as string | undefined}
-                    onChange={(primary, accent, id) => {
+                    primary={allSettings?.primary_color as string | undefined ?? business.theme_settings?.primary_color}
+                    accent={allSettings?.accent_color as string | undefined ?? business.theme_settings?.accent_color}
+                    bg={allSettings?.bg_color as string | undefined ?? business.theme_settings?.bg_color}
+                    onChange={(primary, accent, bg, id) => {
                         onChange('primary_color', primary);
                         onChange('accent_color', accent);
-                        onChange(fieldKey, id);
+                        onChange('bg_color', bg);
+                        onChange(fieldKey, id ?? '');
                     }}
                 />
             )}
@@ -53,7 +58,7 @@ export function SchemaField({ fieldKey, field, business, value, onChange }: Prop
                     business={business}
                     value={value as string | undefined}
                     dimensions={field.dimensions}
-                    onChange={(url) => onChange(fieldKey, url)}
+                    onChange={(file) => onChange(fieldKey, file !== null ? file : '')}
                 />
             )}
 

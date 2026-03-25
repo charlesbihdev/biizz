@@ -6,11 +6,13 @@ interface Props {
 
 export default function HeroSection({ business }: Props) {
     const { theme_settings: s, name } = business;
+    const primary = s.primary_color ?? '#18181b';
+    const accent  = s.accent_color  ?? primary;
 
     return (
         <section
-            className="relative flex min-h-[280px] items-center justify-center overflow-hidden bg-zinc-900"
-            style={s.primary_color ? { backgroundColor: s.primary_color } : undefined}
+            className="relative flex min-h-[280px] items-center justify-center overflow-hidden"
+            style={{ backgroundColor: primary }}
         >
             {s.hero_image && (
                 <img
@@ -27,7 +29,8 @@ export default function HeroSection({ business }: Props) {
                 )}
                 <a
                     href="#products"
-                    className="mt-6 inline-flex items-center gap-2 rounded-full bg-white/20 px-7 py-2.5 text-sm font-semibold text-white backdrop-blur-sm transition hover:bg-white/30"
+                    className="mt-6 inline-flex items-center gap-2 rounded-full px-7 py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
+                    style={{ backgroundColor: accent }}
                 >
                     Shop Now ↓
                 </a>

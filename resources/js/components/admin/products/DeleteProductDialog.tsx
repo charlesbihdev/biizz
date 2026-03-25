@@ -1,4 +1,6 @@
 import { router } from '@inertiajs/react';
+import { useState } from 'react';
+import { LoaderCircle } from 'lucide-react';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -21,9 +23,14 @@ type Props = {
 
 export function DeleteProductDialog({ business, product, open, onOpenChange }: Props) {
     const b = { business: business.slug };
+    const [deleting, setDeleting] = useState(false);
 
     const handleConfirm = () => {
-        router.visit(destroy({ ...b, product: product.id }).url, { method: 'delete' });
+        setDeleting(true);
+        router.visit(destroy({ ...b, product: product.id }).url, {
+            method: 'delete',
+            onFinish: () => setDeleting(false),
+        });
     };
 
     return (
@@ -39,8 +46,10 @@ export function DeleteProductDialog({ business, product, open, onOpenChange }: P
                     <AlertDialogCancel>Cancel</AlertDialogCancel>
                     <AlertDialogAction
                         onClick={handleConfirm}
-                        className="bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-600"
+                        disabled={deleting}
+                        className="inline-flex items-center gap-2 bg-red-600 text-white hover:bg-red-700 focus-visible:ring-red-600 disabled:opacity-60"
                     >
+                        {deleting && <LoaderCircle className="h-3.5 w-3.5 animate-spin" />}
                         Delete
                     </AlertDialogAction>
                 </AlertDialogFooter>

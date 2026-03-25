@@ -1,10 +1,10 @@
-import { useRef, useState } from 'react';
-import { ImagePlus, Loader2, Star, X } from 'lucide-react';
-import { store as mediaStore } from '@/routes/businesses/media';
+import { useRef } from 'react';
+import { ImagePlus, Star, X } from 'lucide-react';
 
 export interface UploadedImage {
     url: string;
     alt?: string;
+    file?: File;
 }
 
 interface Props {
@@ -15,36 +15,24 @@ interface Props {
 
 const MAX = 8;
 
-export function ImageUploader({ businessSlug, images, onChange }: Props) {
-    const inputRef             = useRef<HTMLInputElement>(null);
-    const [uploading, setUploading] = useState(false);
+export function ImageUploader({ images, onChange }: Props) {
+    const inputRef = useRef<HTMLInputElement>(null);
 
-    const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file || images.length >= MAX) { return; }
 
-        setUploading(true);
+        const previewUrl = URL.createObjectURL(file);
+        onChange([...images, { url: previewUrl, alt: '', file }]);
 
-        const body = new FormData();
-        body.append('file', file);
-
-        try {
-            const res  = await fetch(mediaStore({ business: businessSlug }).url, {
-                method:  'POST',
-                headers: { 'X-XSRF-TOKEN': getCsrf() },
-                body,
-            });
-            const json = await res.json() as { url: string };
-            onChange([...images, { url: json.url, alt: '' }]);
-        } catch {
-            // silently ignore — user can retry
-        } finally {
-            setUploading(false);
-            if (inputRef.current) { inputRef.current.value = ''; }
-        }
+        if (inputRef.current) { inputRef.current.value = ''; }
     };
 
     const remove = (idx: number) => {
+        const img = images[idx];
+        if (img.file) {
+            URL.revokeObjectURL(img.url);
+        }
         onChange(images.filter((_, i) => i !== idx));
     };
 
@@ -81,16 +69,10 @@ export function ImageUploader({ businessSlug, images, onChange }: Props) {
                     <button
                         type="button"
                         onClick={() => inputRef.current?.click()}
-                        disabled={uploading}
-                        className="flex h-20 w-20 shrink-0 flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-site-border text-site-muted transition hover:border-brand hover:text-brand disabled:opacity-60"
+                        className="flex h-20 w-20 shrink-0 flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed border-site-border text-site-muted transition hover:border-brand hover:text-brand"
                     >
-                        {uploading
-                            ? <Loader2 className="h-5 w-5 animate-spin" />
-                            : <ImagePlus className="h-5 w-5" />
-                        }
-                        <span className="text-[10px] font-medium">
-                            {uploading ? 'Uploading' : 'Add photo'}
-                        </span>
+                        <ImagePlus className="h-5 w-5" />
+                        <span className="text-[10px] font-medium">Add photo</span>
                     </button>
                 )}
             </div>
@@ -108,10 +90,4 @@ export function ImageUploader({ businessSlug, images, onChange }: Props) {
             />
         </div>
     );
-}
-
-function getCsrf(): string {
-    return (document.cookie.match(/XSRF-TOKEN=([^;]+)/) ?? [])[1]
-        ? decodeURIComponent((document.cookie.match(/XSRF-TOKEN=([^;]+)/) ?? [])[1])
-        : '';
 }

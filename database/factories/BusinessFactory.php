@@ -17,14 +17,20 @@ class BusinessFactory extends Factory
         $name = fake()->company();
 
         return [
-            'owner_id'       => User::factory(),
-            'name'           => $name,
-            'slug'           => Str::slug($name) . '-' . fake()->unique()->numberBetween(1, 9999),
-            'theme_id'       => 'classic',
+            'owner_id' => User::factory(),
+            'name' => $name,
+            'slug' => Str::slug($name).'-'.fake()->unique()->numberBetween(1, 9999),
+            'theme_id' => 'classic',
             'theme_settings' => [],
-            'meta_pixel_id'  => null,
-            'ai_enabled'     => false,
+            'meta_pixel_id' => null,
+            'ai_enabled' => false,
+            'is_active' => false,
         ];
+    }
+
+    public function active(): static
+    {
+        return $this->state(['is_active' => true]);
     }
 
     public function withAI(): static

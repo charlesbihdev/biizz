@@ -75,7 +75,7 @@ class ProductController extends Controller
         $product->update($validated);
 
         if ($images !== null) {
-            $product->images()->delete();
+            $product->images()->each(fn ($img) => $img->delete());
             foreach ($images as $i => $img) {
                 $product->images()->create([
                     'url' => $img['url'],

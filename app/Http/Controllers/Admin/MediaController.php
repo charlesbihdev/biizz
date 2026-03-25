@@ -7,7 +7,9 @@ use App\Models\Business;
 use App\Models\Product;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Validation\ValidationException;
 
 class MediaController extends Controller
 {
@@ -19,11 +21,25 @@ class MediaController extends Controller
     {
         abort_unless($business->isOwnedBy(auth()->user()), 403);
 
-        $request->validate(['file' => ['required', 'image', 'max:6144']]);
+        try {
+            $request->validate(['file' => ['required', 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:6144']]);
 
-        $path = $request->file('file')->store("businesses/{$business->id}", 's3');
+            $path = $request->file('file')->storePublicly("businesses/{$business->id}", 's3');
 
-        return response()->json(['url' => Storage::disk('s3')->url($path)]);
+            return response()->json(['url' => Storage::disk('s3')->url($path)]);
+        } catch (ValidationException $e) {
+            Log::error('Media upload validation failed', [
+                'errors' => $e->errors(),
+                'business_id' => $business->id,
+            ]);
+            throw $e;
+        } catch (\Exception $e) {
+            Log::error('Media upload exception', [
+                'message' => $e->getMessage(),
+                'business_id' => $business->id,
+            ]);
+            throw $e;
+        }
     }
 
     /**
@@ -33,26 +49,42 @@ class MediaController extends Controller
     {
         abort_unless($business->isOwnedBy(auth()->user()), 403);
 
-        $request->validate([
-            'file' => ['required', 'file', 'max:51200', 'mimes:pdf,zip,epub'],
-        ]);
+        try {
+            $request->validate([
+                'file' => ['required', 'file', 'max:51200', 'mimes:pdf,zip,epub'],
+            ]);
 
-        $uploaded = $request->file('file');
+            $uploaded = $request->file('file');
 
-        $path = $uploaded->store("businesses/{$business->id}/files", 's3');
+            $path = $uploaded->store("businesses/{$business->id}/files", 's3');
 
-        $file = $product->files()->create([
-            'url' => Storage::disk('s3')->url($path),
-            'filename' => $uploaded->getClientOriginalName(),
-            'file_size' => $uploaded->getSize(),
-            'mime_type' => $uploaded->getMimeType(),
-        ]);
+            $file = $product->files()->create([
+                'url' => Storage::disk('s3')->url($path),
+                'filename' => $uploaded->getClientOriginalName(),
+                'file_size' => $uploaded->getSize(),
+                'mime_type' => $uploaded->getMimeType(),
+            ]);
 
-        return response()->json([
-            'id' => $file->id,
-            'url' => $file->url,
-            'filename' => $file->filename,
-            'file_size' => $file->file_size,
-        ]);
+            return response()->json([
+                'id' => $file->id,
+                'url' => $file->url,
+                'filename' => $file->filename,
+                'file_size' => $file->file_size,
+            ]);
+        } catch (ValidationException $e) {
+            Log::error('Product file validation failed', [
+                'errors' => $e->errors(),
+                'business_id' => $business->id,
+                'product_id' => $product->id,
+            ]);
+            throw $e;
+        } catch (\Exception $e) {
+            Log::error('Product file upload exception', [
+                'message' => $e->getMessage(),
+                'business_id' => $business->id,
+                'product_id' => $product->id,
+            ]);
+            throw $e;
+        }
     }
 }

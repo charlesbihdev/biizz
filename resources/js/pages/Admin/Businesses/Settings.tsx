@@ -1,5 +1,6 @@
-import { useForm } from '@inertiajs/react';
+import { router, useForm } from '@inertiajs/react';
 import { CheckCircle2, Facebook, Globe, Instagram, LoaderCircle, Lock, MessageCircle, Package, Twitter, Zap } from 'lucide-react';
+import { useState } from 'react';
 import { FileUploader } from '@/components/admin/theme/FileUploader';
 import InputError from '@/components/input-error';
 import { Input } from '@/components/ui/input';
@@ -7,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { BUSINESS_CATEGORIES } from '@/data/businessCategories';
 import AppSidebarLayout from '@/layouts/app/app-sidebar-layout';
+import { uploadMedia } from '@/lib/media-upload';
 import { show } from '@/routes/businesses';
 import { update as settingsUpdate } from '@/routes/businesses/settings';
 import type { Business, BusinessCategory, SocialLinks } from '@/types';
@@ -27,6 +29,11 @@ export default function BusinessSettings({ business }: { business: Business }) {
     const b = { business: business.slug };
     const sl: SocialLinks = business.social_links ?? {};
 
+    const [pendingLogoFile, setPendingLogoFile]       = useState<File | null>(null);
+    const [pendingFaviconFile, setPendingFaviconFile] = useState<File | null>(null);
+    const [pendingSeoImageFile, setPendingSeoImageFile] = useState<File | null>(null);
+    const [saving, setSaving] = useState(false);
+
     const { data, setData, submit, processing, errors, recentlySuccessful } = useForm({
         name:              business.name ?? '',
         logo_url:          business.logo_url ?? '',
@@ -44,10 +51,50 @@ export default function BusinessSettings({ business }: { business: Business }) {
             tiktok:    sl.tiktok    ?? '',
             twitter:   sl.twitter   ?? '',
         },
+        favicon_url:      business.favicon_url ?? '',
+        seo_title:        business.seo_title ?? '',
+        seo_description:  business.seo_description ?? '',
+        seo_image:        business.seo_image ?? '',
+        show_branding:    business.show_branding ?? true,
     });
 
     const setSocial = (key: keyof SocialLinks, value: string) => {
         setData('social_links', { ...data.social_links, [key]: value });
+    };
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+
+        const hasPending = pendingLogoFile || pendingFaviconFile || pendingSeoImageFile;
+
+        if (hasPending) {
+            setSaving(true);
+            try {
+                const patch: Record<string, unknown> = { ...data };
+
+                if (pendingLogoFile) {
+                    patch.logo_url = await uploadMedia(pendingLogoFile, business.slug);
+                    setPendingLogoFile(null);
+                }
+                if (pendingFaviconFile) {
+                    patch.favicon_url = await uploadMedia(pendingFaviconFile, business.slug);
+                    setPendingFaviconFile(null);
+                }
+                if (pendingSeoImageFile) {
+                    patch.seo_image = await uploadMedia(pendingSeoImageFile, business.slug);
+                    setPendingSeoImageFile(null);
+                }
+
+                router.patch(settingsUpdate(b).url, patch, {
+                    onFinish: () => setSaving(false),
+                });
+            } catch {
+                setSaving(false);
+            }
+            return;
+        }
+
+        submit(settingsUpdate(b));
     };
 
     return (
@@ -67,7 +114,7 @@ export default function BusinessSettings({ business }: { business: Business }) {
                 </div>
 
                 <form
-                    onSubmit={(e) => { e.preventDefault(); submit(settingsUpdate(b)); }}
+                    onSubmit={(e) => { void handleSubmit(e); }}
                     className="flex flex-col gap-8"
                 >
                     {/* ── Brand ── */}
@@ -79,9 +126,33 @@ export default function BusinessSettings({ business }: { business: Business }) {
                             <FileUploader
                                 business={business}
                                 value={data.logo_url}
-                                onChange={(url) => setData('logo_url', url)}
+                                onChange={(file) => {
+                                    if (file) {
+                                        setPendingLogoFile(file);
+                                    } else {
+                                        setPendingLogoFile(null);
+                                        setData('logo_url', '');
+                                    }
+                                }}
                             />
                             <p className="text-xs text-site-muted">PNG, JPG or SVG. Falls back to your business name if not set.</p>
+                        </Field>
+
+                        <Field label="Favicon" error={errors.favicon_url}>
+                            <FileUploader
+                                business={business}
+                                value={data.favicon_url}
+                                dimensions="32×32 px recommended"
+                                onChange={(file) => {
+                                    if (file) {
+                                        setPendingFaviconFile(file);
+                                    } else {
+                                        setPendingFaviconFile(null);
+                                        setData('favicon_url', '');
+                                    }
+                                }}
+                            />
+                            <p className="text-xs text-site-muted">Small icon shown in browser tabs. Falls back to your logo if not set.</p>
                         </Field>
 
                         <Field label="Tagline" error={errors.tagline}>
@@ -101,43 +172,45 @@ export default function BusinessSettings({ business }: { business: Business }) {
                         title="Store Type"
                         description="Choose what kind of store you run and your industry category."
                     >
-                        <div className="flex flex-col gap-2">
-                            <Label>Business type</Label>
-                            <div className="flex items-center gap-3 rounded-xl border border-site-border bg-zinc-50 p-4">
-                                {business.business_type === 'digital' ? (
-                                    <Zap className="h-5 w-5 text-brand" />
-                                ) : (
-                                    <Package className="h-5 w-5 text-brand" />
-                                )}
-                                <div className="flex-1">
-                                    <p className="text-sm font-semibold capitalize text-site-fg">
-                                        {business.business_type}
-                                    </p>
-                                    <p className="text-xs text-site-muted">
-                                        {business.business_type === 'digital'
-                                            ? 'Files and downloads. 5% per-sale commission.'
-                                            : 'Goods with stock management. Subscription billing.'}
-                                    </p>
+                        <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+                            <div className="flex flex-col gap-1.5">
+                                <Label>Business type</Label>
+                                <div className="flex h-full items-center gap-3 rounded-lg border border-site-border bg-zinc-50 p-4">
+                                    {business.business_type === 'digital' ? (
+                                        <Zap className="h-5 w-5 text-brand" />
+                                    ) : (
+                                        <Package className="h-5 w-5 text-brand" />
+                                    )}
+                                    <div className="flex-1">
+                                        <p className="text-sm font-semibold capitalize text-site-fg">
+                                            {business.business_type}
+                                        </p>
+                                        <p className="text-[11px] leading-tight text-site-muted">
+                                            {business.business_type === 'digital'
+                                                ? 'Files and downloads. 5% per-sale commission.'
+                                                : 'Goods with stock management. Subscription billing.'}
+                                        </p>
+                                    </div>
+                                    <span className="flex shrink-0 items-center gap-1 rounded-full bg-zinc-200 px-2 py-0.5 text-[10px] font-medium text-zinc-500">
+                                        <Lock className="h-3 w-3" />
+                                        Locked
+                                    </span>
                                 </div>
-                                <span className="flex items-center gap-1 rounded-full bg-zinc-200 px-2.5 py-1 text-[11px] font-medium text-zinc-500">
-                                    <Lock className="h-3 w-3" />
-                                    Locked
-                                </span>
                             </div>
-                        </div>
 
-                        <Field label="Category" error={errors.business_category}>
-                            <select
-                                value={data.business_category}
-                                onChange={(e) => setData('business_category', e.target.value as BusinessCategory | '')}
-                                className="w-full rounded-lg border border-site-border bg-white px-3 py-2 text-sm text-site-fg focus:outline-none focus:ring-2 focus:ring-brand/30"
-                            >
-                                <option value="">Select a category…</option>
-                                {BUSINESS_CATEGORIES.map((cat) => (
-                                    <option key={cat.value} value={cat.value}>{cat.label}</option>
-                                ))}
-                            </select>
-                        </Field>
+                            <Field label="Category" error={errors.business_category}>
+                                <select
+                                    value={data.business_category}
+                                    onChange={(e) => setData('business_category', e.target.value as BusinessCategory | '')}
+                                    className="h-full min-h-[58px] w-full rounded-lg border border-site-border bg-white px-3 py-2 text-sm text-site-fg focus:outline-none focus:ring-2 focus:ring-brand/30"
+                                >
+                                    <option value="">Select a category…</option>
+                                    {BUSINESS_CATEGORIES.map((cat) => (
+                                        <option key={cat.value} value={cat.value}>{cat.label}</option>
+                                    ))}
+                                </select>
+                            </Field>
+                        </div>
                     </FormSection>
 
                     {/* ── Profile ── */}
@@ -145,14 +218,28 @@ export default function BusinessSettings({ business }: { business: Business }) {
                         title="Profile"
                         description="How your business appears to customers on the storefront."
                     >
-                        <Field label="Business name" error={errors.name}>
-                            <Input
-                                value={data.name}
-                                onChange={(e) => setData('name', e.target.value)}
-                                placeholder="Zara's Boutique"
-                                className="border-site-border focus-visible:ring-brand/30"
-                            />
-                        </Field>
+                        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                            <Field label="Business name" error={errors.name}>
+                                <Input
+                                    value={data.name}
+                                    onChange={(e) => setData('name', e.target.value)}
+                                    placeholder="Zara's Boutique"
+                                    className="border-site-border focus-visible:ring-brand/30"
+                                />
+                            </Field>
+
+                            <Field label="Website" error={errors.website}>
+                                <div className="flex h-full items-center rounded-lg border border-site-border bg-white focus-within:ring-2 focus-within:ring-brand/30">
+                                    <Globe className="ml-3 h-4 w-4 shrink-0 text-site-muted" />
+                                    <Input
+                                        value={data.website}
+                                        onChange={(e) => setData('website', e.target.value)}
+                                        placeholder="https://yourbrand.com"
+                                        className="h-full border-0 focus-visible:ring-0"
+                                    />
+                                </div>
+                            </Field>
+                        </div>
 
                         <Field label="Description" error={errors.description}>
                             <Textarea
@@ -165,18 +252,6 @@ export default function BusinessSettings({ business }: { business: Business }) {
                             <p className="text-right text-[11px] text-site-muted/60">
                                 {data.description.length}/500
                             </p>
-                        </Field>
-
-                        <Field label="Website" error={errors.website}>
-                            <div className="flex items-center rounded-lg border border-site-border bg-white focus-within:ring-2 focus-within:ring-brand/30">
-                                <Globe className="ml-3 h-4 w-4 shrink-0 text-site-muted" />
-                                <Input
-                                    value={data.website}
-                                    onChange={(e) => setData('website', e.target.value)}
-                                    placeholder="https://yourbrand.com"
-                                    className="border-0 focus-visible:ring-0"
-                                />
-                            </div>
                         </Field>
                     </FormSection>
 
@@ -247,6 +322,71 @@ export default function BusinessSettings({ business }: { business: Business }) {
                         </div>
                     </FormSection>
 
+                    {/* ── SEO ── */}
+                    <FormSection
+                        title="SEO"
+                        description="Control how your store appears in Google, Facebook, and WhatsApp link previews."
+                    >
+                        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                            <Field label="SEO Title" error={errors.seo_title}>
+                                <Input
+                                    value={data.seo_title}
+                                    onChange={(e) => setData('seo_title', e.target.value)}
+                                    placeholder={business.name}
+                                    maxLength={70}
+                                    className="border-site-border focus-visible:ring-brand/30"
+                                />
+                                <p className="text-right text-[11px] text-site-muted/60">{data.seo_title.length}/70</p>
+                            </Field>
+
+                            <Field label="Social Share Image" error={errors.seo_image}>
+                                <FileUploader
+                                    business={business}
+                                    value={data.seo_image}
+                                    dimensions="1200×630 px"
+                                    onChange={(file) => {
+                                        if (file) {
+                                            setPendingSeoImageFile(file);
+                                        } else {
+                                            setPendingSeoImageFile(null);
+                                            setData('seo_image', '');
+                                        }
+                                    }}
+                                />
+                                <p className="text-xs text-site-muted">Shown when your store is shared on social media. Falls back to logo.</p>
+                            </Field>
+                        </div>
+
+                        <Field label="Meta Description" error={errors.seo_description}>
+                            <Textarea
+                                value={data.seo_description}
+                                onChange={(e) => setData('seo_description', e.target.value)}
+                                placeholder={business.tagline ?? business.description ?? 'Describe your store for search engines...'}
+                                rows={3}
+                                maxLength={300}
+                                className="resize-none border-site-border focus-visible:ring-brand/30"
+                            />
+                            <p className="text-right text-[11px] text-site-muted/60">{data.seo_description.length}/300</p>
+                        </Field>
+
+                        <div className="rounded-lg border border-site-border bg-site-surface p-4">
+                            <label className="flex cursor-pointer items-center gap-3">
+                                <input
+                                    type="checkbox"
+                                    checked={data.show_branding}
+                                    onChange={(e) => setData('show_branding', e.target.checked)}
+                                    className="h-4 w-4 rounded border-site-border accent-brand"
+                                />
+                                <div>
+                                    <p className="text-sm font-medium text-site-fg">Show "Powered by biizz.app" in footer</p>
+                                    <p className="text-xs text-site-muted">
+                                        When off, shows "© {new Date().getFullYear()} {business.name}. All rights reserved." instead.
+                                    </p>
+                                </div>
+                            </label>
+                        </div>
+                    </FormSection>
+
                     {/* ── Save ── */}
                     <div className="flex items-center justify-end gap-3">
                         {recentlySuccessful && (
@@ -257,10 +397,10 @@ export default function BusinessSettings({ business }: { business: Business }) {
                         )}
                         <button
                             type="submit"
-                            disabled={processing}
+                            disabled={processing || saving}
                             className="flex items-center gap-2 rounded-full bg-brand px-6 py-2.5 text-sm font-bold text-white transition hover:bg-brand-hover disabled:opacity-60"
                         >
-                            {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
+                            {(processing || saving) && <LoaderCircle className="h-4 w-4 animate-spin" />}
                             Save changes
                         </button>
                     </div>

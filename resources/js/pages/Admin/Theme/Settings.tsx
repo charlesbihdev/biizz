@@ -1,6 +1,7 @@
 import { router } from '@inertiajs/react';
 import { Eye, LoaderCircle, X } from 'lucide-react';
 import { useState } from 'react';
+import { uploadMedia } from '@/lib/media-upload';
 import { LivePreview } from '@/components/admin/theme/LivePreview';
 import { SchemaField } from '@/components/admin/theme/SchemaField';
 import { ThemePicker } from '@/components/admin/theme/ThemePicker';
@@ -16,22 +17,42 @@ export default function ThemeSettings({ business }: { business: Business }) {
 
     const [activeTheme, setActiveTheme] = useState<ThemeId>(business.theme_id as ThemeId);
     const [settings, setSettings] = useState<ThemeSettings>({ ...business.theme_settings });
+    const [pendingFiles, setPendingFiles] = useState<Record<string, File>>({});
     const [saving, setSaving] = useState(false);
     const [previewOpen, setPreviewOpen] = useState(false);
 
     const schema = SCHEMA_MAP[activeTheme];
     const isCompactField = (fieldType: string): boolean => fieldType === 'boolean' || fieldType === 'select';
 
-    const handleFieldChange = (key: string, value: ThemeSettings[string]) => {
-        setSettings((prev) => ({ ...prev, [key]: value }));
+    const handleFieldChange = (key: string, value: ThemeSettings[string] | File) => {
+        if (value instanceof File) {
+            setPendingFiles((prev) => ({ ...prev, [key]: value }));
+        } else {
+            setSettings((prev) => ({ ...prev, [key]: value }));
+            setPendingFiles((prev) => { const next = { ...prev }; delete next[key]; return next; });
+        }
     };
 
-    const handleSave = () => {
+    const handleSave = async () => {
         setSaving(true);
+
+        let resolvedSettings = { ...settings };
+
+        if (Object.keys(pendingFiles).length > 0) {
+            const uploads = await Promise.all(
+                Object.entries(pendingFiles).map(async ([key, file]) => {
+                    const url = await uploadMedia(file, business.slug);
+                    return [key, url] as [string, string];
+                }),
+            );
+            uploads.forEach(([key, url]) => { resolvedSettings[key] = url; });
+            setPendingFiles({});
+            setSettings(resolvedSettings);
+        }
 
         router.visit(update(b).url, {
             method: 'patch',
-            data: settings as any,
+            data: resolvedSettings as any,
             preserveScroll: true,
             onFinish: () => setSaving(false),
         });
@@ -78,6 +99,7 @@ export default function ThemeSettings({ business }: { business: Business }) {
                                         field={field}
                                         business={business}
                                         value={settings[key]}
+                                        allSettings={settings}
                                         onChange={handleFieldChange}
                                     />
                                 </div>

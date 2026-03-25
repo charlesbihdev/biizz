@@ -3,12 +3,12 @@ import {
     BotMessageSquare,
     ChartNoAxesColumn,
     CreditCard,
+    FileText,
     FolderOpen,
     Globe,
     LayoutDashboard,
     Package,
     Palette,
-    Search,
     Settings,
     ShoppingBag,
 } from 'lucide-react';
@@ -23,6 +23,7 @@ import { useCurrentUrl } from '@/hooks/use-current-url';
 import { show } from '@/routes/businesses';
 import { index as categoriesIndex } from '@/routes/businesses/categories';
 import { index as ordersIndex } from '@/routes/businesses/orders';
+import { index as pagesIndex } from '@/routes/businesses/pages';
 import { edit as paymentsEdit } from '@/routes/businesses/payments';
 import { index as productsIndex } from '@/routes/businesses/products';
 import { edit as settingsEdit } from '@/routes/businesses/settings';
@@ -94,15 +95,15 @@ export function NavBusiness({ business }: { business: Business }) {
 
     const sellItems: NavEntry[] = [
         { title: 'Overview',   href: show(b).url,            icon: LayoutDashboard, exact: true },
+        { title: 'Orders',     href: ordersIndex(b).url,     icon: ShoppingBag },
         { title: 'Products',   href: productsIndex(b).url,   icon: Package },
         { title: 'Categories', href: categoriesIndex(b).url, icon: FolderOpen },
-        { title: 'Orders',     href: ordersIndex(b).url,     icon: ShoppingBag },
     ];
 
     const storefrontItems: NavEntry[] = [
-        { title: 'Theme',  href: themeEdit(b).url, icon: Palette },
-        { title: 'Domain', href: null,              icon: Globe,   soon: true },
-        { title: 'SEO',    href: null,              icon: Search,  soon: true },
+        { title: 'Theme',  href: themeEdit(b).url,  icon: Palette },
+        { title: 'Pages',  href: pagesIndex(b).url, icon: FileText },
+        { title: 'Domain', href: null,               icon: Globe,   soon: true },
     ];
 
     const engageItems: NavEntry[] = [

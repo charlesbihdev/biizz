@@ -5,11 +5,13 @@ export type ThemeId = 'classic' | 'boutique';
 export interface ThemeSettings {
     primary_color?:     string;
     accent_color?:      string;
+    bg_color?:          string;
     color_scheme?:      string;
     hero_image?:        string;
     show_featured?:     boolean;
     show_testimonials?: boolean;
     show_hero?:         boolean;
+    show_shop_page?:    boolean;
     layout_style?:      'grid' | 'masonry' | 'list';
     products_per_page?: '12' | '24' | '36';
     [key: string]: unknown; // forward-compatible unknown keys
@@ -64,6 +66,7 @@ export interface Business {
     slug:              string;
     is_active:         boolean;
     logo_url:          string | null;
+    favicon_url:       string | null;
     tagline:           string | null;
     business_type:     BusinessType;
     business_category: BusinessCategory | null;
@@ -79,8 +82,13 @@ export interface Business {
     ai_enabled:        boolean;
     has_paystack:      boolean;
     has_junipay:       boolean;
+    seo_title:         string | null;
+    seo_description:   string | null;
+    seo_image:         string | null;
+    show_branding:     boolean;
     products?:         Product[];
     categories?:       Category[];
+    pages?:            Page[];
     created_at:        string;
     updated_at:        string;
 }
@@ -107,8 +115,9 @@ export interface Product {
     id:          number;
     business_id: number;
     category_id: number | null;
-    category:    { id: number; name: string } | null;
+    category:    { id: number; name: string; slug: string } | null;
     name:        string;
+    slug:        string;
     description: string | null;
     price:       string; // decimal comes as string from Laravel
     stock:       number;
@@ -118,6 +127,23 @@ export interface Product {
     metadata:    Record<string, unknown>;
     created_at:  string;
     updated_at:  string;
+}
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
+export type PageType = 'privacy_policy' | 'faq' | 'terms' | 'about' | 'shipping' | 'acceptable_use' | null;
+
+export interface Page {
+    id:           number;
+    business_id:  number;
+    title:        string;
+    slug:         string;
+    content:      string | null;
+    type:         PageType;
+    is_published: boolean;
+    sort_order:   number;
+    created_at:   string;
+    updated_at:   string;
 }
 
 // ─── Pagination ───────────────────────────────────────────────────────────────

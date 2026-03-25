@@ -35,4 +35,9 @@ export const ClassicSchema: ThemeSchema = {
         label:   'Show Featured Products Section',
         default: true,
     },
+    show_shop_page: {
+        type:    'boolean',
+        label:   'Enable dedicated Shop page (/shop)',
+        default: true,
+    },
 };

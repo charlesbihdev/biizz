@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\BusinessController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\OrderController;
+use App\Http\Controllers\Admin\PageController;
 use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ThemeSettingsController;
@@ -79,6 +80,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::get('/', 'index')->name('index');
                 Route::get('/{order}', 'show')->name('show');
                 Route::patch('/{order}/status', 'updateStatus')->name('updateStatus');
+            });
+
+            // Pages
+            Route::prefix('pages')->name('pages.')->controller(PageController::class)->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::get('/new', 'create')->name('create');
+                Route::post('/', 'store')->name('store');
+                Route::get('/{page}', 'edit')->name('edit');
+                Route::patch('/{page}', 'update')->name('update');
+                Route::delete('/{page}', 'destroy')->name('destroy');
+                Route::patch('/{page}/publish', 'togglePublish')->name('publish');
             });
 
             // Media uploads (theme images etc.)
