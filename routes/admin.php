@@ -1,6 +1,10 @@
 <?php
 
 use App\Http\Controllers\Admin\BusinessController;
+use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\MediaController;
+use App\Http\Controllers\Admin\OrderController;
+use App\Http\Controllers\Admin\PageController;
 use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ThemeSettingsController;
@@ -8,45 +12,91 @@ use Illuminate\Support\Facades\Route;
 
 /*
 |--------------------------------------------------------------------------
-| Admin Routes (Authenticated)
+| Business Admin Routes
 |--------------------------------------------------------------------------
 | All routes require auth + email verification.
 | Business-specific routes additionally require the 'business' middleware
-| which sets BusinessContext for the request lifecycle.
+| which resolves BusinessContext for the request lifecycle.
+|
+| URL structure: /dashboard/b/{slug}/...
 |
 */
 
-Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'verified'])->group(function () {
 
-    // Business management (no business middleware — user is selecting which business to manage)
-    Route::resource('businesses', BusinessController::class)
-        ->only(['index', 'create', 'store', 'show', 'destroy']);
+    // Business selection (no business context — user is browsing their stores)
+    Route::prefix('dashboard/b')->name('businesses.')->controller(BusinessController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/create', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+    });
 
-    // Business-scoped routes — ResolveBusiness middleware kicks in here
-    Route::prefix('businesses/{business:slug}')
+    // Business-scoped routes — 'business' middleware resolves + checks ownership
+    Route::prefix('dashboard/b/{business:slug}')
         ->middleware('business')
         ->name('businesses.')
         ->group(function () {
 
-            // Theme settings
-            Route::get('/theme', [ThemeSettingsController::class, 'edit'])
-                ->name('theme.edit');
-            Route::patch('/theme', [ThemeSettingsController::class, 'update'])
-                ->name('theme.update');
-            Route::patch('/theme/switch/{themeId}', [ThemeSettingsController::class, 'switchTheme'])
-                ->name('theme.switch');
-
-            // Payment settings
-            Route::get('/payment', [PaymentController::class, 'edit'])
-                ->name('payment.edit');
-            Route::post('/payment', [PaymentController::class, 'store'])
-                ->name('payment.store');
-            Route::delete('/payment/{provider}', [PaymentController::class, 'destroy'])
-                ->name('payment.destroy');
+            Route::get('/', [BusinessController::class, 'show'])->name('show');
+            Route::delete('/', [BusinessController::class, 'destroy'])->name('destroy');
+            Route::patch('/toggle', [BusinessController::class, 'toggle'])->name('toggle');
+            Route::get('/settings', [BusinessController::class, 'editSettings'])->name('settings.edit');
+            Route::patch('/settings', [BusinessController::class, 'updateSettings'])->name('settings.update');
 
             // Products
-            Route::resource('products', ProductController::class)
-                ->only(['index', 'create', 'store', 'edit', 'update', 'destroy'])
-                ->names('products');
+            Route::prefix('products')->name('products.')->controller(ProductController::class)->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::get('/new', 'create')->name('create');
+                Route::post('/', 'store')->name('store');
+                Route::get('/{product}', 'edit')->name('edit');
+                Route::patch('/{product}', 'update')->name('update');
+                Route::delete('/{product}', 'destroy')->name('destroy');
+            });
+
+            // Theme
+            Route::prefix('theme')->name('theme.')->controller(ThemeSettingsController::class)->group(function () {
+                Route::get('/', 'edit')->name('edit');
+                Route::patch('/', 'update')->name('update');
+                Route::patch('/switch/{themeId}', 'switchTheme')->name('switch');
+            });
+
+            // Payments
+            Route::prefix('payments')->name('payments.')->controller(PaymentController::class)->group(function () {
+                Route::get('/', 'edit')->name('edit');
+                Route::post('/', 'store')->name('store');
+                Route::delete('/{provider}', 'destroy')->name('destroy');
+            });
+
+            // Categories
+            Route::prefix('categories')->name('categories.')->controller(CategoryController::class)->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::post('/', 'store')->name('store');
+                Route::patch('/{category}', 'update')->name('update');
+                Route::delete('/{category}', 'destroy')->name('destroy');
+            });
+
+            // Orders
+            Route::prefix('orders')->name('orders.')->controller(OrderController::class)->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::get('/{order}', 'show')->name('show');
+                Route::patch('/{order}/status', 'updateStatus')->name('updateStatus');
+            });
+
+            // Pages
+            Route::prefix('pages')->name('pages.')->controller(PageController::class)->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::get('/new', 'create')->name('create');
+                Route::post('/', 'store')->name('store');
+                Route::get('/{page}', 'edit')->name('edit');
+                Route::patch('/{page}', 'update')->name('update');
+                Route::delete('/{page}', 'destroy')->name('destroy');
+                Route::patch('/{page}/publish', 'togglePublish')->name('publish');
+            });
+
+            // Media uploads (theme images etc.)
+            Route::post('media', [MediaController::class, 'store'])->name('media.store');
+
+            // Digital product file uploads (50 MB limit)
+            Route::post('products/{product}/files', [MediaController::class, 'storeFile'])->name('products.files.store');
         });
 });

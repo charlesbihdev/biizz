@@ -45,18 +45,27 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user(),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            // All authenticated pages get the user's businesses list for the sidebar switcher
+            'businesses' => $request->user()
+                ? $request->user()->ownedBusinesses()->get(['id', 'name', 'slug'])->toArray()
+                : [],
+            'flash' => [
+                'success' => fn () => $request->session()->get('success'),
+                'error' => fn () => $request->session()->get('error'),
+                'warning' => fn () => $request->session()->get('warning'),
+            ],
             // business is only set on routes that go through ResolveBusiness middleware
             // never includes payment keys — only safe presentation fields
             'business' => $business ? [
-                'id'             => $business->id,
-                'name'           => $business->name,
-                'slug'           => $business->slug,
-                'theme_id'       => $business->theme_id,
+                'id' => $business->id,
+                'name' => $business->name,
+                'slug' => $business->slug,
+                'theme_id' => $business->theme_id,
                 'theme_settings' => $business->theme_settings,
-                'meta_pixel_id'  => $business->meta_pixel_id,
-                'ai_enabled'     => $business->ai_enabled,
-                'has_paystack'   => $business->hasPaystackConfigured(),
-                'has_junipay'    => $business->hasJunipayConfigured(),
+                'meta_pixel_id' => $business->meta_pixel_id,
+                'ai_enabled' => $business->ai_enabled,
+                'has_paystack' => $business->hasPaystackConfigured(),
+                'has_junipay' => $business->hasJunipayConfigured(),
             ] : null,
         ];
     }

@@ -24,5 +24,17 @@ Route::prefix('s')->group(function () {
 
         Route::get('/{business:slug}/preview', [StorefrontController::class, 'preview'])
             ->name('storefront.preview');
+
+        Route::get('/{business:slug}/p/{product:slug}', [StorefrontController::class, 'product'])
+            ->name('storefront.product');
+
+        Route::get('/{business:slug}/shop', [StorefrontController::class, 'shop'])
+            ->name('storefront.shop');
+
+        Route::get('/{business:slug}/contact', [StorefrontController::class, 'contact'])
+            ->name('storefront.contact');
+
+        Route::get('/{business:slug}/pages/{page:slug}', [StorefrontController::class, 'page'])
+            ->name('storefront.page');
     });
 });

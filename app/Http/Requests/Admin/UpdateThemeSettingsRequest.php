@@ -19,16 +19,15 @@ class UpdateThemeSettingsRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'primary_color'     => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
-            'accent_color'      => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
-            'hero_image'        => ['nullable', 'string', 'max:2048'],
-            'show_featured'     => ['boolean'],
+            'primary_color' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'accent_color' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'color_scheme' => ['nullable', 'string', 'max:50'],
+            'hero_image' => ['nullable', 'string', 'max:2048'],
+            'show_featured' => ['boolean'],
             'show_testimonials' => ['boolean'],
-            'store_tagline'     => ['nullable', 'string', 'max:120'],
-            'layout_style'      => ['nullable', 'string', 'in:grid,masonry,list'],
-            'store_description' => ['nullable', 'string', 'max:500'],
-            'store_address'     => ['nullable', 'string', 'max:255'],
-            'whatsapp_number'   => ['nullable', 'string', 'max:100'],
+            'show_hero' => ['boolean'],
+            'layout_style' => ['nullable', 'string', 'in:grid,masonry,list'],
+            'products_per_page' => ['nullable', 'string', 'in:12,24,36'],
         ];
     }
 }

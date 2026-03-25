@@ -1,9 +1,10 @@
-import { Link } from '@inertiajs/react';
-import { BookOpen, FolderGit2, LayoutGrid } from 'lucide-react';
+import { Link, usePage } from '@inertiajs/react';
+import { LayoutDashboard } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
-import { NavFooter } from '@/components/nav-footer';
+import BusinessSwitcher from '@/components/business-switcher';
+import { NavBusiness } from '@/components/nav-business';
 import { NavMain } from '@/components/nav-main';
-import { NavUser } from '@/components/nav-user';
+import { UserAvatarMenu } from '@/components/user-avatar-menu';
 import {
     Sidebar,
     SidebarContent,
@@ -14,51 +15,48 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
-import type { NavItem } from '@/types';
+import type { Business } from '@/types';
 
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
-    },
-];
-
-const footerNavItems: NavItem[] = [
-    {
-        title: 'Repository',
-        href: 'https://github.com/laravel/react-starter-kit',
-        icon: FolderGit2,
-    },
-    {
-        title: 'Documentation',
-        href: 'https://laravel.com/docs/starter-kits#react',
-        icon: BookOpen,
-    },
+const dashboardNavItems = [
+    { title: 'Overview', href: dashboard().url, icon: LayoutDashboard },
 ];
 
 export function AppSidebar() {
+    const { business } = usePage().props;
+
     return (
         <Sidebar collapsible="icon" variant="inset">
+            {/* Header: logo left, user avatar right (hidden when collapsed) */}
             <SidebarHeader>
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <SidebarMenuButton size="lg" asChild>
-                            <Link href={dashboard()} prefetch>
-                                <AppLogo />
-                            </Link>
-                        </SidebarMenuButton>
+                        <div className="flex items-center gap-2">
+                            <SidebarMenuButton size="lg" asChild className="flex-1">
+                                <Link href={dashboard().url} prefetch>
+                                    <AppLogo />
+                                </Link>
+                            </SidebarMenuButton>
+
+                            {/* Hidden in collapsed/icon mode */}
+                            <div className="shrink-0 group-data-[collapsible=icon]:hidden">
+                                <UserAvatarMenu />
+                            </div>
+                        </div>
                     </SidebarMenuItem>
                 </SidebarMenu>
             </SidebarHeader>
 
+            {/* Context-aware nav */}
             <SidebarContent>
-                <NavMain items={mainNavItems} />
+                {business
+                    ? <NavBusiness business={business as Business} />
+                    : <NavMain items={dashboardNavItems} label="Workspace" />
+                }
             </SidebarContent>
 
+            {/* Footer: business switcher only */}
             <SidebarFooter>
-                <NavFooter items={footerNavItems} className="mt-auto" />
-                <NavUser />
+                <BusinessSwitcher />
             </SidebarFooter>
         </Sidebar>
     );

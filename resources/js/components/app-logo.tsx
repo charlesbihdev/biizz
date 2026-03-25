@@ -1,16 +1,13 @@
-import AppLogoIcon from '@/components/app-logo-icon';
-
 export default function AppLogo() {
     return (
         <>
-            <div className="flex aspect-square size-8 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
-                <AppLogoIcon className="size-5 fill-current text-white dark:text-black" />
-            </div>
-            <div className="ml-1 grid flex-1 text-left text-sm">
-                <span className="mb-0.5 truncate leading-tight font-semibold">
-                    Laravel Starter Kit
-                </span>
-            </div>
+            {/* Compact slot — visible when sidebar is collapsed to icon mode */}
+            <span className="text-base font-black leading-none text-brand">b.</span>
+
+            {/* Full text — hidden in collapsed sidebar */}
+            <span className="text-sm font-bold tracking-tight text-site-fg">
+                biizz<span className="text-brand">.</span>app
+            </span>
         </>
     );
 }

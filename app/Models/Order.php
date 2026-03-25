@@ -8,6 +8,7 @@ use App\Models\Scopes\BusinessScope;
 use Database\Factories\OrderFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ScopedBy;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -16,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[ScopedBy([BusinessScope::class])]
 #[Fillable([
     'business_id',
+    'customer_id',
     'customer_name',
     'customer_email',
     'customer_phone',
@@ -34,7 +36,7 @@ class Order extends Model
     protected function casts(): array
     {
         return [
-            'total'  => 'decimal:2',
+            'total' => 'decimal:2',
             'status' => OrderStatus::class,
             'source' => OrderSource::class,
         ];
@@ -50,6 +52,12 @@ class Order extends Model
         return $this->belongsTo(Business::class);
     }
 
+    /** @return BelongsTo<Customer, $this> */
+    public function customer(): BelongsTo
+    {
+        return $this->belongsTo(Customer::class);
+    }
+
     /** @return HasMany<OrderItem, $this> */
     public function items(): HasMany
     {
@@ -60,13 +68,13 @@ class Order extends Model
     // Scopes
     // -------------------------------------------------------------------------
 
-    /** @param \Illuminate\Database\Eloquent\Builder<Order> $query */
+    /** @param Builder<Order> $query */
     public function scopePaid($query): void
     {
         $query->where('status', OrderStatus::Paid);
     }
 
-    /** @param \Illuminate\Database\Eloquent\Builder<Order> $query */
+    /** @param Builder<Order> $query */
     public function scopePending($query): void
     {
         $query->where('status', OrderStatus::Pending);

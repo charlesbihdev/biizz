@@ -1,21 +1,40 @@
-import type { Business, Product } from '@/types/business';
+import type { Business, PaginatedData, Page, Product } from '@/types/business';
+import BoutiqueThemeShell from './ThemeShell';
+import HeroBanner from './Components/HeroBanner';
+import LookbookGrid from './Components/LookbookGrid';
+import TestimonialRow from './Components/TestimonialRow';
 
 interface Props {
     business: Business;
-    products: Product[];
+    products: PaginatedData<Product>;
+    pages:    Page[];
 }
 
-/**
- * Boutique theme — Phase 7 (after Classic theme is validated).
- * Stub in place so THEME_MAP resolves without errors.
- */
-export default function BoutiqueLayout({ business }: Props) {
+export default function BoutiqueLayout({ business, products, pages }: Props) {
+    const { theme_settings: s } = business;
+
     return (
-        <div className="flex min-h-screen items-center justify-center bg-zinc-950 text-white">
-            <div className="text-center">
-                <h1 className="text-3xl font-bold">{business.name}</h1>
-                <p className="mt-2 text-zinc-400">Boutique theme — coming soon</p>
-            </div>
-        </div>
+        <BoutiqueThemeShell business={business} pages={pages}>
+            {({ addToCart, trackEvent }) => (
+                <>
+                    <HeroBanner business={business} />
+
+                    <section id="collection" className="px-4 py-16 lg:px-8">
+                        <div className="mx-auto max-w-7xl">
+                            <LookbookGrid
+                                products={products.data}
+                                onAddToCart={(item) => {
+                                    addToCart(item);
+                                    trackEvent('AddToCart', { content_name: item.name, value: item.price, currency: 'GHS' });
+                                }}
+                                settings={s}
+                            />
+                        </div>
+                    </section>
+
+                    {s.show_testimonials && <TestimonialRow />}
+                </>
+            )}
+        </BoutiqueThemeShell>
     );
 }

@@ -15,13 +15,12 @@ class ProductFactory extends Factory
     {
         return [
             'business_id' => Business::factory(),
-            'name'        => fake()->words(3, true),
+            'name' => fake()->words(3, true),
             'description' => fake()->paragraph(),
-            'price'       => fake()->randomFloat(2, 5, 500),
-            'stock'       => fake()->numberBetween(0, 100),
-            'is_active'   => true,
-            'images'      => [],
-            'metadata'    => [],
+            'price' => fake()->randomFloat(2, 5, 500),
+            'stock' => fake()->numberBetween(0, 100),
+            'is_active' => true,
+            'metadata' => [],
         ];
     }
 

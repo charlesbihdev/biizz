@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(\"/c/Users/MENSAH COLOMBUS/.config/herd/bin/php84/php.exe\" artisan make:controller Admin/OrderController --no-interaction)",
+      "Bash(\"/c/Users/MENSAH COLOMBUS/.config/herd/bin/php84/php.exe\" vendor/bin/pint app/Http/Controllers/Admin/OrderController.php routes/admin.php --format agent)",
+      "Bash(\"/c/Users/MENSAH COLOMBUS/.config/herd/bin/php84/php.exe\" artisan wayfinder:generate --no-interaction)",
+      "Bash(\"/c/Users/MENSAH COLOMBUS/.config/herd/bin/php84/php.exe\" artisan test --compact)",
+      "Bash(\"/c/Users/MENSAH COLOMBUS/.config/herd/bin/php84/php.exe\" artisan config:clear)",
+      "Bash(mv \"database/migrations/2026_03_23_000005_create_orders_table.php\" \"database/migrations/2026_03_23_000007_create_orders_table.php\")",
+      "Bash(mv \"database/migrations/2026_03_23_000006_create_order_items_table.php\" \"database/migrations/2026_03_23_000008_create_order_items_table.php\")",
+      "Bash(\"/c/Users/MENSAH COLOMBUS/.config/herd/bin/php84/php.exe\" artisan make:model Customer --factory --no-interaction)",
+      "Bash(php vendor/bin/pint --dirty)",
+      "Bash(\"C:/Users/MENSAH COLOMBUS/.config/herd/bin/php.bat\" vendor/bin/pint --dirty)",
+      "Bash(\"C:/Users/MENSAH COLOMBUS/.config/herd/bin/php.bat\" artisan test --compact)",
+      "Read(//c/Users/MENSAH/ COLOMBUS/Herd/biizz/resources/js/components/admin/theme/**)",
+      "Read(//c/Users/MENSAH/ COLOMBUS/Herd/biizz/resources/js/pages/Admin/Businesses/**)",
+      "Read(//c/Users/MENSAH/ COLOMBUS/Herd/biizz/app/Http/Controllers/Admin/**)",
+      "Bash(vendor/bin/pint --dirty --format agent app/Models/Product.php app/Models/ProductImage.php app/Models/ProductFile.php app/Http/Controllers/Admin/ProductController.php)",
+      "Bash(\"C:/Users/MENSAH COLOMBUS/.config/herd/bin/php.bat\" artisan route:list --compact)",
+      "Bash(\"C:/Users/MENSAH COLOMBUS/.config/herd/bin/php.bat\" artisan config:show database)",
+      "Bash(\"C:/Users/MENSAH COLOMBUS/.config/herd/bin/php.bat\" artisan config:show cache)",
+      "WebFetch(domain:elitealfaventures.com)",
+      "Bash(xargs grep:*)",
+      "Bash(curl -s \"https://elitealfaventures.com/\")",
+      "Bash(grep -l \"slug\" \"/c/Users/MENSAH COLOMBUS/Herd/biizz/app/Models\"/*.php)",
+      "Bash(curl -s \"https://elitealfaventures.com/products/63\")",
+      "Bash(find '/c/Users/MENSAH COLOMBUS/Herd/biizz' -name *page* -o -name *Page*)",
+      "Bash(grep -E \"\\\\.\\(php|tsx|ts\\)$\")",
+      "Bash(curl -s \"https://elitealfaventures.com/build/assets/app-DCNiYThf.css\")",
+      "Bash(grep -oE '\\(#[0-9a-fA-F]{3,8}|rgb\\\\\\([^\\)]+\\\\\\)|--[a-z0-9-]+\\)')",
+      "Bash(php artisan:*)",
+      "Bash(\"/c/Users/MENSAH COLOMBUS/.config/herd/bin/php.bat\" artisan test --compact)",
+      "Read(//c/Users/MENSAH/ COLOMBUS/Herd/biizz/resources/js/types/**)",
+      "Bash(\"C:/Users/MENSAH COLOMBUS/.config/herd/bin/php84/php.exe\" vendor/bin/pint --dirty --format agent)",
+      "Bash(php vendor/bin/pint --dirty --format agent)",
+      "WebFetch(domain:inertiajs.com)"
+    ]
+  }
+}

@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('business_id')->constrained()->restrictOnDelete();
             // restrictOnDelete: orders are financial records — deletion must be intentional
+            $table->foreignId('customer_id')->nullable()->constrained()->nullOnDelete();
 
             $table->string('customer_name')->nullable();
             $table->string('customer_email')->nullable();

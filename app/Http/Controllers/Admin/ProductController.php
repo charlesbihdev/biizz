@@ -7,87 +7,106 @@ use App\Http\Requests\Admin\StoreProductRequest;
 use App\Http\Requests\Admin\UpdateProductRequest;
 use App\Models\Business;
 use App\Models\Product;
-use App\Services\BusinessContext;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class ProductController extends Controller
 {
-    /**
-     * List all products for the active business.
-     * BusinessScope automatically scopes the query.
-     */
     public function index(Business $business): Response
     {
         abort_unless($business->isOwnedBy(auth()->user()), 403);
 
-        $products = Product::latest()->paginate(20);
+        $products = Product::with(['category', 'images'])->latest()->paginate(20);
 
         return Inertia::render('Admin/Products/Index', [
-            'products' => $products,
             'business' => $business,
+            'products' => $products,
         ]);
     }
 
-    /**
-     * Show the form for creating a new product.
-     */
     public function create(Business $business): Response
     {
         abort_unless($business->isOwnedBy(auth()->user()), 403);
 
         return Inertia::render('Admin/Products/Create', [
             'business' => $business,
+            'categories' => $business->categories()->get(['id', 'name']),
         ]);
     }
 
-    /**
-     * Store a new product, scoped to the active business.
-     */
     public function store(StoreProductRequest $request, Business $business): RedirectResponse
     {
-        $business->products()->create($request->validated());
+        $validated = $request->validated();
+        unset($validated['images']);
 
-        return to_route('admin.businesses.products.index', $business)
+        $product = $business->products()->create($validated);
+
+        $this->syncImages($request, $product, $business);
+
+        return to_route('businesses.products.index', $business)
             ->with('success', 'Product created.');
     }
 
-    /**
-     * Show the form for editing a product.
-     */
     public function edit(Business $business, Product $product): Response
     {
         abort_unless($business->isOwnedBy(auth()->user()), 403);
 
         return Inertia::render('Admin/Products/Edit', [
             'business' => $business,
-            'product'  => $product,
+            'product' => $product->load(['images', 'files']),
+            'categories' => $business->categories()->get(['id', 'name']),
         ]);
     }
 
-    /**
-     * Update a product.
-     */
     public function update(UpdateProductRequest $request, Business $business, Product $product): RedirectResponse
     {
-        $product->update($request->validated());
+        $validated = $request->validated();
+        $hasImages = $request->has('images');
+        unset($validated['images']);
 
-        return back()->with('success', 'Product updated.');
+        $product->update($validated);
+
+        if ($hasImages) {
+            $product->images()->each(fn ($img) => $img->delete());
+            $this->syncImages($request, $product, $business);
+        }
+
+        return to_route('businesses.products.edit', [$business, $product])
+            ->with('success', 'Product updated.');
     }
 
-    /**
-     * Delete a product.
-     * Will fail if the product has been ordered (restrictOnDelete) — by design.
-     * Use deactivation (is_active = false) to hide products from storefront instead.
-     */
+    private function syncImages(StoreProductRequest|UpdateProductRequest $request, Product $product, Business $business): void
+    {
+        $count = is_array($request->input('images')) ? count($request->input('images')) : 0;
+
+        for ($i = 0; $i < $count; $i++) {
+            if ($request->hasFile("images.$i.file")) {
+                $path = $request->file("images.$i.file")->storePublicly("businesses/{$business->id}", 's3');
+                $url  = Storage::disk('s3')->url($path);
+            } else {
+                $url = $request->input("images.$i.url");
+                if (!$url || str_starts_with($url, 'blob:')) {
+                    continue;
+                }
+            }
+
+            $product->images()->create([
+                'url'        => $url,
+                'alt'        => $request->input("images.$i.alt"),
+                'sort_order' => $i,
+            ]);
+        }
+    }
+
     public function destroy(Business $business, Product $product): RedirectResponse
     {
         abort_unless($business->isOwnedBy(auth()->user()), 403);
 
         $product->delete();
 
-        return to_route('admin.businesses.products.index', $business)
+        return to_route('businesses.products.index', $business)
             ->with('success', 'Product deleted.');
     }
 }
