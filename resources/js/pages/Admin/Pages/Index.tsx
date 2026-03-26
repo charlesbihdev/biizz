@@ -128,7 +128,7 @@ export default function PagesIndex({ business, pages }: Props) {
                                         <td className="py-3 pl-3 pr-4">
                                             <div className="flex items-center justify-end gap-2">
                                                 <Link
-                                                    href={`/s/${business.slug}/pages/${page.slug}`}
+                                                    href={`/s/${business.slug}/pages/${page.slug}?preview=1`}
                                                     target="_blank"
                                                     rel="noopener"
                                                     className="rounded p-1.5 text-site-muted hover:bg-site-surface hover:text-site-fg"
@@ -136,13 +136,15 @@ export default function PagesIndex({ business, pages }: Props) {
                                                 >
                                                     <Eye className="h-4 w-4" />
                                                 </Link>
-                                                <Link
+                                                <a
                                                     href={`/dashboard/b/${business.slug}/pages/${page.id}`}
+                                                    target="_blank"
+                                                    rel="noopener"
                                                     className="rounded p-1.5 text-site-muted hover:bg-site-surface hover:text-site-fg"
                                                     title="Edit"
                                                 >
                                                     <Pencil className="h-4 w-4" />
-                                                </Link>
+                                                </a>
                                                 <button
                                                     onClick={() => handleDelete(page)}
                                                     disabled={deletingId === page.id}

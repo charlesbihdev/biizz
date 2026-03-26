@@ -1,4 +1,5 @@
 import { Link } from '@inertiajs/react';
+import ToastProvider from '@/components/toast-provider';
 import { home } from '@/routes';
 import type { AuthLayoutProps } from '@/types';
 
@@ -8,7 +9,8 @@ export default function AuthSimpleLayout({
     description,
 }: AuthLayoutProps) {
     return (
-        <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-site-bg bg-grid p-6 md:p-10">
+        <ToastProvider>
+            <div className="flex min-h-svh flex-col items-center justify-center gap-6 bg-site-bg bg-grid p-6 md:p-10">
             <div className="w-full max-w-sm">
                 <div className="flex flex-col gap-6">
                     <div className="flex flex-col items-center gap-4">
@@ -29,6 +31,7 @@ export default function AuthSimpleLayout({
                     </div>
                 </div>
             </div>
-        </div>
+            </div>
+        </ToastProvider>
     );
 }

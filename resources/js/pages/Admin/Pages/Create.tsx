@@ -109,15 +109,14 @@ export default function CreatePage({ business }: Props) {
                             <InputError message={errors.slug} />
                         </div>
 
-                        <div className="flex flex-col gap-1.5">
-                            <Label>Content</Label>
-                            <RichDescriptionEditor
-                                value={data.content}
-                                onChange={(html) => setData('content', html)}
-                                placeholder="Write your page content here..."
-                            />
-                            <InputError message={errors.content} />
-                        </div>
+                        <RichDescriptionEditor
+                            label="Content"
+                            onClear={() => setData('content', '')}
+                            value={data.content}
+                            onChange={(html) => setData('content', html)}
+                            placeholder="Write your page content here..."
+                        />
+                        <InputError message={errors.content} />
                     </div>
 
                     {/* ── Right: sidebar ── */}

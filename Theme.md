@@ -1,6 +1,6 @@
 # ARCHITECTURE_SPEC: Multi-Tenant Theme Engine
-**Status:** Implementation Ready  
-**Last Updated:** March 2026  
+**Status:** Implementation Ready
+**Last Updated:** March 2026
 
 ---
 
@@ -8,24 +8,30 @@
 
 | Technology | Version | Notes |
 |---|---|---|
-| **Laravel** | `^12.0` | Current stable (released Feb 24, 2025). Minimum PHP 8.2+ |
-| **Inertia.js (Laravel adapter)** | `^2.0` | Current stable. v3 is in beta — **do not use in production yet** |
+| **Laravel** | `^13.0` | Current stable. PHP 8.4+ |
+| **Inertia.js (Laravel adapter)** | `^2.0` | Current stable |
 | **@inertiajs/react** | `^2.3.x` | Current stable npm package |
-| **React** | `^18.x` | Required by Inertia v2 stable. Inertia v3 beta will require React 19+ |
+| **React** | `^19.x` | Current stable |
 | **TypeScript** | `^5.x` | Strict mode recommended |
-| **PostgreSQL** | `^15.x` | Required for `jsonb` + GIN indexing |
-| **Vite** | `^6.x` | Default bundler in Laravel 12 |
+| **SQLite** | Default | Production may upgrade to PostgreSQL 16+ for `jsonb` + GIN indexing |
+| **Vite** | `^8.x` | Default bundler |
 | **Spatie Laravel Data** | `^4.x` | For typed Data Objects / DTO validation |
-
-> **Note on Inertia v3 (beta):** v3 drops Axios, adds a built-in XHR client, a `@inertiajs/vite` plugin that handles SSR/page resolution automatically, a `useHttp` hook, and optimistic updates. When it reaches stable, this spec should be upgraded. v3 requires Laravel 11+, React 19+, and PHP 8.2+.
 
 ---
 
 ## 1. Core Vision
 
-This system supports multiple independent **Businesses**. Each Business selects one of several **Themes**. Themes are **not** just CSS skins — they are full structural React component overrides that each carry their own schema, layout, and components.
+This system supports multiple independent **Businesses**. Each Business selects one of several **Themes**. Themes are **not** just CSS skins — they are full structural React component overrides that each carry their own schema, layout, pages, and components.
 
 **One engine. Many storefronts. Zero duplication of logic.**
+
+### The Fundamental Rule
+
+> **Themes own ALL UI. Shared owns ALL logic.**
+
+- A **theme** decides *how things look* — its layout, header, footer, cart display (drawer, page, dropdown — its choice), checkout form, product grid, etc.
+- **Shared hooks** provide *what things do* — cart state, checkout submission, product filtering, analytics tracking.
+- Themes are never forced to use a specific component. They import shared hooks and render however they want.
 
 ---
 
@@ -34,48 +40,186 @@ This system supports multiple independent **Businesses**. Each Business selects 
 ```
 resources/js/
 ├── Themes/
-│   ├── Classic/                    # Theme A
-│   │   ├── Layout.tsx              # Root layout component
-│   │   ├── Components/             # Theme-specific UI components
-│   │   │   ├── HeroSection.tsx
-│   │   │   ├── ProductGrid.tsx
-│   │   │   └── Footer.tsx
-│   │   └── schema.ts               # The "Brain" — defines what this theme needs
+│   ├── Classic/                     # Theme A — owns ALL its UI
+│   │   ├── index.ts                 # Theme registry (exports component map)
+│   │   ├── Layout.tsx               # Homepage / root layout
+│   │   ├── ThemeShell.tsx           # Header + footer + nav wrapper
+│   │   ├── schema.ts               # The "Brain" — defines what settings this theme needs
+│   │   └── Components/              # ALL Classic-specific UI
+│   │       ├── Header.tsx
+│   │       ├── Footer.tsx
+│   │       ├── HeroSection.tsx
+│   │       ├── ProductGrid.tsx
+│   │       ├── CartDrawer.tsx       # Classic chose a sliding drawer for cart
+│   │       ├── Checkout.tsx         # Classic's checkout page layout
+│   │       ├── ShopPage.tsx
+│   │       ├── ProductDetailPage.tsx
+│   │       ├── ContactPage.tsx
+│   │       └── ContentPage.tsx
 │   │
-│   ├── Boutique/                   # Theme B
+│   ├── Boutique/                    # Theme B (future) — completely different UI
+│   │   ├── index.ts
 │   │   ├── Layout.tsx
-│   │   ├── Components/
-│   │   │   ├── HeroBanner.tsx
-│   │   │   ├── LookbookGrid.tsx
-│   │   │   └── TestimonialRow.tsx
-│   │   └── schema.ts
+│   │   ├── ThemeShell.tsx
+│   │   ├── schema.ts
+│   │   └── Components/
+│   │       ├── Header.tsx
+│   │       ├── CartPage.tsx         # Boutique might use a full page for cart
+│   │       ├── Checkout.tsx         # Different checkout layout, same hook
+│   │       └── ...
 │   │
-│   └── Shared/                     # Logic shared across ALL themes
+│   └── Shared/                      # Logic ONLY — no UI components
 │       ├── Hooks/
-│       │   ├── useCart.ts          # Cart logic (add, remove, total)
-│       │   ├── useProductData.ts   # Product fetching + filtering
-│       │   └── useThemeSettings.ts # Access active theme settings
-│       └── Components/             # Primitive UI building blocks
-│           ├── Button.tsx
-│           ├── Input.tsx
-│           ├── ColorPicker.tsx
-│           ├── FileUploader.tsx
-│           └── Toggle.tsx
+│       │   ├── useCart.ts           # Cart state (add, remove, total, itemCount)
+│       │   ├── useCheckout.ts       # Checkout submission logic
+│       │   ├── useProductData.ts    # Product fetching + filtering
+│       │   └── useMetaPixel.ts      # Analytics tracking
+│       ├── StorefrontHead.tsx       # <head> meta tags (SEO, OG — truly theme-agnostic)
+│       └── palettes.ts              # Color palette definitions (data, not UI)
 │
-├── Pages/
-│   ├── Storefront/
-│   │   └── Main.tsx                # Dynamic theme resolver (see Section 5)
-│   └── Admin/
-│       └── Settings.tsx            # Self-aware admin dashboard (see Section 4)
+├── pages/
+│   └── Storefront/                  # Thin resolvers — NO theme logic
+│       ├── Main.tsx                 # → resolves to Classic/Layout or Boutique/Layout
+│       ├── Shop.tsx                 # → resolves to Classic/ShopPage or Boutique/ShopPage
+│       ├── Product.tsx              # → resolves to Classic/ProductDetailPage or ...
+│       ├── Checkout.tsx             # → resolves to Classic/Checkout or ...
+│       ├── Contact.tsx              # → resolves to Classic/ContactPage or ...
+│       └── Page.tsx                 # → resolves to Classic/ContentPage or ...
+│
+├── stores/
+│   └── cartStore.ts                 # Zustand cart store (persisted to localStorage)
 │
 └── types/
-    ├── theme.d.ts                  # Global TypeScript types for themes
-    └── business.d.ts               # Business model types
+    ├── theme.ts                     # SCHEMA_MAP, ThemeId
+    └── business.ts                  # Business, Product, CartItem, ThemeSettings, etc.
 ```
+
+### What goes where
+
+| Location | Contains | Example |
+|---|---|---|
+| `Themes/{Name}/Components/` | All UI for that theme | CartDrawer, Header, Checkout, ShopPage |
+| `Themes/{Name}/ThemeShell.tsx` | Theme's header + footer + nav wrapper | Wraps page content with theme chrome |
+| `Themes/{Name}/schema.ts` | What settings this theme accepts | color_scheme, hero_image, show_featured |
+| `Themes/{Name}/index.ts` | Component registry for the resolver | `{ Layout, Shop, Product, Checkout, ... }` |
+| `Themes/Shared/Hooks/` | Business logic hooks — no UI | useCart, useCheckout, useProductData |
+| `Themes/Shared/` (root) | Truly theme-agnostic utilities | StorefrontHead (SEO), palettes.ts (data) |
+| `pages/Storefront/` | Thin resolvers — pick the right theme component | No if/else, no UI, just THEME_MAP lookup |
 
 ---
 
-## 3. Database: `jsonb` Strategy
+## 3. Theme Registry & Resolver Pattern
+
+### 3a. Theme Registry (each theme exports its component map)
+
+Every theme exports a single object mapping page names to components. This is the **only** thing the resolver system needs to know about a theme.
+
+```typescript
+// resources/js/Themes/Classic/index.ts
+
+import Layout            from './Layout';
+import ShopPage          from './Components/ShopPage';
+import ProductDetailPage from './Components/ProductDetailPage';
+import Checkout          from './Components/Checkout';
+import ContactPage       from './Components/ContactPage';
+import ContentPage       from './Components/ContentPage';
+
+export default {
+    Layout,
+    Shop:     ShopPage,
+    Product:  ProductDetailPage,
+    Checkout,
+    Contact:  ContactPage,
+    Page:     ContentPage,
+};
+```
+
+### 3b. Master Theme Map (with code splitting)
+
+```typescript
+// resources/js/types/theme.ts
+
+import { lazy } from 'react';
+import { ClassicSchema }  from '@/Themes/Classic/schema';
+import { BoutiqueSchema } from '@/Themes/Boutique/schema';
+
+// Code splitting: each theme is a separate JS chunk.
+// A visitor to a Classic store NEVER downloads Boutique code.
+export const THEME_MAP = {
+    classic:  lazy(() => import('@/Themes/Classic')),
+    boutique: lazy(() => import('@/Themes/Boutique')),
+} as const;
+
+export const SCHEMA_MAP = {
+    classic:  ClassicSchema,
+    boutique: BoutiqueSchema,
+} as const;
+
+export type ThemeId = keyof typeof SCHEMA_MAP;
+```
+
+### 3c. Storefront Resolvers (thin — no if/else, no UI)
+
+Every storefront page follows the same pattern: look up the theme, render the component, pass props. **No if/else chains. Ever.**
+
+```tsx
+// resources/js/pages/Storefront/Main.tsx
+
+import { Suspense } from 'react';
+import { THEME_MAP } from '@/types/theme';
+import StorefrontHead from '@/Themes/Shared/StorefrontHead';
+import type { Business, Page, PaginatedData, Product } from '@/types/business';
+
+type Props = {
+    business: Business;
+    products: PaginatedData<Product>;
+    pages:    Page[];
+    isPreview?: boolean;
+};
+
+export default function StorefrontMain({ business, products, pages, isPreview }: Props) {
+    const Theme = THEME_MAP[business.theme_id];
+
+    return (
+        <Suspense fallback={<div className="flex h-screen items-center justify-center">Loading...</div>}>
+            <StorefrontHead business={business} />
+            <Theme.Layout business={business} products={products} pages={pages} />
+        </Suspense>
+    );
+}
+```
+
+```tsx
+// resources/js/pages/Storefront/Checkout.tsx — same pattern
+
+import { Suspense } from 'react';
+import { THEME_MAP } from '@/types/theme';
+import StorefrontHead from '@/Themes/Shared/StorefrontHead';
+import type { Business, Page } from '@/types/business';
+
+type Props = {
+    business: Business;
+    pages:    Page[];
+};
+
+export default function StorefrontCheckout({ business, pages }: Props) {
+    const Theme = THEME_MAP[business.theme_id];
+
+    return (
+        <Suspense fallback={<div className="flex h-screen items-center justify-center">Loading...</div>}>
+            <StorefrontHead business={business} title="Checkout" />
+            <Theme.Checkout business={business} pages={pages} />
+        </Suspense>
+    );
+}
+```
+
+Every resolver is identical in shape. Add a new theme: zero changes to resolvers.
+Add a new storefront page: one new resolver + one component per theme.
+
+---
+
+## 4. Database: `jsonb` Strategy
 
 ### Migration
 
@@ -89,9 +233,6 @@ Schema::create('businesses', function (Blueprint $table) {
     $table->jsonb('theme_settings')->default('{}'); // Typed via Data Objects
     $table->timestamps();
 });
-
-// GIN index for high-performance JSON searching
-DB::statement('CREATE INDEX businesses_theme_settings_gin ON businesses USING GIN (theme_settings)');
 ```
 
 ### Why `jsonb` over `json`
@@ -100,90 +241,39 @@ DB::statement('CREATE INDEX businesses_theme_settings_gin ON businesses USING GI
 |---|---|---|
 | Storage format | Raw text | Binary |
 | Query speed | Slower | **Faster** |
-| GIN indexing | ❌ Not supported | ✅ Supported |
-| Duplicate key handling | Keeps duplicates | Removes redundant data |
+| GIN indexing | Not supported | Supported |
 | Schema migrations per feature | Required | **Not required** |
 
 **Anti-Breaking Benefit:** Adding a new theme feature (e.g., a "Promo Banner") does not require a database migration — the new key is added to the schema and the Data Object only.
 
+> **Note:** SQLite stores JSON as text. The `jsonb` benefits (GIN index, binary storage) apply when upgrading to PostgreSQL. The architecture works with both — no code changes needed.
+
 ---
 
-## 4. Theme Schema + Laravel Data Objects
+## 5. Theme Schema + Laravel Data Objects
 
-### 4a. TypeScript Schema (Frontend "Brain")
+### 5a. TypeScript Schema (Frontend "Brain")
 
 Each theme defines exactly what settings it needs via a `schema.ts` file. The admin dashboard reads this schema to auto-generate its UI.
 
 ```typescript
 // resources/js/Themes/Classic/schema.ts
 
-export type FieldType = 'color' | 'file' | 'boolean' | 'text' | 'select';
+import type { ThemeSchema } from '@/types/business';
 
-export interface SchemaField {
-  type: FieldType;
-  label: string;
-  default?: string | boolean;
-  dimensions?: string;   // For file fields (e.g. '1920x1080')
-  options?: string[];    // For select fields
-}
-
-export const ClassicSchema: Record<string, SchemaField> = {
-  primary_color:      { type: 'color',   label: 'Primary Brand Color', default: '#1a1a1a' },
-  hero_image:         { type: 'file',    label: 'Hero Banner Image',   dimensions: '1920x600' },
-  show_featured:      { type: 'boolean', label: 'Show Featured Products', default: true },
-  store_tagline:      { type: 'text',    label: 'Store Tagline',       default: 'Welcome to our store' },
+export const ClassicSchema: ThemeSchema = {
+    color_scheme:     { type: 'palette', label: 'Brand Color Scheme' },
+    hero_image:       { type: 'file',    label: 'Hero Banner Image',          dimensions: '1920x600' },
+    show_hero:        { type: 'boolean', label: 'Show Hero Banner',           default: true },
+    products_per_page:{ type: 'select',  label: 'Products per page',          options: ['12', '24', '36'], default: '24' },
+    show_featured:    { type: 'boolean', label: 'Show Featured Products Section', default: true },
+    show_shop_page:   { type: 'boolean', label: 'Enable dedicated Shop page', default: true },
 };
 ```
 
-```typescript
-// resources/js/Themes/Boutique/schema.ts
+### 5b. Laravel Data Object (Backend Validator)
 
-export const BoutiqueSchema: Record<string, SchemaField> = {
-  hero_image:         { type: 'file',    label: 'Main Banner',         dimensions: '1920x1080' },
-  accent_color:       { type: 'color',   label: 'Primary Brand Color', default: '#000000' },
-  show_testimonials:  { type: 'boolean', label: 'Display Reviews',     default: true },
-  layout_style:       { type: 'select',  label: 'Grid Layout',         options: ['grid', 'masonry', 'list'] },
-};
-```
-
-### 4b. Master Schema Map (TypeScript)
-
-```typescript
-// resources/js/types/theme.d.ts
-
-import { ClassicSchema }  from '@/Themes/Classic/schema';
-import { BoutiqueSchema } from '@/Themes/Boutique/schema';
-
-export const SCHEMA_MAP = {
-  classic:  ClassicSchema,
-  boutique: BoutiqueSchema,
-} as const;
-
-export type ThemeId = keyof typeof SCHEMA_MAP;
-
-export interface ThemeSettings {
-  primary_color?:     string;
-  accent_color?:      string;
-  hero_image?:        string;
-  show_featured?:     boolean;
-  show_testimonials?: boolean;
-  store_tagline?:     string;
-  layout_style?:      string;
-  [key: string]: unknown; // Allow forward-compatible unknown keys
-}
-
-export interface Business {
-  id:              number;
-  name:            string;
-  theme_id:        ThemeId;
-  theme_settings:  ThemeSettings;
-  products:        Product[];
-}
-```
-
-### 4c. Laravel Data Object (Backend Validator)
-
-Maps directly to the TypeScript schema. Prevents garbage data reaching the `jsonb` column.
+Maps to the union of all theme schemas. Prevents garbage data reaching the database.
 
 ```php
 // app/Data/ThemeSettingsData.php
@@ -193,343 +283,183 @@ namespace App\Data;
 use Spatie\LaravelData\Data;
 use Spatie\LaravelData\Attributes\Validation\Max;
 use Spatie\LaravelData\Attributes\Validation\Regex;
+use Spatie\LaravelData\Attributes\Validation\In;
 
 class ThemeSettingsData extends Data
 {
     public function __construct(
-        #[Regex('/^#[0-9A-Fa-f]{6}$/')]
-        public ?string $primary_color   = null,
-
-        #[Regex('/^#[0-9A-Fa-f]{6}$/')]
-        public ?string $accent_color    = null,
-
+        // Classic fields
+        public ?string $color_scheme     = null,
         #[Max(2048)]
-        public ?string $hero_image      = null,  // Stored path after upload
+        public ?string $hero_image       = null,
+        public ?bool   $show_hero        = true,
+        #[In(['12', '24', '36'])]
+        public ?string $products_per_page = '24',
+        public ?bool   $show_featured    = true,
+        public ?bool   $show_shop_page   = true,
 
-        public bool    $show_featured      = true,
-        public bool    $show_testimonials  = true,
-
-        #[Max(120)]
-        public ?string $store_tagline   = null,
-        public ?string $layout_style    = null,
+        // Boutique fields (added when Boutique is built)
+        #[Regex('/^#[0-9A-Fa-f]{6}$/')]
+        public ?string $accent_color     = null,
+        public ?bool   $show_testimonials = true,
+        #[In(['grid', 'masonry', 'list'])]
+        public ?string $layout_style     = null,
     ) {}
 }
 ```
 
-```php
-// app/Http/Controllers/Admin/ThemeSettingsController.php
-
-namespace App\Http\Controllers\Admin;
-
-use App\Data\ThemeSettingsData;
-use App\Models\Business;
-use Illuminate\Http\Request;
-
-class ThemeSettingsController extends Controller
-{
-    public function update(Request $request, Business $business)
-    {
-        $data = ThemeSettingsData::from($request->all());
-
-        $business->update([
-            'theme_settings' => $data->toArray(),
-        ]);
-
-        return back()->with('success', 'Theme settings saved.');
-    }
-}
-```
+**Rule:** Every field that appears in any `schema.ts` MUST also appear in `ThemeSettingsData`. They must stay in sync. The TypeScript `ThemeSettings` interface in `types/business.ts` must also include all fields.
 
 ---
 
-## 5. Dynamic Admin Dashboard (Self-Aware UI)
+## 6. Shared Logic — Hooks Only
 
-The Admin UI does **not** hardcode any inputs. It:
+**Rule:** Never write business logic inside a theme. Themes call shared hooks and render the results however they want.
 
-1. **Fetches** the active theme's schema on mount
-2. **Loops** through schema fields and renders the matching component
-3. **Previews** changes in real-time via an `<iframe>`
+`Themes/Shared/` contains **only hooks and theme-agnostic utilities** — never UI components. If it renders JSX that a theme might want to look different, it belongs in the theme.
 
-```tsx
-// resources/js/Pages/Admin/Settings.tsx
-
-import React, { useState } from 'react';
-import { usePage, router }  from '@inertiajs/react';
-import { SCHEMA_MAP }       from '@/types/theme.d';
-import ColorPicker          from '@/Shared/Components/ColorPicker';
-import FileUploader         from '@/Shared/Components/FileUploader';
-import Toggle               from '@/Shared/Components/Toggle';
-import { Business }         from '@/types/business.d';
-
-const FIELD_COMPONENT_MAP = {
-  color:   ColorPicker,
-  file:    FileUploader,
-  boolean: Toggle,
-  text:    (props: any) => <input type="text" {...props} className="input" />,
-  select:  (props: any) => (
-    <select {...props} className="select">
-      {props.options?.map((o: string) => <option key={o} value={o}>{o}</option>)}
-    </select>
-  ),
-};
-
-export default function Settings({ business }: { business: Business }) {
-  const schema   = SCHEMA_MAP[business.theme_id];
-  const [settings, setSettings] = useState(business.theme_settings);
-
-  const handleChange = (key: string, value: unknown) => {
-    setSettings(prev => ({ ...prev, [key]: value }));
-  };
-
-  const handleSave = () => {
-    router.patch(`/admin/businesses/${business.id}/theme`, settings);
-  };
-
-  const previewUrl = `/storefront/${business.id}/preview?${new URLSearchParams(
-    Object.entries(settings).reduce((acc, [k, v]) => {
-      acc[k] = String(v);
-      return acc;
-    }, {} as Record<string, string>)
-  ).toString()}`;
-
-  return (
-    <div className="admin-settings-layout">
-
-      {/* --- Dynamic Form Panel --- */}
-      <aside className="settings-panel">
-        <h2>Theme Settings — {business.theme_id}</h2>
-
-        {Object.entries(schema).map(([key, field]) => {
-          const Component = FIELD_COMPONENT_MAP[field.type];
-          return (
-            <div key={key} className="field-group">
-              <label>{field.label}</label>
-              <Component
-                value={settings[key] ?? field.default}
-                options={field.options}
-                onChange={(val: unknown) => handleChange(key, val)}
-              />
-            </div>
-          );
-        })}
-
-        <button onClick={handleSave}>Save Settings</button>
-      </aside>
-
-      {/* --- Live Preview Iframe --- */}
-      <main className="preview-panel">
-        <iframe
-          src={previewUrl}
-          title="Storefront Preview"
-          className="w-full h-full border-0"
-        />
-      </main>
-
-    </div>
-  );
-}
-```
-
----
-
-## 6. Theme Switcher: Dynamic Component Resolver
-
-No `if/else` chains. Uses a `THEME_MAP` lookup to resolve the correct layout component at runtime.
-
-```tsx
-// resources/js/Pages/Storefront/Main.tsx
-
-import React, { lazy, Suspense } from 'react';
-import { Business }              from '@/types/business.d';
-
-// Code splitting: visitors only download the JS for their active theme
-const Classic  = lazy(() => import('@/Themes/Classic/Layout'));
-const Boutique = lazy(() => import('@/Themes/Boutique/Layout'));
-
-const THEME_MAP = {
-  classic:  Classic,
-  boutique: Boutique,
-} as const;
-
-interface Props {
-  business: Business;
-}
-
-export default function Storefront({ business }: Props) {
-  const SelectedTheme = THEME_MAP[business.theme_id];
-
-  if (!SelectedTheme) {
-    return <div>Theme not found: {business.theme_id}</div>;
-  }
-
-  return (
-    <Suspense fallback={<div className="theme-loading">Loading...</div>}>
-      <SelectedTheme
-        settings={business.theme_settings}
-        products={business.products}
-      />
-    </Suspense>
-  );
-}
-```
-
----
-
-## 7. Shared Logic — The Hooks Pattern
-
-**Rule:** Never rewrite business logic inside a theme. The visual layer (JSX/CSS) changes between themes. The *logic* does not.
+### Cart Hook
 
 ```typescript
-// resources/js/Shared/Hooks/useCart.ts
+// resources/js/Themes/Shared/Hooks/useCart.ts
+// (or use Zustand store at stores/cartStore.ts — either pattern works,
+//  as long as there is ONE source of truth for cart state)
 
-import { useState, useCallback } from 'react';
-import { router }                from '@inertiajs/react';
-
-export interface CartItem {
-  id:       number;
-  name:     string;
-  price:    number;
-  quantity: number;
-}
-
-export function useCart(initialItems: CartItem[] = []) {
-  const [items, setItems] = useState<CartItem[]>(initialItems);
-
-  const addToCart = useCallback((product: CartItem) => {
-    setItems(prev => {
-      const existing = prev.find(i => i.id === product.id);
-      if (existing) {
-        return prev.map(i =>
-          i.id === product.id ? { ...i, quantity: i.quantity + 1 } : i
-        );
-      }
-      return [...prev, { ...product, quantity: 1 }];
-    });
-  }, []);
-
-  const removeFromCart = useCallback((id: number) => {
-    setItems(prev => prev.filter(i => i.id !== id));
-  }, []);
-
-  const checkout = useCallback(() => {
-    router.post('/cart/checkout', { items });
-  }, [items]);
-
-  const total = items.reduce((sum, i) => sum + i.price * i.quantity, 0);
-
-  return { items, addToCart, removeFromCart, checkout, total };
-}
+// Provides: items, addToCart, removeFromCart, updateQuantity, clearCart, total, itemCount
+// Persists to localStorage so cart survives page navigation
 ```
 
-Usage is identical in every theme:
+Usage is identical in every theme — only the UI differs:
 
 ```tsx
-// Inside Classic/Layout.tsx  OR  Boutique/Layout.tsx — same hook, different UI
+// Classic chose a sliding drawer
+import { useCartStore } from '@/stores/cartStore';
 
-import { useCart } from '@/Shared/Hooks/useCart';
-
-export default function Layout({ settings, products }) {
-  const { items, addToCart, total } = useCart();
-
-  return (
-    // ... theme-specific JSX, calling addToCart from the shared hook
-  );
+function ClassicCartDrawer() {
+    const { items, removeFromCart, total, itemCount } = useCartStore();
+    return (/* sliding drawer UI */);
 }
 ```
 
+```tsx
+// Boutique might use a dedicated page
+import { useCartStore } from '@/stores/cartStore';
+
+function BoutiqueCartPage() {
+    const { items, removeFromCart, total, itemCount } = useCartStore();
+    return (/* full page table UI */);
+}
+```
+
+Same hook. Same data. Completely different presentation.
+
+### Checkout Hook
+
+```typescript
+// resources/js/Themes/Shared/Hooks/useCheckout.ts
+
+// Provides: submitOrder, isSubmitting, errors
+// Handles: POST to /s/{slug}/checkout, validation, redirect on success
+// Does NOT decide: what the form looks like, how fields are arranged, button styles
+```
+
+### Other Shared Hooks
+
+| Hook | Provides | Themes decide |
+|---|---|---|
+| `useCart` | Cart state + actions | Drawer vs page vs dropdown |
+| `useCheckout` | Order submission + validation | Form layout, field arrangement, button styles |
+| `useProductData` | Filtering, sorting, pagination | Grid vs list vs masonry |
+| `useMetaPixel` | Facebook pixel event tracking | (No UI decision needed) |
+
+### Shared Utilities (not hooks)
+
+These live in `Themes/Shared/` root because they are truly theme-agnostic:
+
+- `StorefrontHead.tsx` — Sets `<head>` meta tags (SEO, OG tags). No visible UI.
+- `palettes.ts` — Color palette data. Pure data, no rendering.
+
 ---
 
-## 8. Eloquent Model
+## 7. Checkout Flow
+
+### Route (one route, theme resolver handles the rest)
 
 ```php
-// app/Models/Business.php
+// routes/storefront.php
 
-namespace App\Models;
+Route::get('/{business:slug}/checkout', [StorefrontController::class, 'checkout'])
+    ->name('storefront.checkout');
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Casts\Attribute;
+Route::post('/{business:slug}/checkout', [StorefrontController::class, 'submitCheckout'])
+    ->name('storefront.checkout.submit');
+```
 
-class Business extends Model
+### Controller
+
+```php
+// StorefrontController.php
+
+public function checkout(Business $business)
 {
-    protected $fillable = [
-        'name',
-        'theme_id',
-        'theme_settings',
-    ];
-
-    protected $casts = [
-        'theme_settings' => 'array', // Laravel auto-encodes/decodes jsonb <-> PHP array
-    ];
-
-    // Eager load everything needed for storefront in one query
-    public function scopeWithStorefrontData($query)
-    {
-        return $query->with('products');
-    }
+    return Inertia::render('Storefront/Checkout', [
+        'business' => $business,
+        'pages'    => $business->pages()->where('is_published', true)->get(),
+    ]);
 }
 ```
 
+### Frontend
+
+The resolver (`pages/Storefront/Checkout.tsx`) picks `Theme.Checkout`. The theme's Checkout component:
+1. Reads cart state from `useCart` hook
+2. Collects customer info (name, email, phone)
+3. Calls `useCheckout().submitOrder()` on submit
+4. The theme decides the layout, styling, and UX flow
+
+What happens *after* checkout (payment, confirmation page) will be defined later.
+
 ---
 
-## 9. Routes
+## 8. Progress Bar (Theme-Aware)
 
-```php
-// routes/web.php
+The Inertia progress bar color should match the active context:
 
-use App\Http\Controllers\StorefrontController;
-use App\Http\Controllers\Admin\ThemeSettingsController;
+```tsx
+// resources/js/app.tsx
 
-// Public storefront
-Route::get('/store/{business}',            [StorefrontController::class, 'show']);
-Route::get('/storefront/{business}/preview', [StorefrontController::class, 'preview']);
-
-// Admin (protected)
-Route::middleware(['auth', 'verified'])->prefix('admin')->group(function () {
-    Route::get('/businesses/{business}/settings',
-        [ThemeSettingsController::class, 'edit'])->name('admin.settings.edit');
-    Route::patch('/businesses/{business}/theme',
-        [ThemeSettingsController::class, 'update'])->name('admin.settings.update');
+createInertiaApp({
+    progress: {
+        color: '#4B5563', // default for non-storefront pages (app, dashboard, landing)
+    },
 });
 ```
 
+For storefront pages, override the progress bar color dynamically based on the business's theme settings (e.g., `primary_color` or the palette's primary). Non-storefront pages (dashboard, settings, landing page) use the app default.
+
 ---
 
-## 10. Controllers
+## 9. Admin Dashboard (Self-Aware UI)
+
+The Admin theme settings page reads the active theme's `schema.ts` and auto-generates form controls. Nothing is hardcoded — if a field isn't in the schema, it won't appear.
+
+This page lives in `pages/Admin/Theme/Settings.tsx` (part of the app, not the storefront themes). It imports `SCHEMA_MAP` to know what fields each theme needs.
+
+---
+
+## 10. Eloquent Model
 
 ```php
-// app/Http/Controllers/StorefrontController.php
+// app/Models/Business.php (relevant fields only)
 
-namespace App\Http\Controllers;
+protected $casts = [
+    'theme_settings' => 'array', // Laravel auto-encodes/decodes JSON <-> PHP array
+];
 
-use App\Models\Business;
-use Inertia\Inertia;
-
-class StorefrontController extends Controller
+// Eager load everything needed for storefront in one query
+public function scopeWithStorefrontData($query)
 {
-    public function show(Business $business)
-    {
-        // Single query — Business + Products
-        $business->load('products');
-
-        return Inertia::render('Storefront/Main', [
-            'business' => $business,
-        ]);
-    }
-
-    public function preview(Business $business)
-    {
-        // Merge query-string overrides for live preview
-        $business->theme_settings = array_merge(
-            $business->theme_settings ?? [],
-            request()->only(array_keys($business->theme_settings ?? []))
-        );
-
-        $business->load('products');
-
-        return Inertia::render('Storefront/Main', [
-            'business' => $business,
-        ]);
-    }
+    return $query->with(['products', 'categories', 'pages']);
 }
 ```
 
@@ -537,33 +467,22 @@ class StorefrontController extends Controller
 
 ## 11. Performance & Scalability
 
-### GIN Index (PostgreSQL)
-
-```sql
--- Enables high-speed searches inside the jsonb column
-CREATE INDEX businesses_theme_settings_gin
-ON businesses
-USING GIN (theme_settings);
-
--- Example: Find all businesses using a specific accent color
-SELECT * FROM businesses
-WHERE theme_settings @> '{"accent_color": "#FF0000"}';
-```
-
 ### Code Splitting with React `lazy()`
 
 Each theme is a separate JS chunk. A visitor to a Classic storefront **never downloads** the Boutique theme bundle.
 
 ```tsx
-const Classic  = lazy(() => import('@/Themes/Classic/Layout'));   // ~20kb chunk
-const Boutique = lazy(() => import('@/Themes/Boutique/Layout'));  // separate chunk
+const THEME_MAP = {
+    classic:  lazy(() => import('@/Themes/Classic')),   // separate chunk
+    boutique: lazy(() => import('@/Themes/Boutique')),  // separate chunk
+};
 ```
 
 ### Eager Loading
 
 ```php
 // One DB hit for everything the storefront needs
-Business::with('products')->findOrFail($id);
+Business::withStorefrontData()->findOrFail($id);
 ```
 
 ---
@@ -573,44 +492,29 @@ Business::with('products')->findOrFail($id);
 When adding a new theme (e.g., **Minimal**), only these steps are required:
 
 - [ ] Create `resources/js/Themes/Minimal/` directory
-- [ ] Add `Layout.tsx` — the root layout component
-- [ ] Add `Components/` — theme-specific UI components
 - [ ] Add `schema.ts` — define what settings this theme needs
-- [ ] Add `Minimal` to `SCHEMA_MAP` in `types/theme.d.ts`
-- [ ] Add `Minimal` to `THEME_MAP` in `Pages/Storefront/Main.tsx` (one line)
+- [ ] Add `index.ts` — export the component registry (`{ Layout, Shop, Product, Checkout, ... }`)
+- [ ] Add `Layout.tsx`, `ThemeShell.tsx`, and all `Components/`
+- [ ] Each component imports shared hooks (`useCart`, `useCheckout`, etc.) for logic
+- [ ] Add `Minimal` to `THEME_MAP` in `types/theme.ts` (one line)
+- [ ] Add `Minimal` to `SCHEMA_MAP` in `types/theme.ts` (one line)
 - [ ] Add new fields to `ThemeSettingsData.php` if the schema requires them
-- [ ] **No database migration required** ✅
+- [ ] Add new fields to `ThemeSettings` interface in `types/business.ts`
+- [ ] **No database migration required**
+- [ ] **No changes to any storefront resolver page**
+- [ ] **No changes to any existing theme**
 
 ---
 
-## 13. Environment & Installation
+## 13. Three Sources of Truth (Must Stay in Sync)
 
-```bash
-# Laravel 12 + Inertia v2 + React
-composer require laravel/framework:^12.0
-composer require inertiajs/inertia-laravel:^2.0
-composer require spatie/laravel-data:^4.0
+| Source | Location | Role |
+|---|---|---|
+| Theme `schema.ts` | `Themes/{Name}/schema.ts` | Defines what a theme accepts (frontend source of truth) |
+| `ThemeSettings` interface | `types/business.ts` | TypeScript type safety (union of ALL theme fields) |
+| `ThemeSettingsData` DTO | `app/Data/ThemeSettingsData.php` | Backend validation (union of ALL theme fields) |
 
-npm install @inertiajs/react@^2.3
-npm install react@^18 react-dom@^18
-npm install --save-dev typescript @types/react @types/react-dom
-
-# Publish Inertia middleware
-php artisan inertia:middleware
-
-# Run migrations
-php artisan migrate
-```
-
-```env
-# .env
-DB_CONNECTION=pgsql
-DB_HOST=127.0.0.1
-DB_PORT=5432
-DB_DATABASE=your_db
-DB_USERNAME=your_user
-DB_PASSWORD=your_password
-```
+When adding a field to any schema, also add it to the other two. Drift between these three causes runtime bugs.
 
 ---
 
@@ -618,15 +522,16 @@ DB_PASSWORD=your_password
 
 | Priority | Instruction |
 |---|---|
-| **1** | Maintain strict TypeScript types between the `jsonb` column and React props at all times |
-| **2** | Never write business logic (cart, auth, data fetching) inside a Theme — use Shared Hooks |
-| **3** | Never use `if/else` for theme switching — always use `THEME_MAP` lookup |
-| **4** | The `schema.ts` in each theme is the single source of truth for what that theme accepts |
-| **5** | Adding a new theme must only require adding files, not changing existing ones (Open/Closed Principle) |
-| **6** | All `jsonb` writes must pass through a `ThemeSettingsData` object — no raw array writes |
-| **7** | Always eager-load with `->with('products')` — never lazy-load in loops |
-| **8** | Use `React.lazy()` for every theme import in `Storefront/Main.tsx` |
+| **1** | **Themes own all UI, Shared owns all logic.** Never put UI components in Shared. Never put business logic in a theme. |
+| **2** | **No if/else for theme switching — ever.** All storefront pages use `THEME_MAP` lookup via the resolver pattern. |
+| **3** | The `schema.ts` in each theme is the single source of truth for what that theme accepts. |
+| **4** | Keep the three sources of truth in sync: `schema.ts` ↔ `ThemeSettings` ↔ `ThemeSettingsData`. |
+| **5** | Adding a new theme must only require adding files + two lines in `types/theme.ts`. No changes to resolvers, controllers, or existing themes. |
+| **6** | All `jsonb` writes must pass through a `ThemeSettingsData` object — no raw array writes. |
+| **7** | Use `React.lazy()` for every theme import. Visitors only download their active theme. |
+| **8** | Always eager-load with `->withStorefrontData()` — never lazy-load in loops. |
+| **9** | Themes are never forced to use specific pages or components. A theme can display cart as a drawer, a page, a modal — its choice. |
 
 ---
 
-*This file is the single source of truth for this system. Feed it directly to your AI agent or IDE (Cursor, Windsurf, Claude Code) before starting implementation.*
+*This file is the single source of truth for the theme engine architecture. Feed it directly to your AI agent or IDE before starting implementation.*

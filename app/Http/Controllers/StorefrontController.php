@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Business;
 use App\Models\Page;
 use App\Models\Product;
+use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -177,6 +178,22 @@ class StorefrontController extends Controller
     }
 
     /**
+     * Render the checkout page.
+     * Cart state lives client-side (Zustand/localStorage) — no cart data is passed from the server.
+     */
+    public function checkout(Business $business): Response
+    {
+        abort_unless($business->is_active, 404);
+
+        $business->load(['pages' => fn ($q) => $q->published()]);
+
+        return Inertia::render('Storefront/Checkout', [
+            'business' => $business,
+            'pages' => $business->pages,
+        ]);
+    }
+
+    /**
      * Render the auto-generated contact page.
      */
     public function contact(Business $business): Response
@@ -192,11 +209,15 @@ class StorefrontController extends Controller
     }
 
     /**
-     * Render a published custom page.
+     * Render a custom page (published, or draft when previewed by the owner).
      */
-    public function page(Business $business, Page $page): Response
+    public function page(Request $request, Business $business, Page $page): Response
     {
-        abort_unless($business->is_active && $page->is_published, 404);
+        $isPreview = $request->boolean('preview')
+            && $request->user()
+            && $request->user()->businesses()->where('businesses.id', $business->id)->exists();
+
+        abort_unless($business->is_active && ($page->is_published || $isPreview), 404);
 
         $business->load(['pages' => fn ($q) => $q->published()]);
 
@@ -204,6 +225,7 @@ class StorefrontController extends Controller
             'business' => $business,
             'page' => $page,
             'pages' => $business->pages,
+            'isPreview' => $isPreview,
         ]);
     }
 }

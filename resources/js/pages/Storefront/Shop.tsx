@@ -1,6 +1,5 @@
-import ClassicThemeShell from '@/Themes/Classic/ThemeShell';
-import BoutiqueThemeShell from '@/Themes/Boutique/ThemeShell';
-import ClassicShopPage from '@/Themes/Classic/Components/ShopPage';
+import { Suspense } from 'react';
+import { THEME_MAP } from '@/types/theme';
 import StorefrontHead from '@/Themes/Shared/StorefrontHead';
 import type { Business, Page, PaginatedData, Product } from '@/types/business';
 
@@ -22,47 +21,12 @@ type Props = {
 };
 
 export default function StorefrontShop({ business, products, pages, priceRange, filters }: Props) {
-    const head = <StorefrontHead business={business} title="Shop" />;
-
-    if (business.theme_id === 'boutique') {
-        return (
-            <>
-                {head}
-                <BoutiqueThemeShell business={business} pages={pages}>
-                    {({ addToCart, trackEvent }) => (
-                        <ClassicShopPage
-                            business={business}
-                            products={products}
-                            priceRange={priceRange}
-                            filters={filters}
-                            onAddToCart={(item) => {
-                                addToCart(item);
-                                trackEvent('AddToCart', { content_name: item.name, value: item.price, currency: 'GHS' });
-                            }}
-                        />
-                    )}
-                </BoutiqueThemeShell>
-            </>
-        );
-    }
+    const Shop = THEME_MAP[business.theme_id as keyof typeof THEME_MAP]?.Shop;
 
     return (
-        <>
-            {head}
-            <ClassicThemeShell business={business} pages={pages}>
-                {({ addToCart, trackEvent }) => (
-                    <ClassicShopPage
-                        business={business}
-                        products={products}
-                        priceRange={priceRange}
-                        filters={filters}
-                        onAddToCart={(item) => {
-                            addToCart(item);
-                            trackEvent('AddToCart', { content_name: item.name, value: item.price, currency: 'GHS' });
-                        }}
-                    />
-                )}
-            </ClassicThemeShell>
-        </>
+        <Suspense fallback={<div className="flex h-screen items-center justify-center text-zinc-400">Loading...</div>}>
+            <StorefrontHead business={business} title="Shop" />
+            <Shop business={business} products={products} pages={pages} priceRange={priceRange} filters={filters} />
+        </Suspense>
     );
 }

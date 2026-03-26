@@ -56,7 +56,7 @@ export default function EditPage({ business, page }: Props) {
                     <p className="mt-1 text-sm text-site-muted">{page.title}</p>
                 </div>
 
-                <form onSubmit={handleSubmit} className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8">
+                <form onSubmit={handleSubmit} className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8 pb-32 lg:pb-0">
                     {/* ── Left: content ── */}
                     <div className="flex flex-1 flex-col gap-5">
                         <div className="flex flex-col gap-1.5">
@@ -89,24 +89,15 @@ export default function EditPage({ business, page }: Props) {
                             <InputError message={errors.slug} />
                         </div>
 
-                        <div className="flex flex-col gap-1.5">
-                            <div className="flex items-center justify-between">
-                                <Label>Content</Label>
-                                <button
-                                    type="button"
-                                    onClick={() => setData('content', '')}
-                                    className="text-xs text-site-muted hover:text-red-600 hover:underline"
-                                >
-                                    Clear content
-                                </button>
-                            </div>
-                            <RichDescriptionEditor
-                                value={data.content}
-                                onChange={(html) => setData('content', html)}
-                                placeholder="Write your page content here..."
-                            />
-                            <InputError message={errors.content} />
-                        </div>
+                        <RichDescriptionEditor
+                            label="Content"
+                            onClear={() => setData('content', '')}
+                            value={data.content}
+                            onChange={(html) => setData('content', html)}
+                            placeholder="Write your page content here..."
+                            businessSlug={business.slug}
+                        />
+                        <InputError message={errors.content} />
                     </div>
 
                     {/* ── Right: sidebar ── */}
@@ -130,16 +121,16 @@ export default function EditPage({ business, page }: Props) {
                             <p className="text-xs font-semibold uppercase tracking-wide text-site-muted">Page type</p>
                             <div className="flex flex-col gap-1.5">
                                 <Label htmlFor="type">Type</Label>
-                                <select
-                                    id="type"
-                                    value={data.type}
-                                    onChange={(e) => setData('type', e.target.value as PageType | '')}
-                                    className="w-full rounded-lg border border-site-border bg-white px-3 py-2 text-sm text-site-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/30"
-                                >
-                                    {PAGE_TYPES.map((t) => (
-                                        <option key={t.value} value={t.value}>{t.label}</option>
-                                    ))}
-                                </select>
+                                    <select
+                                        id="type"
+                                        value={data.type as string}
+                                        onChange={(e) => setData('type', e.target.value as PageType | '')}
+                                        className="w-full rounded-lg border border-site-border bg-white px-3 py-2 text-sm text-site-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/30"
+                                    >
+                                        {PAGE_TYPES.map((t) => (
+                                            <option key={t.value} value={t.value as string}>{t.label}</option>
+                                        ))}
+                                    </select>
                                 <InputError message={errors.type} />
                             </div>
                         </div>

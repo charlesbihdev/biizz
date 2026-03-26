@@ -21,8 +21,15 @@ type Props = {
     onOpenChange: (open: boolean) => void;
 };
 
+type FormData = {
+    name: string;
+    slug: string;
+    business_type: BusinessType;
+    business_category: BusinessCategory | '';
+};
+
 export function CreateBusinessModal({ open, onOpenChange }: Props) {
-    const { data, setData, submit, processing, errors } = useForm({
+    const { data, setData, post, processing, errors, reset } = useForm<FormData>({
         name: '',
         slug: '',
         business_type: 'physical' as BusinessType,
@@ -33,6 +40,18 @@ export function CreateBusinessModal({ open, onOpenChange }: Props) {
         setData((prev) => ({ ...prev, name: value, slug: toSlug(value) }));
     };
 
+    const handleSubmit = (e: React.FormEvent) => {
+        e.preventDefault();
+        post(store().url, {
+            preserveState: true,
+            preserveScroll: true,
+            onSuccess: () => {
+                reset();
+                onOpenChange(false);
+            },
+        });
+    };
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-xl max-h-[95vh] overflow-y-auto">
@@ -41,10 +60,7 @@ export function CreateBusinessModal({ open, onOpenChange }: Props) {
                 </DialogHeader>
 
                 <form
-                    onSubmit={(e) => {
-                        e.preventDefault();
-                        submit(store());
-                    }}
+                    onSubmit={handleSubmit}
                     className="flex flex-col gap-5 pt-2"
                 >
                     <div className="flex flex-col gap-1.5">

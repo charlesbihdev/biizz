@@ -1,6 +1,7 @@
-import { router } from '@inertiajs/react';
+import { router, useForm } from '@inertiajs/react';
 import { CheckCircle2, Loader2, LoaderCircle, Unplug } from 'lucide-react';
 import { useState } from 'react';
+import InputError from '@/components/input-error';
 import { destroy, store } from '@/routes/businesses/payments';
 import type { Business } from '@/types';
 
@@ -14,25 +15,22 @@ type Props = {
 
 export function ProviderCard({ business, providerId, label, regions, connected }: Props) {
     const b = { business: business.slug };
-    const [key,          setKey]          = useState('');
-    const [saving,       setSaving]       = useState(false);
+    const { data, setData, post, processing: saving, errors, reset } = useForm({
+        provider: providerId,
+        key: '',
+    });
     const [disconnecting, setDisconnecting] = useState(false);
 
     const handleConnect = (e: React.FormEvent) => {
         e.preventDefault();
 
-        if (!key.trim()) {
+        if (!data.key.trim()) {
             return;
         }
 
-        setSaving(true);
-
-        router.visit(store(b).url, {
-            method: 'post',
-            data: { provider: providerId, key },
+        post(store(b).url, {
             preserveScroll: true,
-            onFinish: () => setSaving(false),
-            onSuccess: () => setKey(''),
+            onSuccess: () => reset('key'),
         });
     };
 
@@ -52,7 +50,7 @@ export function ProviderCard({ business, providerId, label, regions, connected }
     return (
         <div className="rounded-xl border border-site-border bg-white p-5">
             <div className="mb-4 flex items-start justify-between gap-3">
-                <div>
+                <div className="flex-1">
                     <div className="flex items-center gap-2">
                         <p className="text-sm font-semibold text-site-fg">{label}</p>
                         {connected && (
@@ -81,23 +79,26 @@ export function ProviderCard({ business, providerId, label, regions, connected }
             </div>
 
             {!connected && (
-                <form onSubmit={handleConnect} className="flex gap-2">
-                    <input
-                        type="password"
-                        value={key}
-                        onChange={(e) => setKey(e.target.value)}
-                        placeholder="Paste your secret key..."
-                        className="min-w-0 flex-1 rounded-lg border border-site-border px-3 py-2 text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/30"
-                    />
-                    <button
-                        type="submit"
-                        disabled={saving || !key.trim()}
-                        className="flex shrink-0 items-center gap-1.5 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-hover disabled:opacity-60"
-                    >
-                        {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                        Connect
-                    </button>
-                </form>
+                <div className="flex flex-col gap-2">
+                    <form onSubmit={handleConnect} className="flex gap-2">
+                        <input
+                            type="password"
+                            value={data.key}
+                            onChange={(e) => setData('key', e.target.value)}
+                            placeholder="Paste your secret key..."
+                            className="min-w-0 flex-1 rounded-lg border border-site-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30"
+                        />
+                        <button
+                            type="submit"
+                            disabled={saving || !data.key.trim()}
+                            className="flex shrink-0 items-center gap-1.5 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-hover disabled:opacity-60"
+                        >
+                            {saving && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
+                            Connect
+                        </button>
+                    </form>
+                    <InputError message={errors.key} />
+                </div>
             )}
         </div>
     );

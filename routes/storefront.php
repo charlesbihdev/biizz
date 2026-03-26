@@ -31,6 +31,9 @@ Route::prefix('s')->group(function () {
         Route::get('/{business:slug}/shop', [StorefrontController::class, 'shop'])
             ->name('storefront.shop');
 
+        Route::get('/{business:slug}/checkout', [StorefrontController::class, 'checkout'])
+            ->name('storefront.checkout');
+
         Route::get('/{business:slug}/contact', [StorefrontController::class, 'contact'])
             ->name('storefront.contact');
 

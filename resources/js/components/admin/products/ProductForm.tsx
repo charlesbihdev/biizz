@@ -61,7 +61,7 @@ export default function ProductForm({
     return (
         <form
             onSubmit={(e) => { e.preventDefault(); onSubmit(); }}
-            className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8"
+            className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8 pb-32 lg:pb-0"
         >
             {/* ── Left: content ── */}
             <div className="flex flex-1 flex-col gap-5">
@@ -111,9 +111,11 @@ export default function ProductForm({
                     </div>
                     {richText ? (
                         <RichDescriptionEditor
+                            onClear={() => onChange('description', '')}
                             value={data.description}
                             onChange={(html) => onChange('description', html)}
                             placeholder="Describe your product..."
+                            businessSlug={business.slug}
                         />
                     ) : (
                         <textarea
