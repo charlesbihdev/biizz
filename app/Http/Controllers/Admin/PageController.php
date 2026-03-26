@@ -11,6 +11,8 @@ use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
 use Inertia\Response;
 
+use Illuminate\Support\Facades\Storage;
+
 class PageController extends Controller
 {
     public function index(Business $business): Response
@@ -36,7 +38,14 @@ class PageController extends Controller
 
     public function store(StorePageRequest $request, Business $business): RedirectResponse
     {
-        $business->pages()->create($request->validated());
+        $data = $request->validated();
+
+        if ($request->hasFile('images')) {
+            $data['content'] = $this->processTiptapImages($data['content'] ?? '', $request->file('images'), $business);
+        }
+
+        unset($data['images']);
+        $business->pages()->create($data);
 
         return to_route('businesses.pages.index', $business)
             ->with('success', 'Page created.');
@@ -54,10 +63,33 @@ class PageController extends Controller
 
     public function update(UpdatePageRequest $request, Business $business, Page $page): RedirectResponse
     {
-        $page->update($request->validated());
+        $data = $request->validated();
+
+        if ($request->hasFile('images')) {
+            $data['content'] = $this->processTiptapImages($data['content'] ?? '', $request->file('images'), $business);
+        }
+
+        unset($data['images']);
+        $page->update($data);
 
         return to_route('businesses.pages.edit', [$business, $page])
             ->with('success', 'Page updated.');
+    }
+
+    /**
+     * Process Tiptap images by uploading them to S3 and replacing placeholders in the content.
+     */
+    private function processTiptapImages(string $content, array $images, Business $business): string
+    {
+        foreach ($images as $index => $file) {
+            $path = $file->storePublicly("businesses/{$business->id}", 's3');
+            $url = Storage::disk('s3')->url($path);
+            
+            $placeholder = "__IMAGE_ID_{$index}__";
+            $content = str_replace($placeholder, $url, $content);
+        }
+
+        return $content;
     }
 
     public function destroy(Business $business, Page $page): RedirectResponse

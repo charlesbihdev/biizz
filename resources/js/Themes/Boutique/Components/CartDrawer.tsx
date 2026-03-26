@@ -23,7 +23,7 @@ export default function CartDrawer({
 
     const handleCheckout = () => {
         onCheckout();
-        router.post(`/s/${businessSlug}/checkout`, { items });
+        router.visit(`/s/${businessSlug}/checkout`);
     };
 
     return (
@@ -77,7 +77,7 @@ export default function CartDrawer({
                                             >
                                                 <Minus className="h-3 w-3" />
                                             </button>
-                                            <span className="min-w-[1.5rem] text-center text-sm font-medium">{item.quantity}</span>
+                                            <span className="min-w-6 text-center text-sm font-medium">{item.quantity}</span>
                                             <button
                                                 onClick={() => onUpdateQuantity(item.id, item.quantity + 1)}
                                                 className="flex h-6 w-6 items-center justify-center rounded-full border border-zinc-200 text-zinc-600 transition hover:border-zinc-400"

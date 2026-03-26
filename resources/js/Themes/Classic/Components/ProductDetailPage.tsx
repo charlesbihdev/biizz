@@ -40,13 +40,13 @@ export default function ClassicProductDetailPage({ businessSlug, product, relate
     };
 
     const handleCheckout = () => {
-        router.post(`/s/${businessSlug}/checkout`, { items: cartItems });
+        router.visit(`/s/${businessSlug}/checkout`);
     };
 
     const handleBuyNow = () => {
         if (outOfStock) { return; }
         onAddToCart(cartItem);
-        router.post(`/s/${businessSlug}/checkout`, { items: [cartItem] });
+        router.visit(`/s/${businessSlug}/checkout`);
     };
 
     const textMuted = primary + 'b3'; // 70%

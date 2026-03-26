@@ -1,6 +1,7 @@
 import { useForm } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { prepareTiptapContent } from '@/lib/tiptap-uploader';
 import { RichDescriptionEditor } from '@/components/admin/products/RichDescriptionEditor';
 import InputError from '@/components/input-error';
 import { Input } from '@/components/ui/input';
@@ -35,6 +36,7 @@ type FormData = {
     type:         PageType | '';
     content:      string;
     is_published: boolean;
+    images?:      File[];
 };
 
 type Props = {
@@ -43,23 +45,48 @@ type Props = {
 
 export default function CreatePage({ business }: Props) {
     const b = { business: business.slug };
+    const finalContentRef = useRef<string | null>(null);
+    const imagesRef = useRef<File[]>([]);
 
-    const { data, setData, post, processing, errors } = useForm<FormData>({
+    const { data, setData, post, processing, errors, transform } = useForm<FormData>({
         title:        '',
         slug:         '',
         type:         '',
         content:      '',
         is_published: false,
+        images:       [],
     });
+
+    transform((data) => ({
+        ...data,
+        content: finalContentRef.current ?? data.content,
+        images:  imagesRef.current.length > 0 ? imagesRef.current : undefined,
+    }));
 
     useEffect(() => {
         setData('slug', slugify(data.title));
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [data.title]);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const [isFinalizing, setIsFinalizing] = useState(false);
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        post(store(b).url, { preserveScroll: true, preserveState: true });
+        
+        setIsFinalizing(true);
+        try {
+            // Prepare Tiptap content for transactional upload
+            const { content, files } = prepareTiptapContent(data.content);
+            finalContentRef.current = content;
+            imagesRef.current = files;
+            
+            post(store(b).url, { 
+                preserveScroll: true, 
+                preserveState: true 
+            });
+        } finally {
+            setIsFinalizing(false);
+        }
     };
 
     return (
@@ -109,15 +136,14 @@ export default function CreatePage({ business }: Props) {
                             <InputError message={errors.slug} />
                         </div>
 
-                        <div className="flex flex-col gap-1.5">
-                            <Label>Content</Label>
-                            <RichDescriptionEditor
-                                value={data.content}
-                                onChange={(html) => setData('content', html)}
-                                placeholder="Write your page content here..."
-                            />
-                            <InputError message={errors.content} />
-                        </div>
+                        <RichDescriptionEditor
+                            label="Content"
+                            onClear={() => setData('content', '')}
+                            value={data.content}
+                            onChange={(html) => setData('content', html)}
+                            placeholder="Write your page content here..."
+                        />
+                        <InputError message={errors.content} />
                     </div>
 
                     {/* ── Right: sidebar ── */}
@@ -143,12 +169,12 @@ export default function CreatePage({ business }: Props) {
                                 <Label htmlFor="type">Type</Label>
                                 <select
                                     id="type"
-                                    value={data.type}
+                                    value={(data.type ?? '') as string}
                                     onChange={(e) => setData('type', e.target.value as PageType | '')}
                                     className="w-full rounded-lg border border-site-border bg-white px-3 py-2 text-sm text-site-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/30"
                                 >
                                     {PAGE_TYPES.map((t) => (
-                                        <option key={t.value} value={t.value}>{t.label}</option>
+                                        <option key={String(t.value)} value={t.value}>{t.label}</option>
                                     ))}
                                 </select>
                                 <InputError message={errors.type} />
@@ -157,10 +183,10 @@ export default function CreatePage({ business }: Props) {
 
                         <button
                             type="submit"
-                            disabled={processing}
+                            disabled={processing || isFinalizing}
                             className="flex items-center justify-center gap-2 rounded-full bg-brand py-2.5 text-sm font-bold text-white transition hover:bg-brand-hover disabled:opacity-60"
                         >
-                            {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
+                            {(processing || isFinalizing) && <LoaderCircle className="h-4 w-4 animate-spin" />}
                             Save page
                         </button>
                     </div>

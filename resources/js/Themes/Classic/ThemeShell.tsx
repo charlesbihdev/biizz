@@ -1,14 +1,15 @@
 import { useState, type ReactNode } from 'react';
 import type { Business, CartItem, Page } from '@/types/business';
 import { useCartStore } from '@/stores/cartStore';
-import { useMetaPixel } from '@/Themes/Shared/Hooks/useMetaPixel';
-import CartDrawer from '@/Themes/Shared/Components/CartDrawer';
+import { useMetaPixel, type PixelEvent } from '@/Themes/Shared/Hooks/useMetaPixel';
+import CartDrawer from './Components/CartDrawer';
+import ToastProvider from '@/components/toast-provider';
 import StorefrontNav from './Components/StorefrontNav';
 import StoreFooter from './Components/StoreFooter';
 
 export type CartActions = {
     addToCart:  (item: CartItem) => void;
-    trackEvent: (event: string, data?: Record<string, unknown>) => void;
+    trackEvent: (event: PixelEvent, data?: Record<string, unknown>) => void;
 };
 
 interface Props {
@@ -29,7 +30,8 @@ export default function ClassicThemeShell({ business, pages, children }: Props) 
     const cartActions: CartActions = { addToCart, trackEvent };
 
     return (
-        <div className="min-h-screen font-sans antialiased" style={{ backgroundColor: bg }}>
+        <ToastProvider>
+            <div className="min-h-screen font-sans antialiased" style={{ backgroundColor: bg }}>
             <StorefrontNav
                 business={business}
                 pages={pages}
@@ -53,6 +55,7 @@ export default function ClassicThemeShell({ business, pages, children }: Props) 
                 accentColor={accent}
                 onCheckout={() => trackEvent('InitiateCheckout', { value: total, currency: 'GHS' })}
             />
-        </div>
+            </div>
+        </ToastProvider>
     );
 }

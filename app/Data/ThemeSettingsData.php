@@ -24,6 +24,9 @@ class ThemeSettingsData extends Data
         #[Regex('/^#[0-9A-Fa-f]{6}$/')]
         public readonly ?string $accent_color = null,
 
+        #[Regex('/^#[0-9A-Fa-f]{6}$/')]
+        public readonly ?string $bg_color = null,
+
         // Color preset identifier (e.g. 'midnight', 'forest')
         #[Max(50)]
         public readonly ?string $color_scheme = null,
@@ -36,6 +39,7 @@ class ThemeSettingsData extends Data
         public readonly bool $show_featured = true,
         public readonly bool $show_testimonials = true,
         public readonly bool $show_hero = true,
+        public readonly bool $show_shop_page = true,
 
         // Select fields
         public readonly ?string $layout_style = null,

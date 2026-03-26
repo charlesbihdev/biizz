@@ -1,0 +1,46 @@
+/* Component-specific scrollbar styles */
+.simple-editor-container ::-webkit-scrollbar {
+    width: 0.25rem;
+}
+
+.simple-editor-container * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--tt-scrollbar-color) transparent;
+}
+
+.simple-editor-container ::-webkit-scrollbar-thumb {
+    background-color: var(--tt-scrollbar-color);
+    border-radius: 9999px;
+}
+
+.simple-editor-container ::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.tiptap.ProseMirror {
+    font-family: 'DM Sans', sans-serif;
+}
+
+.simple-editor-wrapper {
+    width: 100%;
+    overflow: auto;
+}
+
+.simple-editor-content-area {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.simple-editor-content-area .tiptap.ProseMirror.simple-editor {
+    flex: 1;
+    padding: 1.5rem 3rem;
+}
+
+@media screen and (max-width: 480px) {
+    .simple-editor-content-area .tiptap.ProseMirror.simple-editor {
+        padding: 1rem 1.5rem;
+    }
+}

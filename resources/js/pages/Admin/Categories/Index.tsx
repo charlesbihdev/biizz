@@ -55,14 +55,17 @@ function CategoryFormDialog({
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        const options = {
-            preserveScroll: true,
+        const action = category ? update({ business: business.slug, category: category.id }) : store({ business: business.slug });
+
+        post(action.url, {
             preserveState:  true,
-            forceFormData:  true,
-            onSuccess: () => { reset(); onOpenChange(false); },
-        };
-        const url = isEdit ? update({ ...b, category: category.id }).url : store(b).url;
-        post(url, options);
+            preserveScroll: true,
+            only:           ['categories', 'errors', 'flash'],
+            onSuccess: () => {
+                reset();
+                onOpenChange(false);
+            },
+        });
     };
 
     return (

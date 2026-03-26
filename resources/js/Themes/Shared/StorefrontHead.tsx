@@ -23,8 +23,11 @@ export default function StorefrontHead({ business, title, description, image }: 
         ?? business.seo_description
         ?? stripAndTruncate(business.tagline ?? business.description);
 
-    const ogImage  = image ?? business.seo_image ?? business.logo_url ?? undefined;
-    const favicon  = business.favicon_url ?? business.logo_url ?? undefined;
+    const ogImage       = image ?? business.seo_image ?? business.logo_url ?? undefined;
+    const favicon       = business.favicon_url ?? business.logo_url ?? undefined;
+    const progressColor = business.theme_settings?.accent_color
+        ?? business.theme_settings?.primary_color
+        ?? null;
 
     return (
         <Head title={pageTitle}>
@@ -55,6 +58,13 @@ export default function StorefrontHead({ business, title, description, image }: 
             {/* Favicon — overrides default biizz favicon */}
             {favicon && (
                 <link rel="icon" href={favicon} />
+            )}
+
+            {/* Theme-aware progress bar — overrides Inertia's default NProgress color.
+                When the user navigates away from storefront, this Head unmounts and
+                the bar reverts to the app default (#4B5563) automatically. */}
+            {progressColor && (
+                <style>{`#nprogress .bar { background: ${progressColor} !important; }`}</style>
             )}
         </Head>
     );

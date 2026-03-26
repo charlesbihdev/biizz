@@ -1,4 +1,4 @@
-import { router } from '@inertiajs/react';
+import { router, useForm } from '@inertiajs/react';
 import { Eye, LoaderCircle, X } from 'lucide-react';
 import { useState } from 'react';
 import { uploadMedia } from '@/lib/media-upload';
@@ -16,9 +16,10 @@ export default function ThemeSettings({ business }: { business: Business }) {
     const b = { business: business.slug };
 
     const [activeTheme, setActiveTheme] = useState<ThemeId>(business.theme_id as ThemeId);
-    const [settings, setSettings] = useState<ThemeSettings>({ ...business.theme_settings });
+    const { data: settings, setData, post, processing: saving, errors, transform } = useForm<any>({
+        ...business.theme_settings,
+    });
     const [pendingFiles, setPendingFiles] = useState<Record<string, File>>({});
-    const [saving, setSaving] = useState(false);
     const [previewOpen, setPreviewOpen] = useState(false);
 
     const schema = SCHEMA_MAP[activeTheme];
@@ -28,14 +29,12 @@ export default function ThemeSettings({ business }: { business: Business }) {
         if (value instanceof File) {
             setPendingFiles((prev) => ({ ...prev, [key]: value }));
         } else {
-            setSettings((prev) => ({ ...prev, [key]: value }));
+            setData(key, value as any);
             setPendingFiles((prev) => { const next = { ...prev }; delete next[key]; return next; });
         }
     };
 
     const handleSave = async () => {
-        setSaving(true);
-
         let resolvedSettings = { ...settings };
 
         if (Object.keys(pendingFiles).length > 0) {
@@ -47,15 +46,17 @@ export default function ThemeSettings({ business }: { business: Business }) {
             );
             uploads.forEach(([key, url]) => { resolvedSettings[key] = url; });
             setPendingFiles({});
-            setSettings(resolvedSettings);
         }
 
-        router.visit(update(b).url, {
-            method: 'post',
-            data: { _method: 'patch', ...resolvedSettings as any },
+        transform((data) => ({
+            ...data,
+            ...resolvedSettings,
+            _method: 'patch',
+        }));
+
+        post(update(b).url, {
             preserveScroll: true,
             preserveState: true,
-            onFinish: () => setSaving(false),
         });
     };
 
@@ -81,6 +82,17 @@ export default function ThemeSettings({ business }: { business: Business }) {
                         Preview
                     </button>
                 </div>
+
+                {Object.keys(errors).length > 0 && (
+                    <div className="mb-8 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                        <p className="font-semibold">Unable to save changes</p>
+                        <ul className="mt-1 list-inside list-disc opacity-90">
+                            {Object.values(errors).map((err, i) => (
+                                <li key={i}>{err}</li>
+                            ))}
+                        </ul>
+                    </div>
+                )}
 
                 <div className="flex flex-col gap-8">
                     <FormSection title="Layout" description="Choose the base structure of your store.">
