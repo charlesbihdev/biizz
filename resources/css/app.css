@@ -2,6 +2,7 @@
 @import '../js/styles/_keyframe-animations.scss';
 
 @import 'tailwindcss';
+@plugin "@tailwindcss/typography";
 
 @import 'tw-animate-css';
 

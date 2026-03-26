@@ -30,7 +30,9 @@ class StorePageRequest extends FormRequest
             ],
             'content' => ['nullable', 'string'],
             'type' => ['nullable', 'string', 'in:privacy_policy,faq,terms,about,shipping,acceptable_use'],
-            'is_published' => ['boolean'],
+            'is_published' => ['required', 'boolean'],
+            'images'       => ['nullable', 'array'],
+            'images.*'     => ['image', 'max:6144'],
             'sort_order' => ['integer', 'min:0'],
         ];
     }

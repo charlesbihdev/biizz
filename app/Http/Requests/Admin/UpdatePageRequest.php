@@ -31,6 +31,8 @@ class UpdatePageRequest extends FormRequest
             'content' => ['nullable', 'string'],
             'type' => ['nullable', 'string', 'in:privacy_policy,faq,terms,about,shipping,acceptable_use'],
             'is_published' => ['boolean'],
+            'images'       => ['nullable', 'array'],
+            'images.*'     => ['image', 'max:6144'],
             'sort_order' => ['sometimes', 'integer', 'min:0'],
         ];
     }

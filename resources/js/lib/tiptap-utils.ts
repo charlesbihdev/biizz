@@ -351,64 +351,6 @@ export function selectionWithinConvertibleTypes(
   return false
 }
 
-import axios from "axios"
-
-/**
- * Handles image upload with progress tracking and abort capability
- * @param file The file to upload
- * @param onProgress Optional callback for tracking upload progress
- * @param abortSignal Optional AbortSignal for cancelling the upload
- * @param businessSlug Optional slug for business-scoped endpoint
- * @returns Promise resolving to the URL of the uploaded image
- */
-export const handleImageUpload = async (
-  file: File,
-  onProgress?: (event: { progress: number }) => void,
-  abortSignal?: AbortSignal,
-  businessSlug?: string
-): Promise<string> => {
-  // Validate file
-  if (!file) {
-    throw new Error("No file provided")
-  }
-
-  if (file.size > MAX_FILE_SIZE) {
-    throw new Error(
-      `File size exceeds maximum allowed (${MAX_FILE_SIZE / (1024 * 1024)}MB)`
-    )
-  }
-
-  if (!businessSlug) {
-    // Demo fallback for cases without business context
-    for (let progress = 0; progress <= 100; progress += 10) {
-      if (abortSignal?.aborted) {
-        throw new Error("Upload cancelled")
-      }
-      await new Promise((resolve) => setTimeout(resolve, 100))
-      onProgress?.({ progress })
-    }
-    return "/images/tiptap-ui-placeholder-image.jpg"
-  }
-
-  const formData = new FormData()
-  formData.append("file", file)
-
-  const response = await axios.post(`/dashboard/b/${businessSlug}/media`, formData, {
-    headers: {
-      "Content-Type": "multipart/form-data",
-    },
-    onUploadProgress: (progressEvent) => {
-      if (progressEvent.total) {
-        const progress = Math.round((progressEvent.loaded * 100) / progressEvent.total)
-        onProgress?.({ progress })
-      }
-    },
-    signal: abortSignal,
-  })
-
-  return response.data.url
-}
-
 type ProtocolOptions = {
   /**
    * The protocol scheme to be registered.
@@ -447,6 +389,7 @@ export function isAllowedUri(
     "sms",
     "cid",
     "xmpp",
+    "blob",
   ]
 
   if (protocols) {

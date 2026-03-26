@@ -1,5 +1,6 @@
 import { useForm } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
 import { RichDescriptionEditor } from '@/components/admin/products/RichDescriptionEditor';
 import InputError from '@/components/input-error';
 import { Input } from '@/components/ui/input';
@@ -7,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import AppSidebarLayout from '@/layouts/app/app-sidebar-layout';
 import { show } from '@/routes/businesses';
 import { edit, index, update } from '@/routes/businesses/pages';
+import { prepareTiptapContent } from '@/lib/tiptap-uploader';
 import type { Business, Page, PageType } from '@/types';
 
 const PAGE_TYPES: { value: PageType | ''; label: string }[] = [
@@ -24,22 +26,57 @@ type Props = {
     page:     Page;
 };
 
-export default function EditPage({ business, page }: Props) {
-    const b  = { business: business.slug };
-    const bp = { ...b, page: page.id };
+type FormData = {
+    _method:      'patch';
+    title:        string;
+    slug:         string;
+    type:         PageType | '';
+    content:      string;
+    is_published: boolean;
+    images?:      File[];
+};
 
-    const { data, setData, post, processing, errors } = useForm({
-        _method:      'patch' as string,
+export default function EditPage({ business, page }: Props) {
+    const b = { business: business.slug };
+    const bp = { business: business.slug, page: page.id };
+    const finalContentRef = useRef<string | null>(null);
+    const imagesRef = useRef<File[]>([]);
+
+    const { data, setData, post, processing, errors, transform } = useForm<FormData>({
+        _method:      'patch',
         title:        page.title,
         slug:         page.slug,
-        type:         page.type ?? '' as PageType | '',
+        type:         page.type ?? '',
         content:      page.content ?? '',
         is_published: page.is_published,
+        images:       [],
     });
 
-    const handleSubmit = (e: React.FormEvent) => {
+    transform((data) => ({
+        ...data,
+        content: finalContentRef.current ?? data.content,
+        images:  imagesRef.current.length > 0 ? imagesRef.current : undefined,
+    }));
+
+    const [isFinalizing, setIsFinalizing] = useState(false);
+
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        post(update(bp).url, { preserveScroll: true, preserveState: true, forceFormData: true });
+        
+        setIsFinalizing(true);
+        try {
+            // Prepare Tiptap content for transactional upload
+            const { content, files } = prepareTiptapContent(data.content);
+            finalContentRef.current = content;
+            imagesRef.current = files;
+            
+            post(update(bp).url, { 
+                preserveScroll: true, 
+                preserveState: true 
+            });
+        } finally {
+            setIsFinalizing(false);
+        }
     };
 
     return (
@@ -137,11 +174,11 @@ export default function EditPage({ business, page }: Props) {
 
                         <button
                             type="submit"
-                            disabled={processing}
+                            disabled={processing || isFinalizing}
                             className="flex items-center justify-center gap-2 rounded-full bg-brand py-2.5 text-sm font-bold text-white transition hover:bg-brand-hover disabled:opacity-60"
                         >
-                            {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
-                            Save changes
+                            {(processing || isFinalizing) && <LoaderCircle className="h-4 w-4 animate-spin" />}
+                            Save page
                         </button>
                     </div>
                 </form>
