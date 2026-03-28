@@ -17,24 +17,24 @@ class OrderFactory extends Factory
     public function definition(): array
     {
         return [
-            'business_id'      => Business::factory(),
-            'customer_name'    => fake()->name(),
-            'customer_email'   => fake()->safeEmail(),
-            'customer_phone'   => fake()->phoneNumber(),
-            'total'            => fake()->randomFloat(2, 10, 2000),
-            'currency'         => fake()->randomElement(['GHS', 'NGN', 'KES', 'ZAR']),
-            'status'           => OrderStatus::Pending,
-            'payment_ref'      => null,
+            'business_id' => Business::factory(),
+            'customer_name' => fake()->name(),
+            'customer_email' => fake()->safeEmail(),
+            'customer_phone' => fake()->phoneNumber(),
+            'total' => fake()->randomFloat(2, 10, 2000),
+            'currency' => fake()->randomElement(['GHS', 'NGN', 'KES', 'ZAR']),
+            'status' => OrderStatus::Pending,
+            'payment_ref' => null,
             'payment_provider' => null,
-            'source'           => OrderSource::Storefront,
+            'source' => OrderSource::Storefront,
         ];
     }
 
     public function paid(): static
     {
         return $this->state([
-            'status'           => OrderStatus::Paid,
-            'payment_ref'      => 'ref_' . Str::random(20),
+            'status' => OrderStatus::Paid,
+            'payment_ref' => 'ref_'.Str::random(20),
             'payment_provider' => 'paystack',
         ]);
     }

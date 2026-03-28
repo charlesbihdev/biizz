@@ -1,6 +1,8 @@
 import { useForm } from '@inertiajs/react';
-import { CheckCircle2, Facebook, Globe, Instagram, LoaderCircle, Lock, MessageCircle, Package, Twitter, Zap } from 'lucide-react';
+import { CheckCircle2, CreditCard, Facebook, Globe, Instagram, LoaderCircle, Lock, MessageCircle, Package, Twitter, Zap } from 'lucide-react';
 import { FileUploader } from '@/components/admin/theme/FileUploader';
+import { FormSection } from '@/components/admin/form-section';
+import { ProviderCard } from '@/components/admin/payment/ProviderCard';
 import InputError from '@/components/input-error';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,8 +12,6 @@ import AppSidebarLayout from '@/layouts/app/app-sidebar-layout';
 import { show } from '@/routes/businesses';
 import { update as settingsUpdate } from '@/routes/businesses/settings';
 import type { Business, BusinessCategory, SocialLinks } from '@/types';
-
-import { FormSection } from '@/components/admin/form-section';
 
 function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
     return (
@@ -23,7 +23,19 @@ function Field({ label, error, children }: { label: string; error?: string; chil
     );
 }
 
-export default function BusinessSettings({ business }: { business: Business }) {
+type Provider = {
+    connected: boolean;
+    label: string;
+    regions: string[];
+    has_client_id?: boolean;
+};
+
+type Props = {
+    business: Business;
+    providers: Record<string, Provider>;
+};
+
+export default function BusinessSettings({ business, providers }: Props) {
     const b = { business: business.slug };
     const sl: SocialLinks = business.social_links ?? {};
 
@@ -348,6 +360,38 @@ export default function BusinessSettings({ business }: { business: Business }) {
                         </button>
                     </div>
                 </form>
+
+                {/* ── Payments (outside main form — ProviderCards have their own forms) ── */}
+                <div className="mt-8">
+                    <FormSection
+                        title="Payments"
+                        description="Connect a payment provider so customers can pay on your storefront."
+                    >
+                        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+                            {Object.entries(providers).map(([id, provider]) => (
+                                <ProviderCard
+                                    key={id}
+                                    business={business}
+                                    providerId={id}
+                                    label={provider.label}
+                                    regions={provider.regions}
+                                    connected={provider.connected}
+                                    hasClientId={provider.has_client_id}
+                                    isDefault={business.default_payment_provider === id}
+                                />
+                            ))}
+                        </div>
+
+                        {!Object.values(providers).some((p) => p.connected) && (
+                            <div className="flex items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 p-4">
+                                <CreditCard className="h-5 w-5 shrink-0 text-amber-600" />
+                                <p className="text-sm text-amber-800">
+                                    No payment provider connected. Customers will only be able to reach you via WhatsApp or contact info.
+                                </p>
+                            </div>
+                        )}
+                    </FormSection>
+                </div>
             </div>
         </AppSidebarLayout>
     );

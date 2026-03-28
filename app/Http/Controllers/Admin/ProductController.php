@@ -84,17 +84,17 @@ class ProductController extends Controller
         for ($i = 0; $i < $count; $i++) {
             if ($request->hasFile("images.$i.file")) {
                 $path = $request->file("images.$i.file")->storePublicly("businesses/{$business->id}", 's3');
-                $url  = Storage::disk('s3')->url($path);
+                $url = Storage::disk('s3')->url($path);
             } else {
                 $url = $request->input("images.$i.url");
-                if (!$url || str_starts_with($url, 'blob:')) {
+                if (! $url || str_starts_with($url, 'blob:')) {
                     continue;
                 }
             }
 
             $product->images()->create([
-                'url'        => $url,
-                'alt'        => $request->input("images.$i.alt"),
+                'url' => $url,
+                'alt' => $request->input("images.$i.alt"),
                 'sort_order' => $i,
             ]);
         }

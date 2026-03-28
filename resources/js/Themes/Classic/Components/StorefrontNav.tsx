@@ -1,21 +1,33 @@
-import { Link, router } from '@inertiajs/react';
-import { useEffect, useRef, useState } from 'react';
-import { Facebook, Home, Instagram, Menu, MessageCircle, Search, ShoppingCart, Twitter, X } from 'lucide-react';
+import { Link } from '@inertiajs/react';
+import { useEffect, useState } from 'react';
+import {
+    Facebook,
+    Home,
+    Instagram,
+    Menu,
+    MessageCircle,
+    Search,
+    ShoppingCart,
+    Twitter,
+    X,
+} from 'lucide-react';
 import type { Business, Page } from '@/types/business';
+import { shop } from '@/actions/App/Http/Controllers/StorefrontController';
+import { useSearch } from '@/Themes/Shared/Hooks/useSearch';
 
 interface Props {
-    business:   Business;
-    pages:      Page[];
-    itemCount:  number;
+    business: Business;
+    pages: Page[];
+    itemCount: number;
     onCartOpen: () => void;
 }
 
 const PAGE_LABELS: Record<string, string> = {
     privacy_policy: 'Privacy Policy',
-    faq:            'FAQ',
-    terms:          'Terms',
-    about:          'About',
-    shipping:       'Shipping',
+    faq: 'FAQ',
+    terms: 'Terms',
+    about: 'About',
+    shipping: 'Shipping',
     acceptable_use: 'Acceptable Use',
 };
 
@@ -23,24 +35,50 @@ function pageLabel(page: Page): string {
     return page.type ? (PAGE_LABELS[page.type] ?? page.title) : page.title;
 }
 
-export default function StorefrontNav({ business, pages, itemCount, onCartOpen }: Props) {
-    const [scrolled,     setScrolled]     = useState(false);
-    const [drawerOpen,   setDrawerOpen]   = useState(false);
-    const [searchQuery,  setSearchQuery]  = useState('');
-    const searchRef = useRef<HTMLInputElement>(null);
+export default function StorefrontNav({
+    business,
+    pages,
+    itemCount,
+    onCartOpen,
+}: Props) {
+    const [scrolled, setScrolled] = useState(false);
+    const [drawerOpen, setDrawerOpen] = useState(false);
 
-    const { theme_settings: s, name, logo_url, slug, social_links: social } = business;
-    const primary    = s.primary_color ?? '#1a1a1a';
-    const accent     = s.accent_color  ?? primary;
+    const {
+        theme_settings: s,
+        name,
+        logo_url,
+        slug,
+        social_links: social,
+    } = business;
+    const primary = s.primary_color ?? '#1a1a1a';
+    const accent = s.accent_color ?? primary;
     const categories = business.categories ?? [];
-    const whatsapp   = social?.whatsapp;
-    const whatsappHref = whatsapp ? `https://wa.me/${whatsapp.replace(/\D/g, '')}` : null;
-
-    const activeCategorySlug = typeof window !== 'undefined'
-        ? new URLSearchParams(window.location.search).get('category')
+    const whatsapp = social?.whatsapp;
+    const whatsappHref = whatsapp
+        ? `https://wa.me/${whatsapp.replace(/\D/g, '')}`
         : null;
 
-    const hasTier1 = !!(whatsappHref || social?.instagram || social?.facebook || social?.tiktok || social?.twitter);
+    const {
+        query: searchQuery,
+        setQuery: setSearchQuery,
+        handleSubmit: handleSearch,
+    } = useSearch(slug, {
+        target: shop.url(slug),
+    });
+
+    const activeCategorySlug =
+        typeof window !== 'undefined'
+            ? new URLSearchParams(window.location.search).get('category')
+            : null;
+
+    const hasTier1 = !!(
+        whatsappHref ||
+        social?.instagram ||
+        social?.facebook ||
+        social?.tiktok ||
+        social?.twitter
+    );
 
     useEffect(() => {
         const onScroll = () => setScrolled(window.scrollY > 20);
@@ -50,26 +88,44 @@ export default function StorefrontNav({ business, pages, itemCount, onCartOpen }
 
     useEffect(() => {
         document.body.style.overflow = drawerOpen ? 'hidden' : '';
-        return () => { document.body.style.overflow = ''; };
+        return () => {
+            document.body.style.overflow = '';
+        };
     }, [drawerOpen]);
 
-    const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        if (searchQuery.trim()) {
-            router.visit(`/s/${slug}?q=${encodeURIComponent(searchQuery.trim())}`);
-        }
-    };
-
     const socialIcons = [
-        social?.facebook  && { Icon: Facebook,  href: social.facebook.startsWith('http') ? social.facebook : `https://facebook.com/${social.facebook}`,       label: 'Facebook' },
-        social?.instagram && { Icon: Instagram, href: social.instagram.startsWith('http') ? social.instagram : `https://instagram.com/${social.instagram.replace(/^@/, '')}`, label: 'Instagram' },
-        social?.twitter   && { Icon: Twitter,   href: social.twitter.startsWith('http') ? social.twitter : `https://twitter.com/${social.twitter.replace(/^@/, '')}`,   label: 'X / Twitter' },
-    ].filter(Boolean) as { Icon: React.ElementType; href: string; label: string }[];
+        social?.facebook && {
+            Icon: Facebook,
+            href: social.facebook.startsWith('http')
+                ? social.facebook
+                : `https://facebook.com/${social.facebook}`,
+            label: 'Facebook',
+        },
+        social?.instagram && {
+            Icon: Instagram,
+            href: social.instagram.startsWith('http')
+                ? social.instagram
+                : `https://instagram.com/${social.instagram.replace(/^@/, '')}`,
+            label: 'Instagram',
+        },
+        social?.twitter && {
+            Icon: Twitter,
+            href: social.twitter.startsWith('http')
+                ? social.twitter
+                : `https://twitter.com/${social.twitter.replace(/^@/, '')}`,
+            label: 'X / Twitter',
+        },
+    ].filter(Boolean) as {
+        Icon: React.ElementType;
+        href: string;
+        label: string;
+    }[];
 
     return (
         <>
-            <header className={`sticky top-0 z-40 bg-white transition-shadow ${scrolled ? 'shadow-md' : ''}`}>
-
+            <header
+                className={`sticky top-0 z-40 bg-white transition-shadow ${scrolled ? 'shadow-md' : ''}`}
+            >
                 {/* ── Tier 1: Top bar ─────────────────────────────────────── */}
                 {hasTier1 && (
                     <div
@@ -115,7 +171,6 @@ export default function StorefrontNav({ business, pages, itemCount, onCartOpen }
                 {/* ── Tier 2: Main header ─────────────────────────────────── */}
                 <div className="border-b border-zinc-100 px-4 sm:px-6 lg:px-8">
                     <div className="mx-auto grid h-20 max-w-7xl grid-cols-[auto_1fr_auto] items-center gap-4 lg:h-24">
-
                         {/* Left: hamburger (mobile) + logo */}
                         <div className="flex items-center gap-3">
                             <button
@@ -126,7 +181,10 @@ export default function StorefrontNav({ business, pages, itemCount, onCartOpen }
                             >
                                 <Menu className="h-5 w-5" />
                             </button>
-                            <Link href={`/s/${slug}`} className="shrink-0 transition-opacity hover:opacity-80">
+                            <Link
+                                href={`/s/${slug}`}
+                                className="shrink-0 transition-opacity hover:opacity-80"
+                            >
                                 {logo_url ? (
                                     <img
                                         src={logo_url}
@@ -134,7 +192,12 @@ export default function StorefrontNav({ business, pages, itemCount, onCartOpen }
                                         className="h-14 w-auto max-w-[200px] object-contain lg:h-16"
                                     />
                                 ) : (
-                                    <span className="text-xl font-bold lg:text-2xl" style={{ color: accent }}>{name}</span>
+                                    <span
+                                        className="text-xl font-bold lg:text-2xl"
+                                        style={{ color: accent }}
+                                    >
+                                        {name}
+                                    </span>
                                 )}
                             </Link>
                         </div>
@@ -147,12 +210,13 @@ export default function StorefrontNav({ business, pages, itemCount, onCartOpen }
                             <div className="mx-auto flex w-full max-w-2xl items-center overflow-hidden rounded-full border border-zinc-200 bg-zinc-50 transition focus-within:border-zinc-400 focus-within:bg-white">
                                 <Search className="ml-4 h-4 w-4 shrink-0 text-zinc-400" />
                                 <input
-                                    ref={searchRef}
                                     type="search"
                                     value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    onChange={(e) =>
+                                        setSearchQuery(e.target.value)
+                                    }
                                     placeholder="Search for products..."
-                                    className="flex-1 bg-transparent py-3 pl-3 pr-2 text-sm text-zinc-800 outline-none placeholder:text-zinc-400"
+                                    className="flex-1 bg-transparent py-3 pr-2 pl-3 text-sm text-zinc-800 outline-none placeholder:text-zinc-400"
                                 />
                                 <button
                                     type="submit"
@@ -174,7 +238,7 @@ export default function StorefrontNav({ business, pages, itemCount, onCartOpen }
                                 <ShoppingCart className="h-6 w-6" />
                                 {itemCount > 0 && (
                                     <span
-                                        className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full text-[10px] font-bold leading-none text-white"
+                                        className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full text-[10px] leading-none font-bold text-white"
                                         style={{ backgroundColor: accent }}
                                     >
                                         {itemCount > 9 ? '9+' : itemCount}
@@ -192,7 +256,12 @@ export default function StorefrontNav({ business, pages, itemCount, onCartOpen }
                             <div className="flex items-center overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none]">
                                 <NavLink
                                     href={`/s/${slug}`}
-                                    active={!activeCategorySlug && typeof window !== 'undefined' && window.location.pathname === `/s/${slug}`}
+                                    active={
+                                        !activeCategorySlug &&
+                                        typeof window !== 'undefined' &&
+                                        window.location.pathname ===
+                                            `/s/${slug}`
+                                    }
                                     accent={accent}
                                     primary={primary}
                                     icon={<Home className="h-3.5 w-3.5" />}
@@ -202,7 +271,11 @@ export default function StorefrontNav({ business, pages, itemCount, onCartOpen }
                                 {s.show_shop_page !== false && (
                                     <NavLink
                                         href={`/s/${slug}/shop`}
-                                        active={typeof window !== 'undefined' && window.location.pathname === `/s/${slug}/shop`}
+                                        active={
+                                            typeof window !== 'undefined' &&
+                                            window.location.pathname ===
+                                                `/s/${slug}/shop`
+                                        }
                                         accent={accent}
                                         primary={primary}
                                     >
@@ -222,11 +295,15 @@ export default function StorefrontNav({ business, pages, itemCount, onCartOpen }
                                 ))}
                             </div>
 
-                            {(pages.length > 0) && (
+                            {pages.length > 0 && (
                                 <div className="hidden shrink-0 items-center lg:flex">
                                     <NavLink
                                         href={`/s/${slug}/contact`}
-                                        active={typeof window !== 'undefined' && window.location.pathname === `/s/${slug}/contact`}
+                                        active={
+                                            typeof window !== 'undefined' &&
+                                            window.location.pathname ===
+                                                `/s/${slug}/contact`
+                                        }
                                         accent={accent}
                                         primary={primary}
                                     >
@@ -236,7 +313,11 @@ export default function StorefrontNav({ business, pages, itemCount, onCartOpen }
                                         <NavLink
                                             key={page.id}
                                             href={`/s/${slug}/pages/${page.slug}`}
-                                            active={typeof window !== 'undefined' && window.location.pathname === `/s/${slug}/pages/${page.slug}`}
+                                            active={
+                                                typeof window !== 'undefined' &&
+                                                window.location.pathname ===
+                                                    `/s/${slug}/pages/${page.slug}`
+                                            }
                                             accent={accent}
                                             primary={primary}
                                         >
@@ -259,7 +340,9 @@ export default function StorefrontNav({ business, pages, itemCount, onCartOpen }
                     />
                     <div className="relative flex w-72 max-w-[85vw] flex-col bg-white shadow-xl">
                         <div className="flex items-center justify-between border-b border-zinc-100 px-5 py-4">
-                            <span className="font-semibold text-zinc-900">Menu</span>
+                            <span className="font-semibold text-zinc-900">
+                                Menu
+                            </span>
                             <button
                                 type="button"
                                 onClick={() => setDrawerOpen(false)}
@@ -270,30 +353,51 @@ export default function StorefrontNav({ business, pages, itemCount, onCartOpen }
                         </div>
 
                         <nav className="flex-1 overflow-y-auto px-4 py-4">
-                            <form onSubmit={handleSearch} className="mb-4 flex items-center overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50">
+                            <form
+                                onSubmit={handleSearch}
+                                className="mb-4 flex items-center overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50"
+                            >
                                 <Search className="ml-3 h-4 w-4 shrink-0 text-zinc-400" />
                                 <input
                                     type="search"
                                     value={searchQuery}
-                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    onChange={(e) =>
+                                        setSearchQuery(e.target.value)
+                                    }
                                     placeholder="Search…"
                                     className="flex-1 bg-transparent px-2 py-2.5 text-sm outline-none"
                                 />
                             </form>
 
                             <DrawerSection label="Shop">
-                                <DrawerLink href={`/s/${slug}`} accent={accent}>All Products</DrawerLink>
+                                <DrawerLink href={`/s/${slug}`} accent={accent}>
+                                    All Products
+                                </DrawerLink>
                                 {categories.map((cat) => (
-                                    <DrawerLink key={cat.id} href={`/s/${slug}?category=${cat.slug}`} active={activeCategorySlug === cat.slug} accent={accent}>
+                                    <DrawerLink
+                                        key={cat.id}
+                                        href={`/s/${slug}?category=${cat.slug}`}
+                                        active={activeCategorySlug === cat.slug}
+                                        accent={accent}
+                                    >
                                         {cat.name}
                                     </DrawerLink>
                                 ))}
                             </DrawerSection>
 
                             <DrawerSection label="Info">
-                                <DrawerLink href={`/s/${slug}/contact`} accent={accent}>Contact Us</DrawerLink>
+                                <DrawerLink
+                                    href={`/s/${slug}/contact`}
+                                    accent={accent}
+                                >
+                                    Contact Us
+                                </DrawerLink>
                                 {pages.map((page) => (
-                                    <DrawerLink key={page.id} href={`/s/${slug}/pages/${page.slug}`} accent={accent}>
+                                    <DrawerLink
+                                        key={page.id}
+                                        href={`/s/${slug}/pages/${page.slug}`}
+                                        accent={accent}
+                                    >
                                         {pageLabel(page)}
                                     </DrawerLink>
                                 ))}
@@ -320,7 +424,12 @@ export default function StorefrontNav({ business, pages, itemCount, onCartOpen }
 }
 
 function NavLink({
-    href, active, accent, primary, children, icon,
+    href,
+    active,
+    accent,
+    primary,
+    children,
+    icon,
 }: {
     href: string;
     active: boolean;
@@ -334,9 +443,21 @@ function NavLink({
         <Link
             href={href}
             className="flex shrink-0 items-center gap-1.5 border-b-2 px-3 py-3 text-sm font-semibold transition"
-            style={active ? { color: accent, borderColor: accent } : { color: inactiveColor, borderColor: 'transparent' }}
-            onMouseEnter={(e) => { if (!active) { e.currentTarget.style.color = primary; } }}
-            onMouseLeave={(e) => { if (!active) { e.currentTarget.style.color = inactiveColor; } }}
+            style={
+                active
+                    ? { color: accent, borderColor: accent }
+                    : { color: inactiveColor, borderColor: 'transparent' }
+            }
+            onMouseEnter={(e) => {
+                if (!active) {
+                    e.currentTarget.style.color = primary;
+                }
+            }}
+            onMouseLeave={(e) => {
+                if (!active) {
+                    e.currentTarget.style.color = inactiveColor;
+                }
+            }}
         >
             {icon}
             {children}
@@ -344,21 +465,43 @@ function NavLink({
     );
 }
 
-function DrawerSection({ label, children }: { label: string; children: React.ReactNode }) {
+function DrawerSection({
+    label,
+    children,
+}: {
+    label: string;
+    children: React.ReactNode;
+}) {
     return (
         <div className="mb-5">
-            <p className="mb-2 text-[10px] font-semibold uppercase tracking-wider text-zinc-400">{label}</p>
+            <p className="mb-2 text-[10px] font-semibold tracking-wider text-zinc-400 uppercase">
+                {label}
+            </p>
             <div className="flex flex-col gap-0.5">{children}</div>
         </div>
     );
 }
 
-function DrawerLink({ href, active, accent, children }: { href: string; active?: boolean; accent?: string; children: React.ReactNode }) {
+function DrawerLink({
+    href,
+    active,
+    accent,
+    children,
+}: {
+    href: string;
+    active?: boolean;
+    accent?: string;
+    children: React.ReactNode;
+}) {
     return (
         <Link
             href={href}
             className="rounded-lg px-3 py-2 text-sm font-medium text-zinc-700 transition hover:bg-zinc-50"
-            style={active && accent ? { color: accent, backgroundColor: accent + '1a' } : undefined}
+            style={
+                active && accent
+                    ? { color: accent, backgroundColor: accent + '1a' }
+                    : undefined
+            }
         >
             {children}
         </Link>

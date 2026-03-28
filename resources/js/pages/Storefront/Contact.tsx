@@ -12,7 +12,7 @@ export default function StorefrontContact({ business, pages }: Props) {
     const Contact = THEME_MAP[business.theme_id as keyof typeof THEME_MAP]?.Contact;
 
     return (
-        <Suspense fallback={<div className="flex h-screen items-center justify-center text-zinc-400">Loading...</div>}>
+        <Suspense fallback={null}>
             <StorefrontHead business={business} title="Contact Us" />
             <Contact business={business} pages={pages} />
         </Suspense>

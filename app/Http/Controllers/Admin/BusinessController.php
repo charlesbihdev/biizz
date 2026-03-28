@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreBusinessRequest;
 use App\Http\Requests\Admin\UpdateBusinessSettingsRequest;
 use App\Models\Business;
+use App\Services\PaymentService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -92,8 +93,11 @@ class BusinessController extends Controller
     {
         $this->authorizeOwner($business);
 
+        $paymentService = app(PaymentService::class);
+
         return Inertia::render('Admin/Businesses/Settings', [
             'business' => $business,
+            'providers' => PaymentController::providersData($business, $paymentService),
         ]);
     }
 
@@ -108,7 +112,7 @@ class BusinessController extends Controller
 
         foreach (['logo' => 'logo_url', 'favicon' => 'favicon_url', 'seo_image' => 'seo_image'] as $field => $column) {
             if ($request->hasFile($field)) {
-                $path         = $request->file($field)->storePublicly("businesses/{$business->id}", 's3');
+                $path = $request->file($field)->storePublicly("businesses/{$business->id}", 's3');
                 $data[$column] = Storage::disk('s3')->url($path);
             }
         }

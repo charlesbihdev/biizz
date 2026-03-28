@@ -18,7 +18,7 @@ export default function StorefrontPage({ business, page, pages }: Props) {
     const PageComponent = THEME_MAP[business.theme_id as keyof typeof THEME_MAP]?.Page;
 
     return (
-        <Suspense fallback={<div className="flex h-screen items-center justify-center text-zinc-400">Loading...</div>}>
+        <Suspense fallback={null}>
             <StorefrontHead
                 business={business}
                 title={page.title}

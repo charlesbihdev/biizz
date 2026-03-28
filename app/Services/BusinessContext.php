@@ -34,7 +34,7 @@ final class BusinessContext
         if (self::$current === null) {
             throw new RuntimeException(
                 'BusinessContext has not been set for this request. '
-                . 'Ensure the ResolveBusiness middleware is applied to this route.'
+                .'Ensure the ResolveBusiness middleware is applied to this route.'
             );
         }
 

@@ -11,9 +11,10 @@ import Layout from './Layout';
 import BoutiqueThemeShell from './ThemeShell';
 import BoutiqueProductDetailPage from './Components/ProductDetailPage';
 import ClassicShopPage from '@/Themes/Classic/Components/ShopPage';
-import ClassicCheckout from '@/Themes/Classic/Components/Checkout';
-import ClassicContactPage from '@/Themes/Classic/Components/ContactPage';
-import ClassicContentPage from '@/Themes/Classic/Components/ContentPage';
+import ClassicCheckout from '@/Themes/Classic/Pages/Checkout';
+import ClassicCheckoutSuccess from '@/Themes/Classic/Pages/CheckoutSuccess';
+import ClassicContactPage from '@/Themes/Classic/Pages/ContactPage';
+import ClassicContentPage from '@/Themes/Classic/Pages/ContentPage';
 import type { Business, CartItem, Page, PaginatedData, Product } from '@/types/business';
 
 // --- Temporary wrappers for pages Boutique partially owns ---
@@ -69,7 +70,8 @@ export default {
     Shop:     BoutiqueShop,
     Product:  BoutiqueProduct,
     // Temporary: these use Classic versions until Boutique is properly built
-    Checkout: ClassicCheckout,
-    Contact:  ClassicContactPage,
-    Page:     ClassicContentPage,
+    Checkout:        ClassicCheckout,
+    CheckoutSuccess: ClassicCheckoutSuccess,
+    Contact:         ClassicContactPage,
+    Page:            ClassicContentPage,
 };

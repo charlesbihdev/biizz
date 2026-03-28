@@ -10,7 +10,7 @@ enum BusinessRole: string
 
     public function label(): string
     {
-        return match($this) {
+        return match ($this) {
             self::Owner => 'Owner',
         };
     }

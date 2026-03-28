@@ -12,7 +12,7 @@ class BusinessUser extends Pivot
     protected function casts(): array
     {
         return [
-            'role'       => BusinessRole::class,
+            'role' => BusinessRole::class,
             'created_at' => 'datetime',
         ];
     }

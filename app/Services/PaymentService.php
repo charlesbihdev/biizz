@@ -21,7 +21,8 @@ use Illuminate\Support\Facades\DB;
 class PaymentService
 {
     public const PROVIDER_PAYSTACK = 'paystack';
-    public const PROVIDER_JUNIPAY  = 'junipay';
+
+    public const PROVIDER_JUNIPAY = 'junipay';
 
     /**
      * Encrypt and persist a payment provider API key.
@@ -53,7 +54,7 @@ class PaymentService
     {
         $this->assertOwner($business, $user);
 
-        $column     = $this->columnFor($provider);
+        $column = $this->columnFor($provider);
         $cipherText = $business->getRawOriginal($column)
             ?? DB::table('businesses')->where('id', $business->id)->value($column);
 
@@ -66,7 +67,21 @@ class PaymentService
     }
 
     /**
-     * Remove a stored payment key.
+     * Persist the Junipay client ID (not a secret — stored as plain text).
+     *
+     * @throws AuthorizationException if user is not the business owner
+     */
+    public function storeClientId(Business $business, string $clientId, User $user): void
+    {
+        $this->assertOwner($business, $user);
+
+        DB::table('businesses')
+            ->where('id', $business->id)
+            ->update(['junipay_client_id' => $clientId]);
+    }
+
+    /**
+     * Remove a stored payment key (and client ID for Junipay).
      *
      * @throws AuthorizationException if user is not the business owner
      */
@@ -74,9 +89,15 @@ class PaymentService
     {
         $this->assertOwner($business, $user);
 
+        $updates = [$this->columnFor($provider) => null];
+
+        if ($provider === self::PROVIDER_JUNIPAY) {
+            $updates['junipay_client_id'] = null;
+        }
+
         DB::table('businesses')
             ->where('id', $business->id)
-            ->update([$this->columnFor($provider) => null]);
+            ->update($updates);
     }
 
     /**
@@ -86,8 +107,8 @@ class PaymentService
     {
         return match ($provider) {
             self::PROVIDER_PAYSTACK => $business->hasPaystackConfigured(),
-            self::PROVIDER_JUNIPAY  => $business->hasJunipayConfigured(),
-            default                 => false,
+            self::PROVIDER_JUNIPAY => $business->hasJunipayConfigured(),
+            default => false,
         };
     }
 
@@ -108,8 +129,8 @@ class PaymentService
     {
         return match ($provider) {
             self::PROVIDER_PAYSTACK => 'paystack_secret',
-            self::PROVIDER_JUNIPAY  => 'junipay_secret',
-            default                 => throw new \InvalidArgumentException(
+            self::PROVIDER_JUNIPAY => 'junipay_secret',
+            default => throw new \InvalidArgumentException(
                 "Unknown payment provider: {$provider}"
             ),
         };

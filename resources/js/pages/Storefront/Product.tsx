@@ -22,7 +22,7 @@ export default function StorefrontProduct({ business, product, related, pages }:
     const productImage       = product.images[0]?.url;
 
     return (
-        <Suspense fallback={<div className="flex h-screen items-center justify-center text-zinc-400">Loading...</div>}>
+        <Suspense fallback={null}>
             <StorefrontHead
                 business={business}
                 title={product.name}

@@ -39,7 +39,6 @@ function PageContent({
 
     return (
         <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-12 lg:py-10">
-            {/* ── Breadcrumb ── */}
             <nav
                 className="mb-6 flex items-center gap-2 text-sm"
                 style={{ color: textMuted }}
@@ -59,7 +58,6 @@ function PageContent({
             </nav>
 
             <div className="flex flex-col gap-12 lg:flex-row lg:items-start lg:gap-16">
-                {/* ── Sidebar: Secondary Navigation ── */}
                 <aside className="hidden w-64 shrink-0 lg:block">
                     <div className="sticky top-32 space-y-8">
                         <div>
@@ -108,7 +106,6 @@ function PageContent({
                             </nav>
                         </div>
 
-                        {/* Store Context */}
                         <div className="rounded-3xl border border-zinc-100 bg-zinc-50/50 p-6">
                             <h4
                                 className="mb-2 text-sm font-bold"
@@ -127,7 +124,6 @@ function PageContent({
                     </div>
                 </aside>
 
-                {/* ── Main content Area ── */}
                 <article className="min-w-0 flex-1">
                     <div className="max-w-4xl">
                         {page.content ? (

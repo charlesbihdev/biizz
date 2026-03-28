@@ -36,7 +36,9 @@ return new class extends Migration
             $table->jsonb('theme_settings')->default('{}');
 
             // Payment integrations
+            $table->string('default_payment_provider', 20)->nullable();
             $table->text('paystack_secret')->nullable();   // AES-256 encrypted
+            $table->text('junipay_client_id')->nullable(); // Junipay needs clientId + secret
             $table->text('junipay_secret')->nullable();    // AES-256 encrypted
 
             // Meta

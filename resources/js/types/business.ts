@@ -80,8 +80,7 @@ export interface Business {
     theme_settings:    ThemeSettings;
     meta_pixel_id:     string | null;
     ai_enabled:        boolean;
-    has_paystack:      boolean;
-    has_junipay:       boolean;
+    default_payment_provider: string | null;
     seo_title:         string | null;
     seo_description:   string | null;
     seo_image:         string | null;
@@ -188,6 +187,7 @@ export interface OrderItem {
 
 export interface Order {
     id:               number;
+    order_id:         string | null;
     business_id:      number;
     customer_id:      number | null;
     customer:         Customer | null;
@@ -200,6 +200,7 @@ export interface Order {
     payment_ref:      string | null;
     payment_provider: string | null;
     source:           OrderSource;
+    paid_at:          string | null;
     items?:           OrderItem[];
     created_at:       string;
     updated_at:       string;

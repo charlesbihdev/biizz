@@ -2,6 +2,7 @@ import { router } from '@inertiajs/react';
 import { SlidersHorizontal, X } from 'lucide-react';
 import { useState } from 'react';
 import type { Business, CartItem, PaginatedData, Product } from '@/types/business';
+import { shop } from '@/actions/App/Http/Controllers/StorefrontController';
 import Pagination from './Pagination';
 import ProductCard from './ProductCard';
 
@@ -43,21 +44,24 @@ export default function ClassicShopPage({ business, products, priceRange, filter
 
     const applyFilters = (overrides: Partial<Filters> = {}) => {
         const merged = { ...draft, ...overrides };
-        const url = new URL(`/s/${slug}/shop`, window.location.origin);
-        if (merged.category)  { url.searchParams.set('category',  merged.category); }
-        if (merged.min_price) { url.searchParams.set('min_price', merged.min_price); }
-        if (merged.max_price) { url.searchParams.set('max_price', merged.max_price); }
-        if (merged.in_stock)  { url.searchParams.set('in_stock',  '1'); }
-        if (merged.sort && merged.sort !== 'newest') { url.searchParams.set('sort', merged.sort); }
-        if (merged.q)         { url.searchParams.set('q', merged.q); }
-        router.visit(url.pathname + url.search, { preserveScroll: false });
+        const query: Record<string, string> = {};
+        if (merged.category)                          { query.category  = merged.category; }
+        if (merged.min_price)                         { query.min_price = merged.min_price; }
+        if (merged.max_price)                         { query.max_price = merged.max_price; }
+        if (merged.in_stock)                          { query.in_stock  = '1'; }
+        if (merged.sort && merged.sort !== 'newest')  { query.sort      = merged.sort; }
+        if (merged.q)                                 { query.q         = merged.q; }
+
+        router.visit(shop.url(slug, { query: Object.keys(query).length > 0 ? query : undefined }), {
+            preserveScroll: false,
+        });
         setDrawerOpen(false);
     };
 
     const clearFilters = () => {
         const cleared: Filters = { category: null, min_price: null, max_price: null, in_stock: false, sort: 'newest', q: null };
         setDraft(cleared);
-        router.visit(`/s/${slug}/shop`, { preserveScroll: false });
+        router.visit(shop.url(slug), { preserveScroll: false });
         setDrawerOpen(false);
     };
 
@@ -176,6 +180,7 @@ export default function ClassicShopPage({ business, products, priceRange, filter
                                 priceRange={priceRange}
                                 isDigital={isDigital}
                                 accent={accent}
+                                primary={primary}
                                 onApply={() => applyFilters()}
                                 onClear={clearFilters}
                             />
