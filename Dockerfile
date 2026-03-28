@@ -20,6 +20,9 @@ RUN composer install --no-dev --no-scripts --prefer-dist
 COPY . .
 RUN composer dump-autoload --optimize --no-dev
 
+# .dockerignore omits storage/framework/* — paths must exist for Artisan / view compiler
+RUN mkdir -p bootstrap/cache storage/framework/{sessions,views,cache,data} storage/logs
+
 # Dummy key so Artisan can run during image build only
 ENV APP_KEY=base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
 RUN php artisan wayfinder:generate --no-interaction
@@ -52,6 +55,8 @@ RUN composer install --no-dev --no-scripts --prefer-dist
 
 COPY . .
 RUN composer dump-autoload --optimize --no-dev
+
+RUN mkdir -p bootstrap/cache storage/framework/{sessions,views,cache,data} storage/logs
 
 COPY --from=assets /app/public/build ./public/build
 
