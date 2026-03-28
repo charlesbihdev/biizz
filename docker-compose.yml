@@ -1,0 +1,26 @@
+# App only — use your existing PostgreSQL (or any DB) via .env.
+# Do not set DB_* here; they come from env_file only.
+#
+# If Postgres runs on the VPS host (not in Docker), DB_HOST cannot be 127.0.0.1
+# from inside the container. Use e.g. host.docker.internal (Docker Desktop / some setups),
+# or the host’s LAN IP, or extra_hosts — see Docker docs for your OS.
+#
+# Host nginx (many domains) + this stack: host nginx keeps :80/:443; map only this app’s
+# server_name to proxy_pass http://127.0.0.1:<APP_PORT>. Set APP_PORT=8080 (example) in the
+# .env used by Compose so this container does not also bind host :80.
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "${APP_PORT:-80}:80"
+    env_file:
+      - .env
+    volumes:
+      - app_storage:/var/www/html/storage
+    restart: unless-stopped
+
+volumes:
+  app_storage:
