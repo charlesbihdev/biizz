@@ -30,9 +30,10 @@ export function ProviderCard({ business, providerId, label, regions, connected, 
     const needsClientId = providerId === 'junipay';
 
     const { data, setData, post, processing: saving, errors, reset } = useForm({
-        provider: providerId,
-        key: '',
-        client_id: '',
+        provider:    providerId,
+        key:         '',
+        client_id:   '',
+        token_link:  '',
     });
     const [disconnecting, setDisconnecting] = useState(false);
     const [confirmOpen, setConfirmOpen] = useState(false);
@@ -54,11 +55,11 @@ export function ProviderCard({ business, providerId, label, regions, connected, 
         e.preventDefault();
 
         if (!data.key.trim()) return;
-        if (needsClientId && !data.client_id.trim()) return;
+        if (needsClientId && (!data.client_id.trim() || !data.token_link.trim())) return;
 
         post(store(b).url, {
             preserveScroll: true,
-            onSuccess: () => reset('key', 'client_id'),
+            onSuccess: () => reset('key', 'client_id', 'token_link'),
         });
     };
 
@@ -107,17 +108,30 @@ export function ProviderCard({ business, providerId, label, regions, connected, 
                 <fieldset disabled={saving} className="contents">
                     <form onSubmit={handleConnect} className="flex flex-col gap-3">
                         {needsClientId && (
-                            <div>
-                                <label className="mb-1 block text-xs font-medium text-site-muted">Client ID</label>
-                                <input
-                                    type="text"
-                                    value={data.client_id}
-                                    onChange={(e) => setData('client_id', e.target.value)}
-                                    placeholder="Your Junipay client ID"
-                                    className="w-full rounded-lg border border-site-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 disabled:opacity-50"
-                                />
-                                <InputError message={errors.client_id} />
-                            </div>
+                            <>
+                                <div>
+                                    <label className="mb-1 block text-xs font-medium text-site-muted">Client ID</label>
+                                    <input
+                                        type="text"
+                                        value={data.client_id}
+                                        onChange={(e) => setData('client_id', e.target.value)}
+                                        placeholder="Your Junipay client ID"
+                                        className="w-full rounded-lg border border-site-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 disabled:opacity-50"
+                                    />
+                                    <InputError message={errors.client_id} />
+                                </div>
+                                <div>
+                                    <label className="mb-1 block text-xs font-medium text-site-muted">Token Link</label>
+                                    <input
+                                        type="url"
+                                        value={data.token_link}
+                                        onChange={(e) => setData('token_link', e.target.value)}
+                                        placeholder="https://api.junipayments.com/obtaintoken/..."
+                                        className="w-full rounded-lg border border-site-border bg-white px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand/30 disabled:opacity-50"
+                                    />
+                                    <InputError message={errors.token_link} />
+                                </div>
+                            </>
                         )}
 
                         <div>
@@ -132,7 +146,7 @@ export function ProviderCard({ business, providerId, label, regions, connected, 
                                 />
                                 <button
                                     type="submit"
-                                    disabled={saving || !data.key.trim() || (needsClientId && !data.client_id.trim())}
+                                    disabled={saving || !data.key.trim() || (needsClientId && (!data.client_id.trim() || !data.token_link.trim()))}
                                     className="flex shrink-0 items-center gap-1.5 rounded-full bg-brand px-4 py-2 text-sm font-semibold text-white transition hover:bg-brand-hover disabled:opacity-60"
                                 >
                                     {saving ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}

@@ -21,20 +21,25 @@ class PaymentController extends Controller
     {
         $provider = $request->validated('provider');
 
-        if ($provider === PaymentService::PROVIDER_JUNIPAY && $request->validated('client_id')) {
-            $this->paymentService->storeClientId(
+        try {
+            if ($provider === PaymentService::PROVIDER_JUNIPAY) {
+                $this->paymentService->storeJunipayMeta(
+                    $business,
+                    $request->validated('client_id'),
+                    $request->validated('token_link'),
+                    auth()->user()
+                );
+            }
+
+            $this->paymentService->storeKey(
                 $business,
-                $request->validated('client_id'),
+                $provider,
+                $request->validated('key'),
                 auth()->user()
             );
+        } catch (\InvalidArgumentException $e) {
+            return back()->with('error', $e->getMessage());
         }
-
-        $this->paymentService->storeKey(
-            $business,
-            $provider,
-            $request->validated('key'),
-            auth()->user()
-        );
 
         if (! $business->default_payment_provider) {
             $business->update(['default_payment_provider' => $provider]);

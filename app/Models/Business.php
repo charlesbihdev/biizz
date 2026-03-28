@@ -53,6 +53,7 @@ class Business extends Model
         'paystack_secret',
         'junipay_secret',
         'junipay_client_id',
+        'junipay_token_link',
     ];
 
     protected static function booted(): void
@@ -141,7 +142,9 @@ class Business extends Model
 
     public function hasJunipayConfigured(): bool
     {
-        return ! empty($this->junipay_secret);
+        return ! empty($this->junipay_secret)
+            && ! empty($this->junipay_client_id)
+            && ! empty($this->junipay_token_link);
     }
 
     public function isOwnedBy(User $user): bool

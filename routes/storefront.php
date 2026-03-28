@@ -38,6 +38,9 @@ Route::prefix('s')->group(function () {
         Route::post('/{business:slug}/checkout', [CheckoutController::class, 'store'])
             ->name('storefront.checkout.store');
 
+        Route::post('/{business:slug}/checkout/junipay-init', [CheckoutController::class, 'initiateJunipay'])
+            ->name('storefront.checkout.junipay-init');
+
         Route::get('/{business:slug}/checkout/callback', [CheckoutController::class, 'callback'])
             ->name('storefront.checkout.callback');
 

@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Business;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 
@@ -31,6 +32,12 @@ class PaymentService
      */
     public function storeKey(Business $business, string $provider, string $plainKey, User $user): void
     {
+        $plainKey = trim($plainKey);
+
+        if (empty($plainKey)) {
+            throw new \InvalidArgumentException('Payment key must not be empty.');
+        }
+
         $this->assertOwner($business, $user);
 
         $column = $this->columnFor($provider);
@@ -40,6 +47,10 @@ class PaymentService
         DB::table('businesses')
             ->where('id', $business->id)
             ->update([$column => Crypt::encryptString($plainKey)]);
+
+        if ($provider === self::PROVIDER_JUNIPAY) {
+            $this->forgetJunipayTokenCache($business->junipay_client_id);
+        }
     }
 
     /**
@@ -67,17 +78,35 @@ class PaymentService
     }
 
     /**
-     * Persist the Junipay client ID (not a secret — stored as plain text).
+     * Persist Junipay plain-text credentials (client ID + token link).
+     * Neither is a secret — both are stored as plain text.
      *
-     * @throws AuthorizationException if user is not the business owner
+     * @throws \InvalidArgumentException if clientId or tokenLink are blank / invalid
+     * @throws AuthorizationException    if user is not the business owner
      */
-    public function storeClientId(Business $business, string $clientId, User $user): void
+    public function storeJunipayMeta(Business $business, string $clientId, string $tokenLink, User $user): void
     {
+        $clientId  = trim($clientId);
+        $tokenLink = trim($tokenLink);
+
+        if (empty($clientId)) {
+            throw new \InvalidArgumentException('Junipay client ID must not be empty.');
+        }
+
+        if (empty($tokenLink) || ! filter_var($tokenLink, FILTER_VALIDATE_URL)) {
+            throw new \InvalidArgumentException('Junipay token link must be a valid URL.');
+        }
+
         $this->assertOwner($business, $user);
 
         DB::table('businesses')
             ->where('id', $business->id)
-            ->update(['junipay_client_id' => $clientId]);
+            ->update([
+                'junipay_client_id'  => $clientId,
+                'junipay_token_link' => $tokenLink,
+            ]);
+
+        $this->forgetJunipayTokenCache($clientId);
     }
 
     /**
@@ -92,12 +121,17 @@ class PaymentService
         $updates = [$this->columnFor($provider) => null];
 
         if ($provider === self::PROVIDER_JUNIPAY) {
-            $updates['junipay_client_id'] = null;
+            $updates['junipay_client_id']  = null;
+            $updates['junipay_token_link'] = null;
         }
 
         DB::table('businesses')
             ->where('id', $business->id)
             ->update($updates);
+
+        if ($provider === self::PROVIDER_JUNIPAY && $business->junipay_client_id) {
+            $this->forgetJunipayTokenCache($business->junipay_client_id);
+        }
     }
 
     /**
@@ -122,6 +156,13 @@ class PaymentService
             throw new AuthorizationException(
                 'Only the business owner can manage payment credentials.'
             );
+        }
+    }
+
+    private function forgetJunipayTokenCache(?string $clientId): void
+    {
+        if ($clientId) {
+            Cache::forget("junipay_token_{$clientId}");
         }
     }
 

@@ -38,7 +38,8 @@ return new class extends Migration
             // Payment integrations
             $table->string('default_payment_provider', 20)->nullable();
             $table->text('paystack_secret')->nullable();   // AES-256 encrypted
-            $table->text('junipay_client_id')->nullable(); // Junipay needs clientId + secret
+            $table->text('junipay_client_id')->nullable(); // Junipay client ID (plain text)
+            $table->text('junipay_token_link')->nullable(); // Junipay token endpoint URL (plain text, per-merchant unique)
             $table->text('junipay_secret')->nullable();    // AES-256 encrypted
 
             // Meta
