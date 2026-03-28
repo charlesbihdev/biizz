@@ -32,11 +32,13 @@ RUN npm run build
 FROM php:8.3-fpm-bookworm
 WORKDIR /var/www/html
 
+# libonig-dev: mbstring (regex). libicu-dev: intl. libsqlite3-dev: pdo_sqlite.
 RUN apt-get update && apt-get install -y --no-install-recommends \
     nginx supervisor \
     libzip-dev zip unzip \
     libpng-dev libfreetype6-dev libjpeg62-turbo-dev \
     libpq-dev libsqlite3-dev \
+    libonig-dev libicu-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
         pdo_pgsql pdo_sqlite mbstring exif pcntl bcmath gd zip opcache intl \
