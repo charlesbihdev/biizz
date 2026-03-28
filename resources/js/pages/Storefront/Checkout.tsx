@@ -12,7 +12,7 @@ export default function StorefrontCheckout({ business, pages }: Props) {
     const Checkout = THEME_MAP[business.theme_id as keyof typeof THEME_MAP]?.Checkout;
 
     return (
-        <Suspense fallback={<div className="flex h-screen items-center justify-center text-zinc-400">Loading...</div>}>
+        <Suspense fallback={null}>
             <StorefrontHead business={business} title="Checkout" />
             <Checkout business={business} pages={pages} />
         </Suspense>

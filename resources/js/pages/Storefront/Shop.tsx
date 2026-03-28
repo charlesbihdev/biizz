@@ -24,7 +24,7 @@ export default function StorefrontShop({ business, products, pages, priceRange, 
     const Shop = THEME_MAP[business.theme_id as keyof typeof THEME_MAP]?.Shop;
 
     return (
-        <Suspense fallback={<div className="flex h-screen items-center justify-center text-zinc-400">Loading...</div>}>
+        <Suspense fallback={null}>
             <StorefrontHead business={business} title="Shop" />
             <Shop business={business} products={products} pages={pages} priceRange={priceRange} filters={filters} />
         </Suspense>

@@ -15,7 +15,7 @@ export default function StorefrontMain({ business, products, pages, isPreview = 
     const Layout = Theme?.Layout;
 
     return (
-        <Suspense fallback={<div className="flex h-screen items-center justify-center text-zinc-400">Loading...</div>}>
+        <Suspense fallback={null}>
             <StorefrontHead business={business} />
             {isPreview && (
                 <div className="fixed inset-x-0 top-0 z-50 bg-amber-500 py-1.5 text-center text-xs font-semibold text-white">
