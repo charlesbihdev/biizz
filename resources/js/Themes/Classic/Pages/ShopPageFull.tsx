@@ -1,5 +1,5 @@
 import ClassicThemeShell from '../ThemeShell';
-import ShopPage from './ShopPage';
+import ShopPage from '../Components/ShopPage';
 import type { Business, Page, PaginatedData, Product } from '@/types/business';
 
 type Filters = {

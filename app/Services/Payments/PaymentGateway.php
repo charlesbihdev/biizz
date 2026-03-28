@@ -15,8 +15,11 @@ interface PaymentGateway
 
     /**
      * Verify a payment by its reference and return the result.
+     *
+     * @param  string  $reference  Merchant reference (our payment_ref)
+     * @param  string|null  $providerTransactionId  Provider's own txn id (e.g. Junipay trans_id) when available
      */
-    public function verify(string $reference, Business $business): VerificationResult;
+    public function verify(string $reference, Business $business, ?string $providerTransactionId = null): VerificationResult;
 
     /**
      * Verify that a webhook request was genuinely sent by the provider.

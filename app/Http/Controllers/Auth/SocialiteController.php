@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Facades\Socialite;
 
@@ -12,7 +13,7 @@ class SocialiteController extends Controller
     /**
      * Redirect to Google's OAuth consent screen.
      */
-    public function redirect(): \Symfony\Component\HttpFoundation\RedirectResponse|\Illuminate\Http\RedirectResponse
+    public function redirect(): \Symfony\Component\HttpFoundation\RedirectResponse|RedirectResponse
     {
         return Socialite::driver('google')->redirect();
     }
@@ -23,7 +24,7 @@ class SocialiteController extends Controller
      * Upserts the user record — creates on first login, finds on return.
      * Merges Google account into an existing email-based account if one exists.
      */
-    public function callback(): \Illuminate\Http\RedirectResponse
+    public function callback(): RedirectResponse
     {
         $googleUser = Socialite::driver('google')->user();
 
@@ -37,17 +38,17 @@ class SocialiteController extends Controller
                 // Link the existing account to Google
                 $user->update([
                     'google_id' => $googleUser->getId(),
-                    'avatar'    => $googleUser->getAvatar(),
+                    'avatar' => $googleUser->getAvatar(),
                 ]);
             } else {
                 // First-time Google login — create a new account
                 $user = User::create([
-                    'name'              => $googleUser->getName(),
-                    'email'             => $googleUser->getEmail(),
+                    'name' => $googleUser->getName(),
+                    'email' => $googleUser->getEmail(),
                     'email_verified_at' => now(), // Google verifies email for us
-                    'google_id'         => $googleUser->getId(),
-                    'avatar'            => $googleUser->getAvatar(),
-                    'password'          => null, // Google-only account has no password
+                    'google_id' => $googleUser->getId(),
+                    'avatar' => $googleUser->getAvatar(),
+                    'password' => null, // Google-only account has no password
                 ]);
             }
         }

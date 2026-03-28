@@ -19,16 +19,41 @@ use Illuminate\Support\Str;
  * They must only be written via PaymentService::storeKey() to guarantee encryption.
  */
 #[Fillable([
-    'name', 'slug', 'owner_id', 'is_active',
-    'logo_url', 'favicon_url', 'tagline', 'business_type', 'business_category',
-    'description', 'contact_email', 'phone', 'address', 'website', 'social_links',
-    'theme_id', 'theme_settings', 'meta_pixel_id', 'ai_enabled',
-    'seo_title', 'seo_description', 'seo_image', 'show_branding',
+    'name',
+    'slug',
+    'owner_id',
+    'is_active',
+    'logo_url',
+    'favicon_url',
+    'tagline',
+    'business_type',
+    'business_category',
+    'description',
+    'contact_email',
+    'phone',
+    'address',
+    'website',
+    'social_links',
+    'theme_id',
+    'theme_settings',
+    'meta_pixel_id',
+    'ai_enabled',
+    'seo_title',
+    'seo_description',
+    'seo_image',
+    'show_branding',
+    'default_payment_provider',
 ])]
 class Business extends Model
 {
     /** @use HasFactory<BusinessFactory> */
     use HasFactory;
+
+    protected $hidden = [
+        'paystack_secret',
+        'junipay_secret',
+        'junipay_client_id',
+    ];
 
     protected static function booted(): void
     {

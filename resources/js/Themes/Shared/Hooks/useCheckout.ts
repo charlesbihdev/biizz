@@ -14,10 +14,16 @@ interface UseCheckoutReturn {
     errors:       Record<string, string>;
 }
 
+/**
+ * Cart is intentionally NOT cleared here. The backend responds with
+ * Inertia::location() (external redirect to the payment provider),
+ * so the customer leaves the page. Cart is only cleared on the
+ * CheckoutSuccess page after payment is verified as paid.
+ */
 export function useCheckout(businessSlug: string): UseCheckoutReturn {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [errors, setErrors]            = useState<Record<string, string>>({});
-    const { items, clearCart }           = useCartStore();
+    const items                          = useCartStore((s) => s.items);
 
     const submitOrder = (data: CheckoutData) => {
         setIsSubmitting(true);
@@ -31,8 +37,7 @@ export function useCheckout(businessSlug: string): UseCheckoutReturn {
                 setErrors(errs);
                 setIsSubmitting(false);
             },
-            onSuccess: () => {
-                clearCart();
+            onFinish: () => {
                 setIsSubmitting(false);
             },
         });

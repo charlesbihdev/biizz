@@ -18,14 +18,14 @@ class PaystackGateway implements PaymentGateway
     public function initialize(Order $order, Business $business, string $callbackUrl): InitializeResult
     {
         $response = Http::withToken($this->secretKey)
-            ->post(self::BASE_URL.'/transaction/initialize', [
-                'email'        => $order->customer_email,
-                'amount'       => (int) ($order->total * 100), // pesewas
-                'currency'     => $order->currency,
-                'reference'    => $order->payment_ref,
+            ->post(self::BASE_URL . '/transaction/initialize', [
+                'email' => $order->customer_email,
+                'amount' => (int) ($order->total * 100), // pesewas
+                'currency' => $order->currency,
+                'reference' => $order->payment_ref,
                 'callback_url' => $callbackUrl,
-                'metadata'     => [
-                    'order_id'    => $order->id,
+                'metadata' => [
+                    'order_id' => $order->id,
                     'business_id' => $business->id,
                 ],
             ]);
@@ -40,21 +40,30 @@ class PaystackGateway implements PaymentGateway
         );
     }
 
-    public function verify(string $reference, Business $business): VerificationResult
+    public function verify(string $reference, Business $business, ?string $providerTransactionId = null): VerificationResult
     {
         $response = Http::withToken($this->secretKey)
-            ->get(self::BASE_URL.'/transaction/verify/'.rawurlencode($reference));
+            ->get(self::BASE_URL . '/transaction/verify/' . rawurlencode($reference));
 
         $response->throw();
         $data = $response->json('data');
 
         return new VerificationResult(
-            successful: $data['status'] === 'success',
-            reference: $data['reference'],
-            transactionId: (string) $data['id'],
-            amountInMinorUnit: (int) $data['amount'],
-            currency: $data['currency'],
-            metadata: $data,
+            successful: ($data['status'] ?? '') === 'success',
+            reference: $data['reference'] ?? $reference,
+            transactionId: (string) ($data['id'] ?? ''),
+            amountInMinorUnit: (int) ($data['amount'] ?? 0),
+            currency: $data['currency'] ?? 'GHS',
+            metadata: [
+                'fees'          => $data['fees'] ?? 0,
+                'customer'      => [
+                    'id'    => $data['customer']['id'] ?? null,
+                    'email' => $data['customer']['email'] ?? null,
+                ],
+                'metadata'      => $data['metadata'] ?? [],
+                'ip'            => $data['ip_address'] ?? null,
+                'authorization' => $data['authorization'] ?? [],
+            ],
         );
     }
 

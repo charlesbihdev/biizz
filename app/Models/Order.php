@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 #[Fillable([
     'business_id',
     'customer_id',
+    'order_id',
     'customer_name',
     'customer_email',
     'customer_phone',
@@ -27,6 +28,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
     'payment_ref',
     'payment_provider',
     'source',
+    'paid_at',
 ])]
 class Order extends Model
 {
@@ -39,6 +41,7 @@ class Order extends Model
             'total' => 'decimal:2',
             'status' => OrderStatus::class,
             'source' => OrderSource::class,
+            'paid_at' => 'datetime',
         ];
     }
 

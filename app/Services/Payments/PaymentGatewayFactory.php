@@ -30,7 +30,7 @@ class PaymentGatewayFactory
 
         return match ($provider) {
             PaymentService::PROVIDER_PAYSTACK => $this->makePaystack($business),
-            PaymentService::PROVIDER_JUNIPAY  => $this->makeJunipay($business),
+            PaymentService::PROVIDER_JUNIPAY => $this->makeJunipay($business),
             default => throw new \RuntimeException("Unknown payment provider: {$provider}"),
         };
     }

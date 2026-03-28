@@ -8,6 +8,7 @@ use App\Http\Controllers\Admin\PageController;
 use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ThemeSettingsController;
+use App\Models\Business;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -60,11 +61,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::patch('/switch/{themeId}', 'switchTheme')->name('switch');
             });
 
-            // Payments
-            Route::prefix('payments')->name('payments.')->controller(PaymentController::class)->group(function () {
-                Route::get('/', 'edit')->name('edit');
-                Route::post('/', 'store')->name('store');
-                Route::delete('/{provider}', 'destroy')->name('destroy');
+            // Payments (connect/disconnect/default actions; the GET redirects to settings)
+            Route::prefix('payments')->name('payments.')->group(function () {
+                Route::get('/', fn(Business $business) => redirect()->route('businesses.settings.edit', $business))->name('edit');
+                Route::post('/', [PaymentController::class, 'store'])->name('store');
+                Route::patch('/default', [PaymentController::class, 'setDefault'])->name('setDefault');
+                Route::delete('/{provider}', [PaymentController::class, 'destroy'])->name('destroy');
             });
 
             // Categories

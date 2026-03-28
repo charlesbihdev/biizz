@@ -8,10 +8,9 @@ use App\Http\Requests\Admin\UpdatePageRequest;
 use App\Models\Business;
 use App\Models\Page;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
-
-use Illuminate\Support\Facades\Storage;
 
 class PageController extends Controller
 {
@@ -84,7 +83,7 @@ class PageController extends Controller
         foreach ($images as $index => $file) {
             $path = $file->storePublicly("businesses/{$business->id}", 's3');
             $url = Storage::disk('s3')->url($path);
-            
+
             $placeholder = "__IMAGE_ID_{$index}__";
             $content = str_replace($placeholder, $url, $content);
         }

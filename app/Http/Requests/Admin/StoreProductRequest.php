@@ -30,10 +30,10 @@ class StoreProductRequest extends FormRequest
             'price' => ['required', 'numeric', 'min:0', 'max:999999.99'],
             'stock' => ['required', 'integer', 'min:0'],
             'is_active' => ['boolean'],
-            'images'        => ['nullable', 'array', 'max:8'],
+            'images' => ['nullable', 'array', 'max:8'],
             'images.*.file' => ['nullable', 'file', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:6144'],
-            'images.*.alt'  => ['nullable', 'string', 'max:255'],
-            'images.*.url'  => ['nullable', 'string', 'max:2048'],
+            'images.*.alt' => ['nullable', 'string', 'max:255'],
+            'images.*.url' => ['nullable', 'string', 'max:2048'],
             'metadata' => ['nullable', 'array'],
         ];
     }

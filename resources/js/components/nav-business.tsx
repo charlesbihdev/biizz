@@ -2,7 +2,6 @@ import { Link } from '@inertiajs/react';
 import {
     BotMessageSquare,
     ChartNoAxesColumn,
-    CreditCard,
     FileText,
     FolderOpen,
     Globe,
@@ -24,7 +23,6 @@ import { show } from '@/routes/businesses';
 import { index as categoriesIndex } from '@/routes/businesses/categories';
 import { index as ordersIndex } from '@/routes/businesses/orders';
 import { index as pagesIndex } from '@/routes/businesses/pages';
-import { edit as paymentsEdit } from '@/routes/businesses/payments';
 import { index as productsIndex } from '@/routes/businesses/products';
 import { edit as settingsEdit } from '@/routes/businesses/settings';
 import { edit as themeEdit } from '@/routes/businesses/theme';
@@ -112,8 +110,7 @@ export function NavBusiness({ business }: { business: Business }) {
     ];
 
     const settingsItems: NavEntry[] = [
-        { title: 'Payments',          href: paymentsEdit(b).url,  icon: CreditCard },
-        { title: 'Business Settings', href: settingsEdit(b).url,  icon: Settings },
+        { title: 'Settings', href: settingsEdit(b).url, icon: Settings },
     ];
 
     const isActive = (item: NavEntry): boolean => {

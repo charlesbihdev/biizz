@@ -1,5 +1,5 @@
 import ClassicThemeShell from '../ThemeShell';
-import ClassicProductDetailPage from './ProductDetailPage';
+import ClassicProductDetailPage from '../Components/ProductDetailPage';
 import type { Business, Page, Product } from '@/types/business';
 
 interface Props {

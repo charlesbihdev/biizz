@@ -1,15 +1,17 @@
-import Layout       from './Layout';
-import ShopPageFull from './Components/ShopPageFull';
-import ProductPage  from './Components/ProductPage';
-import Checkout     from './Components/Checkout';
-import ContactPage  from './Components/ContactPage';
-import ContentPage  from './Components/ContentPage';
+import Layout          from './Layout';
+import ShopPageFull    from './Pages/ShopPageFull';
+import ProductPage     from './Pages/ProductPage';
+import Checkout        from './Pages/Checkout';
+import CheckoutSuccess from './Pages/CheckoutSuccess';
+import ContactPage     from './Pages/ContactPage';
+import ContentPage     from './Pages/ContentPage';
 
 export default {
     Layout,
-    Shop:     ShopPageFull,
-    Product:  ProductPage,
+    Shop:            ShopPageFull,
+    Product:         ProductPage,
     Checkout,
-    Contact:  ContactPage,
-    Page:     ContentPage,
+    CheckoutSuccess,
+    Contact:         ContactPage,
+    Page:            ContentPage,
 };

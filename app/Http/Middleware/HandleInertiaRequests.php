@@ -50,12 +50,11 @@ class HandleInertiaRequests extends Middleware
                 ? $request->user()->ownedBusinesses()->get(['id', 'name', 'slug'])->toArray()
                 : [],
             'flash' => [
-                'success' => fn () => $request->session()->get('success'),
-                'error' => fn () => $request->session()->get('error'),
-                'warning' => fn () => $request->session()->get('warning'),
+                'success' => fn() => $request->session()->get('success'),
+                'error' => fn() => $request->session()->get('error'),
+                'warning' => fn() => $request->session()->get('warning'),
             ],
-            // business is only set on routes that go through ResolveBusiness middleware
-            // never includes payment keys — only safe presentation fields
+            // Only safe presentation fields — never payment keys.
             'business' => $business ? [
                 'id' => $business->id,
                 'name' => $business->name,
@@ -64,8 +63,6 @@ class HandleInertiaRequests extends Middleware
                 'theme_settings' => $business->theme_settings,
                 'meta_pixel_id' => $business->meta_pixel_id,
                 'ai_enabled' => $business->ai_enabled,
-                'has_paystack' => $business->hasPaystackConfigured(),
-                'has_junipay' => $business->hasJunipayConfigured(),
             ] : null,
         ];
     }
