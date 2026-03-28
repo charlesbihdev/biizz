@@ -23,6 +23,7 @@ return new class extends Migration
             $table->string('payment_ref')->nullable()->unique();
             $table->string('payment_provider', 20)->nullable();
             $table->string('source', 20)->default('storefront');
+            $table->timestamp('paid_at')->nullable();
             $table->timestamps();
 
             $table->index('business_id');

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\StorefrontController;
 use Illuminate\Support\Facades\Route;
 
@@ -33,6 +34,15 @@ Route::prefix('s')->group(function () {
 
         Route::get('/{business:slug}/checkout', [StorefrontController::class, 'checkout'])
             ->name('storefront.checkout');
+
+        Route::post('/{business:slug}/checkout', [CheckoutController::class, 'store'])
+            ->name('storefront.checkout.store');
+
+        Route::get('/{business:slug}/checkout/callback', [CheckoutController::class, 'callback'])
+            ->name('storefront.checkout.callback');
+
+        Route::get('/{business:slug}/checkout/success', [CheckoutController::class, 'success'])
+            ->name('storefront.checkout.success');
 
         Route::get('/{business:slug}/contact', [StorefrontController::class, 'contact'])
             ->name('storefront.contact');
