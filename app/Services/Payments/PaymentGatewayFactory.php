@@ -62,14 +62,19 @@ class PaymentGatewayFactory
 
     private function makeJunipay(Business $business): JunipayGateway
     {
-        $clientId = $business->junipay_client_id;
+        $clientId  = $business->junipay_client_id;
+        $tokenLink = $business->junipay_token_link;
 
         if (empty($clientId)) {
             throw new \RuntimeException('Junipay client ID is not configured.');
         }
 
+        if (empty($tokenLink)) {
+            throw new \RuntimeException('Junipay token link is not configured.');
+        }
+
         $secret = $this->decryptSecret($business, 'junipay_secret');
 
-        return new JunipayGateway($clientId, $secret);
+        return new JunipayGateway($clientId, $secret, $tokenLink);
     }
 }

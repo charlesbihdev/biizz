@@ -7,54 +7,30 @@ use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class JunipayGateway implements PaymentGateway
 {
     private const BASE_URL = 'https://api.junipayments.com';
 
-    private const NETWORK_PREFIXES = [
-        'mtn' => ['23324', '23325', '23353', '23354', '23355', '23359'],
-        'airteltigo' => ['23327', '23357', '23326', '23356'],
-        'vodafone' => ['23320', '23350'],
-    ];
-
     public function __construct(
         private string $clientId,
         private string $secret,
+        private string $tokenLink,
     ) {}
 
     public function initialize(Order $order, Business $business, string $callbackUrl): InitializeResult
     {
-        $token = $this->getAuthToken();
-        $phone = $this->normalizePhone($order->customer_phone ?? '');
-
-        $response = Http::withToken($token)
-            ->withHeaders(['clientid' => $this->clientId])
-            ->post(self::BASE_URL.'/payment', [
-                'email' => $order->customer_email,
-                'phoneNumber' => $phone,
-                'amount' => (int) $order->total,
-                'channel' => 'mobile_money',
-                'provider' => $this->detectProvider($phone),
-                'description' => "Order #{$order->order_id} for {$business->name}",
-                'foreignID' => $order->payment_ref,
-                'callbackUrl' => $callbackUrl,
-            ]);
-
-        $response->throw();
-        $data = $response->json();
-
-        return new InitializeResult(
-            redirectUrl: $data['paymentUrl'] ?? $data['payment_url'] ?? '',
-            reference: $order->payment_ref,
+        throw new \RuntimeException(
+            'Junipay uses the inline Payment Form. Use CheckoutController::initiateJunipay() instead.'
         );
     }
 
     /**
      * Verify a payment using Junipay's Check Transaction Status endpoint.
      *
-     * The full docs show POST /checktranstatus with { "trans_id": "..." } + clientid header.
-     * The transID is Junipay's own transaction id (e.g. COL...), not our foreignID.
+     * Docs: POST /checktranstatus with body { trans_id } + clientid header.
+     * transID is Junipay's own transaction ID (e.g. COL...) from the webhook, not our foreignID.
      * When $providerTransactionId is available (from webhook trans_id), we use it directly.
      * Otherwise we fall back to $reference (our merchant ref).
      */
@@ -63,11 +39,16 @@ class JunipayGateway implements PaymentGateway
         $token = $this->getAuthToken();
         $transId = $providerTransactionId ?? $reference;
 
+        Log::info('[Junipay] Verify request', ['transId' => $transId, 'reference' => $reference]);
+
         $response = Http::withToken($token)
             ->withHeaders(['clientid' => $this->clientId])
-            ->post(self::BASE_URL.'/checktranstatus', [
-                'trans_id' => $transId,
-            ]);
+            ->post(self::BASE_URL . '/checktranstatus', ['trans_id' => $transId]);
+
+        Log::info('[Junipay] Verify response', [
+            'status' => $response->status(),
+            'body'   => $response->json(),
+        ]);
 
         $response->throw();
         $data = $response->json();
@@ -82,6 +63,16 @@ class JunipayGateway implements PaymentGateway
             currency: $data['currency'] ?? 'GHS',
             metadata: $data,
         );
+    }
+
+    /**
+     * Return a short-lived bearer token for the Junipay Payment Form (JuniPop).
+     * Used by CheckoutController::initiateJunipay() to pass to the frontend.
+     * The secret never leaves the server — only this token is exposed.
+     */
+    public function getPaymentFormToken(): string
+    {
+        return $this->getAuthToken();
     }
 
     /**
@@ -102,40 +93,6 @@ class JunipayGateway implements PaymentGateway
     }
 
     /**
-     * Normalize a phone number to international format (233XXXXXXXXX).
-     */
-    private function normalizePhone(string $phone): string
-    {
-        $digits = preg_replace('/\D/', '', $phone);
-
-        if (str_starts_with($digits, '0') && strlen($digits) === 10) {
-            return '233'.substr($digits, 1);
-        }
-
-        if (str_starts_with($digits, '233') && strlen($digits) === 12) {
-            return $digits;
-        }
-
-        return $digits;
-    }
-
-    /**
-     * Detect the mobile money network provider from a 233-prefixed phone number.
-     */
-    private function detectProvider(string $msisdn): string
-    {
-        foreach (self::NETWORK_PREFIXES as $provider => $prefixes) {
-            foreach ($prefixes as $prefix) {
-                if (str_starts_with($msisdn, $prefix)) {
-                    return $provider;
-                }
-            }
-        }
-
-        return 'mtn';
-    }
-
-    /**
      * Obtain and cache a bearer token for the Junipay API.
      */
     private function getAuthToken(): string
@@ -143,12 +100,35 @@ class JunipayGateway implements PaymentGateway
         $cacheKey = "junipay_token_{$this->clientId}";
 
         return Cache::remember($cacheKey, now()->addMinutes(50), function (): string {
-            $response = Http::withHeaders(['xderd' => $this->secret])
-                ->get(self::BASE_URL.'/obtaintoken/'.$this->clientId);
+            try {
+                $response = Http::withHeaders(['xderd' => $this->secret])
+                    ->get($this->tokenLink);
 
-            $response->throw();
+                Log::info('[Junipay] getAuthToken response', [
+                    'status'    => $response->status(),
+                    'token_url' => $this->tokenLink,
+                    'body'      => $response->json(),
+                ]);
 
-            return $response->json('token') ?? $response->json('access_token') ?? '';
+                $response->throw();
+
+                $token = $response->json('token') ?? $response->json('access_token') ?? '';
+
+                if (empty($token)) {
+                    throw new \RuntimeException(
+                        '[Junipay] Token endpoint returned a 200 but no token field. Response: ' . $response->body()
+                    );
+                }
+
+                return $token;
+            } catch (\Throwable $e) {
+                Log::error('[Junipay] getAuthToken failed', [
+                    'token_url' => $this->tokenLink,
+                    'error'     => $e->getMessage(),
+                ]);
+
+                throw $e;
+            }
         });
     }
 }

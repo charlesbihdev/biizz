@@ -1,5 +1,6 @@
 import { router } from '@inertiajs/react';
 import { useState } from 'react';
+import { store } from '@/routes/storefront/checkout';
 import { useCartStore } from '@/stores/cartStore';
 
 interface CheckoutData {
@@ -29,9 +30,9 @@ export function useCheckout(businessSlug: string): UseCheckoutReturn {
         setIsSubmitting(true);
         setErrors({});
 
-        router.post(`/s/${businessSlug}/checkout`, {
+        router.post(store(businessSlug), {
             ...data,
-            items: items as unknown as Record<string, unknown>[],
+            items: items as unknown as Array<Record<string, string | number | boolean | null>>,
         }, {
             onError: (errs) => {
                 setErrors(errs);

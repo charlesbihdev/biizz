@@ -8,6 +8,7 @@ use App\Http\Requests\Admin\StoreBusinessRequest;
 use App\Http\Requests\Admin\UpdateBusinessSettingsRequest;
 use App\Models\Business;
 use App\Services\PaymentService;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -131,7 +132,12 @@ class BusinessController extends Controller
     {
         $this->authorizeOwner($business);
 
-        $business->delete();
+        try {
+            $business->delete();
+        } catch (QueryException) {
+            return to_route('businesses.index')
+                ->with('error', 'Cannot delete this business while it still has orders.');
+        }
 
         return to_route('businesses.index')
             ->with('success', 'Business deleted.');

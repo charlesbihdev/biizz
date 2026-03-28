@@ -10,6 +10,7 @@ use App\Models\Customer;
 use App\Models\Order;
 use App\Models\Payment;
 use App\Models\Product;
+use App\Services\Payments\JunipayGateway;
 use App\Services\Payments\PaymentGatewayFactory;
 use App\Services\Payments\VerificationResult;
 use Illuminate\Http\RedirectResponse;
@@ -26,11 +27,13 @@ class CheckoutController extends Controller
 {
     /**
      * Process the checkout: create order, initialize payment, redirect to provider.
+     * Junipay uses the inline Payment Form — route to initiateJunipay() instead.
      */
     public function store(CheckoutRequest $request, Business $business): HttpResponse
     {
         abort_unless($business->is_active, 404);
         abort_unless($business->default_payment_provider, 400, 'Payment is not configured for this store.');
+        abort_if($business->default_payment_provider === 'junipay', 422, 'Junipay uses the inline payment form. POST to /checkout/junipay-init instead.');
 
         $validated = $request->validated();
 
@@ -68,9 +71,9 @@ class CheckoutController extends Controller
 
         $customerId = isset($validated['customer_id'])
             ? Customer::withoutGlobalScopes()
-                ->where('id', $validated['customer_id'])
-                ->where('business_id', $business->id)
-                ->value('id')
+            ->where('id', $validated['customer_id'])
+            ->where('business_id', $business->id)
+            ->value('id')
             : null;
 
         $order = DB::transaction(function () use ($business, $validated, $total, $orderItems, $reference, $orderId, $customerId): Order {
@@ -107,13 +110,137 @@ class CheckoutController extends Controller
             return $order;
         });
 
-        $factory = app(PaymentGatewayFactory::class);
-        $gateway = $factory->make($business);
-        $callback = url("/s/{$business->slug}/checkout/callback");
+        try {
+            $factory  = app(PaymentGatewayFactory::class);
+            $gateway  = $factory->make($business);
+            $callback = route('storefront.checkout.callback', $business);
+            $result   = $gateway->initialize($order, $business, $callback);
+        } catch (\Throwable $e) {
+            Log::error('Checkout payment initialization failed', [
+                'business_id' => $business->id,
+                'reference'   => $reference,
+                'error'       => $e->getMessage(),
+            ]);
 
-        $result = $gateway->initialize($order, $business, $callback);
+            return to_route('storefront.checkout', $business)
+                ->with('error', 'Payment could not be started. Please try again.');
+        }
 
         return Inertia::location($result->redirectUrl);
+    }
+
+    /**
+     * Junipay Payment Form flow.
+     *
+     * Creates the order + payment record server-side (locking the amount),
+     * fetches a short-lived Junipay bearer token, and returns the data the
+     * frontend needs to open the JuniPop popup. The secret never leaves the server.
+     */
+    public function initiateJunipay(CheckoutRequest $request, Business $business): Response|RedirectResponse
+    {
+        abort_unless($business->is_active, 404);
+        abort_unless($business->default_payment_provider === 'junipay', 400, 'This endpoint is only for Junipay.');
+
+        $validated = $request->validated();
+
+        $itemsInput = collect($validated['items']);
+        $productIds = $itemsInput->pluck('id')->all();
+        $products = Product::whereIn('id', $productIds)
+            ->where('business_id', $business->id)
+            ->where('is_active', true)
+            ->get()
+            ->keyBy('id');
+
+        abort_if($products->count() !== count($productIds), 422, 'Some products are no longer available.');
+
+        $total = 0;
+        $orderItems = [];
+
+        foreach ($itemsInput as $item) {
+            $product = $products->get($item['id']);
+            $quantity = (int) $item['quantity'];
+            $subtotal = (float) $product->price * $quantity;
+            $total += $subtotal;
+
+            $orderItems[] = [
+                'product_id'   => $product->id,
+                'product_name' => $product->name,
+                'unit_price'   => $product->price,
+                'quantity'     => $quantity,
+                'subtotal'     => $subtotal,
+            ];
+        }
+
+        $reference  = Str::random(24);
+        $orderId    = $this->generateOrderId();
+        $customerId = isset($validated['customer_id'])
+            ? Customer::withoutGlobalScopes()
+            ->where('id', $validated['customer_id'])
+            ->where('business_id', $business->id)
+            ->value('id')
+            : null;
+
+        $order = DB::transaction(function () use ($business, $validated, $total, $orderItems, $reference, $orderId, $customerId): Order {
+            $order = Order::withoutGlobalScopes()->create([
+                'business_id'      => $business->id,
+                'customer_id'      => $customerId,
+                'order_id'         => $orderId,
+                'customer_name'    => $validated['customer_name'],
+                'customer_email'   => $validated['customer_email'],
+                'customer_phone'   => $validated['customer_phone'],
+                'total'            => $total,
+                'currency'         => 'GHS',
+                'status'           => OrderStatus::Pending,
+                'payment_ref'      => $reference,
+                'payment_provider' => 'junipay',
+                'source'           => 'storefront',
+            ]);
+
+            foreach ($orderItems as $item) {
+                $order->items()->create($item);
+            }
+
+            Payment::withoutGlobalScopes()->create([
+                'business_id' => $business->id,
+                'order_id'    => $order->id,
+                'customer_id' => $customerId,
+                'gateway'     => 'junipay',
+                'reference'   => $reference,
+                'amount'      => $total,
+                'currency'    => 'GHS',
+                'status'      => PaymentStatus::Pending,
+            ]);
+
+            return $order;
+        });
+
+        try {
+            /** @var JunipayGateway $gateway */
+            $gateway     = app(PaymentGatewayFactory::class)->make($business);
+            $callbackUrl = route('storefront.checkout.callback', $business);
+
+            return Inertia::render('Storefront/Checkout', [
+                'junipay_init' => [
+                    'token'        => $gateway->getPaymentFormToken(),
+                    'client_id'    => $business->junipay_client_id,
+                    'reference'    => $reference,
+                    'amount'       => (int) $order->total,
+                    'description'  => "Order #{$order->order_id} for {$business->name}",
+                    'email'        => $order->customer_email,
+                    'callback_url' => $callbackUrl,
+                    'redirect_url' => $callbackUrl,
+                ],
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('Junipay token fetch failed', [
+                'business_id' => $business->id,
+                'reference'   => $reference,
+                'error'       => $e->getMessage(),
+            ]);
+
+            return to_route('storefront.checkout', $business)
+                ->with('error', 'Payment could not be started. Please try again.');
+        }
     }
 
     /**
@@ -128,7 +255,7 @@ class CheckoutController extends Controller
             ?? $request->query('foreignID');
 
         if (! $reference) {
-            return redirect("/s/{$business->slug}/checkout")->with('error', 'Invalid payment callback.');
+            return to_route('storefront.checkout', $business)->with('error', 'Invalid payment callback.');
         }
 
         $payment = Payment::withoutGlobalScopes()
@@ -137,11 +264,11 @@ class CheckoutController extends Controller
             ->first();
 
         if (! $payment) {
-            return redirect("/s/{$business->slug}/checkout")->with('error', 'Payment not found.');
+            return to_route('storefront.checkout', $business)->with('error', 'Payment not found.');
         }
 
         if ($payment->isSuccessful()) {
-            return redirect("/s/{$business->slug}/checkout/success?ref={$reference}");
+            return to_route('storefront.checkout.success', ['business' => $business, 'ref' => $reference]);
         }
 
         $factory = app(PaymentGatewayFactory::class);
@@ -159,16 +286,16 @@ class CheckoutController extends Controller
                 'error' => $e->getMessage(),
             ]);
 
-            return redirect("/s/{$business->slug}/checkout")->with('error', 'Payment verification failed. Please contact the store.');
+            return to_route('storefront.checkout', $business)->with('error', 'Payment verification failed. Please contact the store.');
         }
 
         $this->processVerification($payment, $result);
 
         if ($payment->isSuccessful()) {
-            return redirect("/s/{$business->slug}/checkout/success?ref={$reference}");
+            return to_route('storefront.checkout.success', ['business' => $business, 'ref' => $reference]);
         }
 
-        return redirect("/s/{$business->slug}/checkout")->with('error', 'Payment was not successful. Please try again.');
+        return to_route('storefront.checkout', $business)->with('error', 'Payment was not successful. Please try again.');
     }
 
     /**
@@ -259,7 +386,7 @@ class CheckoutController extends Controller
                 ->first();
         }
 
-        $business->load(['pages' => fn ($q) => $q->published()]);
+        $business->load(['pages' => fn($q) => $q->published()]);
 
         return Inertia::render('Storefront/CheckoutSuccess', [
             'business' => $business,

@@ -20,9 +20,10 @@ class UpdatePaymentKeysRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'provider' => ['required', 'string', 'in:'.PaymentService::PROVIDER_PAYSTACK.','.PaymentService::PROVIDER_JUNIPAY],
-            'key' => ['required', 'string', 'min:10', 'max:500'],
-            'client_id' => ['nullable', 'required_if:provider,junipay', 'string', 'min:3', 'max:200'],
+            'provider'   => ['required', 'string', 'in:' . PaymentService::PROVIDER_PAYSTACK . ',' . PaymentService::PROVIDER_JUNIPAY],
+            'key'        => ['required', 'string', 'min:10', 'max:500'],
+            'client_id'  => ['nullable', 'required_if:provider,junipay', 'string', 'min:3', 'max:200'],
+            'token_link' => ['nullable', 'required_if:provider,junipay', 'string', 'url', 'max:500'],
         ];
     }
 }
