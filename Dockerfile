@@ -8,7 +8,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends \
     git unzip \
     libpng-dev libzip-dev zip \
-    libpq-dev \
+    libpq-dev libsqlite3-dev \
     && curl -fsSL https://deb.nodesource.com/setup_22.x | bash - \
     && apt-get install -y nodejs \
     && docker-php-ext-install -j$(nproc) pdo_pgsql pdo_sqlite zip \
@@ -36,7 +36,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     nginx supervisor \
     libzip-dev zip unzip \
     libpng-dev libfreetype6-dev libjpeg62-turbo-dev \
-    libpq-dev \
+    libpq-dev libsqlite3-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install -j$(nproc) \
         pdo_pgsql pdo_sqlite mbstring exif pcntl bcmath gd zip opcache intl \
