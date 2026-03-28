@@ -1,8 +1,8 @@
 # syntax=docker/dockerfile:1
-# Laravel 13 + PHP 8.3 + Inertia/React (Vite). PostgreSQL driver included.
+# Laravel 13 + PHP 8.4 (lockfile uses Symfony 8 / requires PHP >= 8.4) + Vite.
 
 # --- Assets: Wayfinder (gitignored) must run before `npm run build`
-FROM php:8.3-cli-bookworm AS assets
+FROM php:8.4-cli-bookworm AS assets
 WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -28,8 +28,8 @@ COPY package.json package-lock.json ./
 RUN npm ci
 RUN npm run build
 
-# --- Runtime: Nginx + PHP-FPM + Supervisor (queue worker)
-FROM php:8.3-fpm-bookworm
+# --- Runtime: Nginx + PHP-FPM + Supervisor
+FROM php:8.4-fpm-bookworm
 WORKDIR /var/www/html
 
 # libonig-dev: mbstring (regex). libicu-dev: intl. libsqlite3-dev: pdo_sqlite.
