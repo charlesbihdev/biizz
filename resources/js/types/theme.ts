@@ -20,14 +20,16 @@ export type ThemeId = keyof typeof SCHEMA_MAP;
 export type ThemeRegistry = Record<string, ComponentType<any>>;
 
 /**
- * Build lazy components from a theme's exports, sharing a single import promise.
+ * Build a code-split theme entry using a Proxy.
  *
  * Uses a Proxy so theme.ts never hardcodes which components a theme has.
  * The theme's index.ts is the sole source of truth.
  *
- * On the FIRST access of any component, the chunk downloads and the shared
- * promise caches it. All subsequent accesses (Layout, Shop, Product, etc.)
- * resolve instantly from the same cached promise — no Suspense fallback flash.
+ * - BEFORE the chunk loads: returns a React.lazy() wrapper (first page load
+ *   goes through Suspense once — unavoidable, the code needs to download).
+ * - AFTER the chunk loads: caches every component the theme exports as raw
+ *   components (no lazy wrapper). Subsequent navigations skip Suspense
+ *   entirely — no white flash.
  *
  * A visitor to a Classic store never downloads Boutique code, and vice-versa.
  */
@@ -35,16 +37,30 @@ function createThemeLazy(
     loader: () => Promise<{ default: ThemeRegistry }>,
 ): ThemeRegistry {
     let shared: Promise<{ default: ThemeRegistry }> | null = null;
-    const load = () => (shared ??= loader());
 
-    // Cache lazy wrappers so the same key always returns the same component ref
+    const load = () => {
+        if (!shared) {
+            shared = loader();
+            // Once the chunk downloads, pre-fill cache with raw components
+            // for every key the theme exports. No lazy wrapper = no Suspense.
+            shared.then((m) => {
+                for (const key of Object.keys(m.default)) {
+                    cache.set(key, m.default[key]);
+                }
+            });
+        }
+        return shared;
+    };
+
     const cache = new Map<string, ComponentType<any>>();
 
     return new Proxy({} as ThemeRegistry, {
         get(_target, key: string) {
+            // Already loaded — return raw component, no lazy, no Suspense
             if (cache.has(key)) return cache.get(key);
 
-            const wrapper = lazy(() =>
+            // Not loaded yet — return a lazy wrapper that triggers the download
+            return lazy(() =>
                 load().then((m) => {
                     const Component = m.default[key];
                     if (!Component) {
@@ -55,13 +71,10 @@ function createThemeLazy(
                     return { default: Component };
                 }),
             );
-
-            cache.set(key, wrapper);
-            return wrapper;
         },
 
         has() {
-            return true; // let optional chaining work — the lazy wrapper handles missing keys at resolve time
+            return true;
         },
     });
 }
