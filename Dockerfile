@@ -20,9 +20,17 @@ RUN composer install --no-dev --no-scripts --prefer-dist
 COPY . .
 RUN composer dump-autoload --optimize --no-dev
 
-# .dockerignore omits storage/framework/* — paths must exist for Artisan / view compiler
-RUN mkdir -p bootstrap/cache storage/framework/{sessions,views,cache,data} storage/logs
+# .dockerignore omits storage/framework/* — recreate dirs. Docker RUN uses /bin/sh (dash on
+# Debian): brace expansion {a,b} is not POSIX; list paths explicitly.
+RUN mkdir -p bootstrap/cache \
+    storage/framework/sessions \
+    storage/framework/views \
+    storage/framework/cache \
+    storage/framework/data \
+    storage/framework/testing \
+    storage/logs
 
+ENV VIEW_COMPILED_PATH=/app/storage/framework/views
 # Dummy key so Artisan can run during image build only
 ENV APP_KEY=base64:AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
 RUN php artisan wayfinder:generate --no-interaction
@@ -56,7 +64,15 @@ RUN composer install --no-dev --no-scripts --prefer-dist
 COPY . .
 RUN composer dump-autoload --optimize --no-dev
 
-RUN mkdir -p bootstrap/cache storage/framework/{sessions,views,cache,data} storage/logs
+RUN mkdir -p bootstrap/cache \
+    storage/framework/sessions \
+    storage/framework/views \
+    storage/framework/cache \
+    storage/framework/data \
+    storage/framework/testing \
+    storage/logs
+
+ENV VIEW_COMPILED_PATH=/var/www/html/storage/framework/views
 
 COPY --from=assets /app/public/build ./public/build
 
