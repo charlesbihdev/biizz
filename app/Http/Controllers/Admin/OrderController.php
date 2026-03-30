@@ -20,6 +20,28 @@ class OrderController extends Controller
 
         $orders = Order::withCount('items')
             ->when(request('status'), fn ($q, $s) => $q->where('status', $s))
+            ->when(request('search'), function ($q, $term) {
+                $q->where(function ($q) use ($term) {
+                    $q->where('customer_name', 'like', "%{$term}%")
+                        ->orWhere('customer_email', 'like', "%{$term}%")
+                        ->orWhere('order_id', 'like', "%{$term}%");
+                });
+            })
+            ->when(request('date'), function ($q, $preset) {
+                match ($preset) {
+                    'today' => $q->whereDate('created_at', today()),
+                    'yesterday' => $q->whereDate('created_at', today()->subDay()),
+                    'this_week' => $q->whereBetween('created_at', [now()->startOfWeek(), now()->endOfWeek()]),
+                    'last_week' => $q->whereBetween('created_at', [now()->subWeek()->startOfWeek(), now()->subWeek()->endOfWeek()]),
+                    'this_month' => $q->whereMonth('created_at', now()->month)->whereYear('created_at', now()->year),
+                    'last_month' => $q->whereMonth('created_at', now()->subMonth()->month)->whereYear('created_at', now()->subMonth()->year),
+                    'this_year' => $q->whereYear('created_at', now()->year),
+                    'last_year' => $q->whereYear('created_at', now()->subYear()->year),
+                    'custom' => $q->when(request('date_from'), fn ($q, $d) => $q->whereDate('created_at', '>=', $d))
+                        ->when(request('date_to'), fn ($q, $d) => $q->whereDate('created_at', '<=', $d)),
+                    default => null,
+                };
+            })
             ->latest()
             ->paginate(20)
             ->withQueryString();
@@ -27,7 +49,14 @@ class OrderController extends Controller
         return Inertia::render('Admin/Orders/Index', [
             'orders' => $orders,
             'business' => $business,
-            'statuses' => OrderStatus::cases(),
+            'statuses' => collect(OrderStatus::cases())->map(fn (OrderStatus $s) => ['name' => $s->label(), 'value' => $s->value])->all(),
+            'filters' => [
+                'status' => request('status', 'all'),
+                'search' => request('search', ''),
+                'date' => request('date', 'all'),
+                'date_from' => request('date_from', ''),
+                'date_to' => request('date_to', ''),
+            ],
         ]);
     }
 
@@ -38,7 +67,7 @@ class OrderController extends Controller
         return Inertia::render('Admin/Orders/Show', [
             'order' => $order->load('items'),
             'business' => $business,
-            'statuses' => OrderStatus::cases(),
+            'statuses' => collect(OrderStatus::cases())->map(fn (OrderStatus $s) => ['name' => $s->label(), 'value' => $s->value])->all(),
         ]);
     }
 

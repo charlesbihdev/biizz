@@ -18,11 +18,24 @@ class ProductController extends Controller
     {
         abort_unless($business->isOwnedBy(auth()->user()), 403);
 
-        $products = Product::with(['category', 'images'])->latest()->paginate(20);
+        $products = Product::with(['category', 'images'])
+            ->when(request('search'), fn ($q, $s) => $q->where('name', 'like', "%{$s}%"))
+            ->when(request('status') === 'active', fn ($q) => $q->where('is_active', true))
+            ->when(request('status') === 'hidden', fn ($q) => $q->where('is_active', false))
+            ->when(request('category'), fn ($q, $c) => $q->where('category_id', $c))
+            ->latest()
+            ->paginate(20)
+            ->withQueryString();
 
         return Inertia::render('Admin/Products/Index', [
             'business' => $business,
             'products' => $products,
+            'categories' => $business->categories()->get(['id', 'name']),
+            'filters' => [
+                'search' => request('search', ''),
+                'status' => request('status', 'all'),
+                'category' => request('category', ''),
+            ],
         ]);
     }
 

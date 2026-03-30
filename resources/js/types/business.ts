@@ -52,6 +52,7 @@ export interface SocialLinks {
 }
 
 export type BusinessType = 'physical' | 'digital';
+export type CustomerLoginMode = 'none' | 'checkout' | 'full';
 
 export type BusinessCategory =
     | 'accessories' | 'automotive' | 'bakery' | 'beauty' | 'books'
@@ -79,7 +80,8 @@ export interface Business {
     theme_id:          ThemeId;
     theme_settings:    ThemeSettings;
     meta_pixel_id:     string | null;
-    ai_enabled:        boolean;
+    ai_enabled:           boolean;
+    customer_login_mode:  CustomerLoginMode;
     default_payment_provider: string | null;
     seo_title:         string | null;
     seo_description:   string | null;
@@ -139,6 +141,7 @@ export interface Page {
     slug:         string;
     content:      string | null;
     type:         PageType;
+    is_system:    boolean;
     is_published: boolean;
     sort_order:   number;
     created_at:   string;
@@ -168,6 +171,15 @@ export interface Customer {
     notes:       string | null;
     created_at:  string;
     updated_at:  string;
+}
+
+/** The authenticated customer shared via Inertia's auth.customer prop */
+export interface AuthenticatedCustomer {
+    id:         number;
+    name:       string;
+    email:      string | null;
+    avatar:     string | null;
+    google_id:  string | null;
 }
 
 // ─── Order ───────────────────────────────────────────────────────────────────

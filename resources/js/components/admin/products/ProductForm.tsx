@@ -2,7 +2,10 @@ import { Link } from '@inertiajs/react';
 import { LoaderCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import InputError from '@/components/input-error';
-import { ImageUploader, type UploadedImage } from '@/components/admin/products/ImageUploader';
+import {
+    ImageUploader,
+    type UploadedImage,
+} from '@/components/admin/products/ImageUploader';
 import { RichDescriptionEditor } from '@/components/admin/products/RichDescriptionEditor';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,25 +13,28 @@ import { index as categoriesIndex } from '@/routes/businesses/categories';
 import type { Business, Category } from '@/types';
 
 export interface ProductFormData {
-    name:        string;
-    slug:        string;
+    name: string;
+    slug: string;
     description: string;
-    price:       string;
-    stock:       string;
+    price: string;
+    stock: string;
     category_id: string;
-    is_active:   boolean;
-    images:      UploadedImage[];
+    is_active: boolean;
+    images: UploadedImage[];
 }
 
 interface Props {
-    business:   Business;
+    business: Business;
     categories: Category[];
-    data:       ProductFormData;
-    errors:     Partial<Record<keyof ProductFormData, string>>;
+    data: ProductFormData;
+    errors: Partial<Record<keyof ProductFormData, string>>;
     processing: boolean;
     submitLabel: string;
-    onSubmit:   () => void;
-    onChange:   <K extends keyof ProductFormData>(key: K, value: ProductFormData[K]) => void;
+    onSubmit: () => void;
+    onChange: <K extends keyof ProductFormData>(
+        key: K,
+        value: ProductFormData[K],
+    ) => void;
 }
 
 function slugify(text: string): string {
@@ -41,7 +47,14 @@ function slugify(text: string): string {
 }
 
 export default function ProductForm({
-    business, categories, data, errors, processing, submitLabel, onSubmit, onChange,
+    business,
+    categories,
+    data,
+    errors,
+    processing,
+    submitLabel,
+    onSubmit,
+    onChange,
 }: Props) {
     const isDigital = business.business_type === 'digital';
 
@@ -51,20 +64,23 @@ export default function ProductForm({
         if (!slugManuallyEdited) {
             onChange('slug', slugify(data.name));
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [data.name]);
 
-    const [richText, setRichText] = useState(
-        () => /<[a-z][\s\S]*>/i.test(data.description ?? ''),
+    const [richText, setRichText] = useState(() =>
+        /<[a-z][\s\S]*>/i.test(data.description ?? ''),
     );
 
     return (
         <form
-            onSubmit={(e) => { e.preventDefault(); onSubmit(); }}
-            className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8 pb-32 lg:pb-0"
+            onSubmit={(e) => {
+                e.preventDefault();
+                onSubmit();
+            }}
+            className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8"
         >
             {/* ── Left: content ── */}
-            <div className="flex flex-1 flex-col gap-5">
+            <div className="flex min-w-0 flex-1 flex-col gap-5">
                 {/* Name */}
                 <div className="flex flex-col gap-1.5">
                     <Label htmlFor="name">Product name</Label>
@@ -122,7 +138,9 @@ export default function ProductForm({
                             id="description"
                             rows={4}
                             value={data.description}
-                            onChange={(e) => onChange('description', e.target.value)}
+                            onChange={(e) =>
+                                onChange('description', e.target.value)
+                            }
                             placeholder="Describe your product..."
                             className="w-full rounded-lg border border-site-border px-3 py-2 text-sm text-site-fg placeholder:text-site-muted focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/30"
                         />
@@ -139,7 +157,10 @@ export default function ProductForm({
                             images={data.images}
                             onChange={(imgs) => onChange('images', imgs)}
                         />
-                        <p className="text-xs text-site-muted">First photo is the main image. Max 8 photos, 6 MB each.</p>
+                        <p className="text-xs text-site-muted">
+                            First photo is the main image. Max 8 photos, 6 MB
+                            each.
+                        </p>
                     </div>
                 )}
             </div>
@@ -152,19 +173,27 @@ export default function ProductForm({
                         <input
                             type="checkbox"
                             checked={data.is_active}
-                            onChange={(e) => onChange('is_active', e.target.checked)}
+                            onChange={(e) =>
+                                onChange('is_active', e.target.checked)
+                            }
                             className="h-4 w-4 rounded border-site-border accent-brand"
                         />
                         <div>
-                            <p className="text-sm font-medium text-site-fg">Visible on storefront</p>
-                            <p className="text-xs text-site-muted">Customers can see and buy this product</p>
+                            <p className="text-sm font-medium text-site-fg">
+                                Visible on storefront
+                            </p>
+                            <p className="text-xs text-site-muted">
+                                Customers can see and buy this product
+                            </p>
                         </div>
                     </label>
                 </div>
 
                 {/* Organise */}
                 <div className="flex flex-col gap-4 rounded-2xl border border-site-border bg-white p-4">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-site-muted">Organise</p>
+                    <p className="text-xs font-semibold tracking-wide text-site-muted uppercase">
+                        Organise
+                    </p>
 
                     <div className="flex flex-col gap-1.5">
                         <Label htmlFor="category_id">Category</Label>
@@ -172,7 +201,11 @@ export default function ProductForm({
                             <p className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-700">
                                 No categories.{' '}
                                 <Link
-                                    href={categoriesIndex({ business: business.slug }).url}
+                                    href={
+                                        categoriesIndex({
+                                            business: business.slug,
+                                        }).url
+                                    }
                                     className="font-semibold underline underline-offset-2"
                                 >
                                     Manage →
@@ -182,13 +215,19 @@ export default function ProductForm({
                             <select
                                 id="category_id"
                                 value={data.category_id}
-                                onChange={(e) => onChange('category_id', e.target.value)}
+                                onChange={(e) =>
+                                    onChange('category_id', e.target.value)
+                                }
                                 required
                                 className="w-full rounded-lg border border-site-border bg-white px-3 py-2 text-sm text-site-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/30"
                             >
-                                <option value="" disabled>Select a category</option>
+                                <option value="" disabled>
+                                    Select a category
+                                </option>
                                 {categories.map((c) => (
-                                    <option key={c.id} value={c.id}>{c.name}</option>
+                                    <option key={c.id} value={c.id}>
+                                        {c.name}
+                                    </option>
                                 ))}
                             </select>
                         )}
@@ -198,7 +237,9 @@ export default function ProductForm({
 
                 {/* Pricing */}
                 <div className="flex flex-col gap-4 rounded-2xl border border-site-border bg-white p-4">
-                    <p className="text-xs font-semibold uppercase tracking-wide text-site-muted">Pricing</p>
+                    <p className="text-xs font-semibold tracking-wide text-site-muted uppercase">
+                        Pricing
+                    </p>
 
                     <div className="flex flex-col gap-1.5">
                         <Label htmlFor="price">Price (GHS)</Label>
@@ -230,7 +271,9 @@ export default function ProductForm({
                                 type="number"
                                 min="0"
                                 value={data.stock}
-                                onChange={(e) => onChange('stock', e.target.value)}
+                                onChange={(e) =>
+                                    onChange('stock', e.target.value)
+                                }
                                 className="border-site-border focus-visible:ring-brand/30"
                             />
                             <InputError message={errors.stock} />
@@ -242,9 +285,11 @@ export default function ProductForm({
                 <button
                     type="submit"
                     disabled={processing}
-                    className="flex items-center justify-center gap-2 rounded-full bg-brand py-2.5 text-sm font-bold text-white transition hover:bg-brand-hover disabled:opacity-60"
+                    className="mb-8 flex items-center justify-center gap-2 rounded-full bg-brand py-2.5 text-sm font-bold text-white transition hover:bg-brand-hover disabled:opacity-60"
                 >
-                    {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
+                    {processing && (
+                        <LoaderCircle className="h-4 w-4 animate-spin" />
+                    )}
                     {submitLabel}
                 </button>
             </div>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link, usePage } from '@inertiajs/react';
+import { useCustomerAuth } from '@/Themes/Shared/Hooks/useCustomerAuth';
 import { ChevronLeft } from 'lucide-react';
 import OrderSummary from './OrderSummary';
 import { useCartStore } from '@/stores/cartStore';
@@ -113,9 +114,10 @@ function PaystackCheckout({ business, primary, accent }: Props) {
     const { items, total, itemCount, removeFromCart, updateQuantity } = useCartStore();
     const { submitOrder, isSubmitting, errors } = useCheckout(business.slug);
     const { flash } = usePage<{ flash?: { error?: string } }>().props;
+    const { customer } = useCustomerAuth();
 
-    const [name, setName]   = useState('');
-    const [email, setEmail] = useState('');
+    const [name, setName]   = useState(customer?.name  ?? '');
+    const [email, setEmail] = useState(customer?.email ?? '');
     const [phone, setPhone] = useState('');
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -151,9 +153,10 @@ function PaystackCheckout({ business, primary, accent }: Props) {
 function JunipayCheckout({ business, primary, accent }: Props) {
     const { items, total, itemCount, removeFromCart, updateQuantity } = useCartStore();
     const { submitOrder, isSubmitting, errors } = useJunipayCheckout(business.slug);
+    const { customer } = useCustomerAuth();
 
-    const [name, setName]   = useState('');
-    const [email, setEmail] = useState('');
+    const [name, setName]   = useState(customer?.name  ?? '');
+    const [email, setEmail] = useState(customer?.email ?? '');
     const [phone, setPhone] = useState('');
 
     const handleSubmit = (e: React.FormEvent) => {

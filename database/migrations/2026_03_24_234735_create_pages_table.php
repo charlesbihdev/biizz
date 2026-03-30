@@ -15,6 +15,7 @@ return new class extends Migration
             $table->string('slug');
             $table->longText('content')->nullable();
             $table->string('type', 60)->nullable(); // privacy_policy|faq|terms|about|shipping|acceptable_use
+            $table->boolean('is_system')->default(false);
             $table->boolean('is_published')->default(false);
             $table->unsignedSmallInteger('sort_order')->default(0);
             $table->timestamps();

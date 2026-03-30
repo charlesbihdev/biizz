@@ -1,1 +1,0 @@
-import{n as e,t}from"./jsx-runtime-CQD49VtS.js";import"./react-dom-BTn-zNI3.js";/* empty css                       */import"./es2015-IlsVPEsL.js";import"./dist-2EEqW6XP.js";import{t as n}from"./simple-editor-D-ttSv2s.js";var r=e(),i=t();function a(){let e=(0,r.c)(1),t;return e[0]===Symbol.for(`react.memo_cache_sentinel`)?(t=(0,i.jsx)(n,{}),e[0]=t):t=e[0],t}export{a as default};

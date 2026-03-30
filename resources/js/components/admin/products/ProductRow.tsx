@@ -8,16 +8,18 @@ import type { Business, Product } from '@/types';
 type Props = {
     business: Business;
     product: Product;
+    rowNumber: number;
     onView: (product: Product) => void;
 };
 
-export function ProductRow({ business, product, onView }: Props) {
+export function ProductRow({ business, product, rowNumber, onView }: Props) {
     const [deleteOpen, setDeleteOpen] = useState(false);
     const b = { business: business.slug };
 
     return (
         <>
             <tr className="border-b border-site-border last:border-0 hover:bg-site-surface/50">
+                <td className="py-3 pl-4 pr-3 text-xs tabular-nums text-site-muted">{rowNumber}</td>
                 <td className="py-3 pl-4 pr-3">
                     <div className="flex items-center gap-3">
                         {product.images?.[0] ? (

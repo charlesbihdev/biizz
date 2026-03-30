@@ -36,34 +36,44 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
-        $business = BusinessContext::isSet() ? BusinessContext::current() : null;
-
         return [
             ...parent::share($request),
             'name' => config('app.name'),
-            'auth' => [
+            'auth' => fn () => [
                 'user' => $request->user(),
+                'customer' => BusinessContext::isSet() ? $request->user('customer') : null,
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             // All authenticated pages get the user's businesses list for the sidebar switcher
-            'businesses' => $request->user()
+            'businesses' => fn () => $request->user()
                 ? $request->user()->ownedBusinesses()->get(['id', 'name', 'slug'])->toArray()
                 : [],
             'flash' => [
-                'success' => fn() => $request->session()->get('success'),
-                'error' => fn() => $request->session()->get('error'),
-                'warning' => fn() => $request->session()->get('warning'),
+                'success' => fn () => $request->session()->get('success'),
+                'error' => fn () => $request->session()->get('error'),
+                'warning' => fn () => $request->session()->get('warning'),
             ],
             // Only safe presentation fields — never payment keys.
-            'business' => $business ? [
-                'id' => $business->id,
-                'name' => $business->name,
-                'slug' => $business->slug,
-                'theme_id' => $business->theme_id,
-                'theme_settings' => $business->theme_settings,
-                'meta_pixel_id' => $business->meta_pixel_id,
-                'ai_enabled' => $business->ai_enabled,
-            ] : null,
+            // Wrapped in a closure so it is resolved after the business route
+            // middleware has set BusinessContext (share() runs before $next()).
+            'business' => function () {
+                if (! BusinessContext::isSet()) {
+                    return null;
+                }
+
+                $b = BusinessContext::current();
+
+                return [
+                    'id' => $b->id,
+                    'name' => $b->name,
+                    'slug' => $b->slug,
+                    'theme_id' => $b->theme_id,
+                    'theme_settings' => $b->theme_settings,
+                    'meta_pixel_id' => $b->meta_pixel_id,
+                    'ai_enabled' => $b->ai_enabled,
+                    'customer_login_mode' => $b->customer_login_mode,
+                ];
+            },
         ];
     }
 }
