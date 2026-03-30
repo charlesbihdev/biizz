@@ -20,7 +20,6 @@ class LogoutController extends Controller
     {
         Auth::guard('customer')->logout();
 
-        $request->session()->invalidate();
         $request->session()->regenerateToken();
 
         return redirect()->route('storefront.show', $business->slug);

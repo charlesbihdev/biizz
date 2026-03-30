@@ -29,7 +29,7 @@ class GoogleController extends Controller
         /** @var AbstractProvider $driver */
         $driver = Socialite::driver('google');
 
-        return $driver->redirectUrl(route('storefront.auth.google.callback'))->redirect();
+        return $driver->redirectUrl(route('customer.auth.google.callback'))->redirect();
     }
 
     /**
@@ -44,7 +44,7 @@ class GoogleController extends Controller
         try {
             /** @var AbstractProvider $driver */
             $driver = Socialite::driver('google');
-            $googleUser = $driver->redirectUrl(route('storefront.auth.google.callback'))->user();
+            $googleUser = $driver->redirectUrl(route('customer.auth.google.callback'))->user();
         } catch (\Throwable) {
             return $this->failRedirect($request, 'Google sign-in failed. Please try again.');
         }

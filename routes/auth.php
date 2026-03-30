@@ -24,4 +24,4 @@ Route::middleware('guest')->group(function () {
 // Customer Google callback — fixed URL registered in Google Cloud Console.
 // No business slug: the slug is restored from session (set before redirect).
 Route::get('/auth/customer/google/callback', [GoogleController::class, 'callback'])
-    ->name('storefront.auth.google.callback');
+    ->name('customer.auth.google.callback');
