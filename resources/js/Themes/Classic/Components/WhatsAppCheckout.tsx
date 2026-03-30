@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Link } from '@inertiajs/react';
+import { useCustomerAuth } from '@/Themes/Shared/Hooks/useCustomerAuth';
 import { ChevronLeft, MessageCircle, Phone } from 'lucide-react';
 import OrderSummary from './OrderSummary';
 import { useCartStore } from '@/stores/cartStore';
@@ -29,8 +30,9 @@ function buildWhatsAppUrl(business: Business, items: { name: string; price: numb
 
 export default function WhatsAppCheckout({ business, primary }: { business: Business; primary: string }) {
     const { items, total, itemCount, removeFromCart, updateQuantity } = useCartStore();
+    const { customer } = useCustomerAuth();
 
-    const [name, setName]   = useState('');
+    const [name, setName]   = useState(customer?.name ?? '');
     const [phone, setPhone] = useState('');
 
     const whatsappNumber = business.social_links?.whatsapp ?? business.phone;

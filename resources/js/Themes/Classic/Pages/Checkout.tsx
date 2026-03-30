@@ -1,23 +1,53 @@
 import { Link } from '@inertiajs/react';
-import { ChevronLeft } from 'lucide-react';
-import ClassicThemeShell from '../ThemeShell';
+import { useEffect } from 'react';
+import { ChevronLeft, Lock } from 'lucide-react';
+import ClassicThemeShell, { type CartActions } from '../ThemeShell';
 import WhatsAppCheckout from '../Components/WhatsAppCheckout';
 import PaymentCheckout from '../Components/PaymentCheckout';
 import { useCartStore } from '@/stores/cartStore';
+import { useCustomerAuth } from '@/Themes/Shared/Hooks/useCustomerAuth';
 import type { Business, Page } from '@/types/business';
 
 interface Props {
-    business:    Business;
-    pages:       Page[];
-    hasPayment:  boolean;
+    business:   Business;
+    pages:      Page[];
+    hasPayment: boolean;
 }
 
-function CheckoutContent({ business, hasPayment }: { business: Business; hasPayment: boolean }) {
+function CheckoutContent({
+    business,
+    hasPayment,
+    openAuth,
+}: {
+    business:  Business;
+    hasPayment: boolean;
+    openAuth:  CartActions['openAuth'];
+}) {
     const { itemCount } = useCartStore();
+    const { requiresLoginForCheckout } = useCustomerAuth();
+
+    useEffect(() => {
+        if (requiresLoginForCheckout) {
+            openAuth();
+        }
+    }, [requiresLoginForCheckout]);
 
     const { theme_settings: s } = business;
     const primary = s.primary_color ?? '#1a1a1a';
     const accent  = s.accent_color  ?? primary;
+
+    // Auth wall — modal is open above this placeholder
+    if (requiresLoginForCheckout) {
+        return (
+            <main className="mx-auto max-w-3xl px-6 py-24 text-center lg:px-8">
+                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-zinc-100">
+                    <Lock className="h-6 w-6 text-zinc-400" />
+                </div>
+                <h1 className="mb-2 text-xl font-semibold text-zinc-800">Sign in to continue</h1>
+                <p className="text-sm text-zinc-500">You need an account to place an order at {business.name}.</p>
+            </main>
+        );
+    }
 
     if (itemCount === 0) {
         return (
@@ -46,7 +76,13 @@ function CheckoutContent({ business, hasPayment }: { business: Business; hasPaym
 export default function Checkout({ business, pages, hasPayment }: Props) {
     return (
         <ClassicThemeShell business={business} pages={pages}>
-            <CheckoutContent business={business} hasPayment={hasPayment} />
+            {(actions) => (
+                <CheckoutContent
+                    business={business}
+                    hasPayment={hasPayment}
+                    openAuth={actions.openAuth}
+                />
+            )}
         </ClassicThemeShell>
     );
 }
