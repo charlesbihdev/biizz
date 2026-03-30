@@ -1,6 +1,10 @@
 <?php
 
 use App\Http\Controllers\CheckoutController;
+use App\Http\Controllers\StorefrontAuth\GoogleController;
+use App\Http\Controllers\StorefrontAuth\LoginController;
+use App\Http\Controllers\StorefrontAuth\LogoutController;
+use App\Http\Controllers\StorefrontAuth\RegisterController;
 use App\Http\Controllers\StorefrontController;
 use Illuminate\Support\Facades\Route;
 
@@ -52,5 +56,19 @@ Route::prefix('s')->group(function () {
 
         Route::get('/{business:slug}/pages/{page:slug}', [StorefrontController::class, 'page'])
             ->name('storefront.page');
+
+        // ── Customer auth ──────────────────────────────────────────────────────
+        Route::post('/{business:slug}/auth/login', [LoginController::class, 'store'])
+            ->name('storefront.auth.login');
+
+        Route::post('/{business:slug}/auth/register', [RegisterController::class, 'store'])
+            ->name('storefront.auth.register');
+
+        Route::post('/{business:slug}/auth/logout', [LogoutController::class, 'destroy'])
+            ->middleware('auth:customer')
+            ->name('storefront.auth.logout');
+
+        Route::get('/{business:slug}/auth/google', [GoogleController::class, 'redirect'])
+            ->name('storefront.auth.google');
     });
 });

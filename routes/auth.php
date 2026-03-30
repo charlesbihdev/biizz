@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Auth\SocialiteController;
+use App\Http\Controllers\StorefrontAuth\GoogleController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -19,3 +20,8 @@ Route::middleware('guest')->group(function () {
     Route::get('/auth/google/callback', [SocialiteController::class, 'callback'])
         ->name('auth.google.callback');
 });
+
+// Customer Google callback — fixed URL registered in Google Cloud Console.
+// No business slug: the slug is restored from session (set before redirect).
+Route::get('/auth/customer/google/callback', [GoogleController::class, 'callback'])
+    ->name('storefront.auth.google.callback');

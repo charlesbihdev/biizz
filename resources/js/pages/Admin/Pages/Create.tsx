@@ -11,7 +11,7 @@ import { show } from '@/routes/businesses';
 import { create, index, store } from '@/routes/businesses/pages';
 import type { Business, PageType } from '@/types';
 
-const PAGE_TYPES: { value: PageType | ''; label: string }[] = [
+const PAGE_TYPES: { value: Exclude<PageType, null> | ''; label: string }[] = [
     { value: '', label: 'Custom' },
     { value: 'about', label: 'About Us' },
     { value: 'privacy_policy', label: 'Privacy Policy' },

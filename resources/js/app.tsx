@@ -3,11 +3,11 @@ import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import React, { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { TooltipProvider } from '@/components/ui/tooltip';
-import ToastProvider from '@/components/toast-provider';
+// import ToastProvider from '@/components/toast-provider';
 import '../css/app.css';
 import { initializeTheme } from '@/hooks/use-appearance';
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+const appName = import.meta.env.VITE_APP_NAME || 'Biizz';
 
 createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),

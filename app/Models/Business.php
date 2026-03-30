@@ -43,6 +43,7 @@ use Illuminate\Support\Str;
     'seo_image',
     'show_branding',
     'default_payment_provider',
+    'customer_login_mode',
 ])]
 class Business extends Model
 {
