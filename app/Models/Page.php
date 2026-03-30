@@ -40,6 +40,7 @@ class Page extends Model
     {
         return [
             'is_published' => 'boolean',
+            'is_system' => 'boolean',
             'sort_order' => 'integer',
         ];
     }

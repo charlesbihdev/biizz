@@ -66,7 +66,7 @@ class Business extends Model
 
         static::created(function (Business $business): void {
             foreach (DefaultPages::stubs() as $stub) {
-                $business->pages()->create($stub);
+                $business->pages()->create($stub)->forceFill(['is_system' => true])->save();
             }
         });
     }

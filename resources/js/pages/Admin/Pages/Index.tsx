@@ -193,17 +193,19 @@ export default function PagesIndex({ business, pages }: Props) {
                                                 >
                                                     <Pencil className="h-4 w-4" />
                                                 </a>
-                                                <button
-                                                    onClick={() => handleDelete(page)}
-                                                    disabled={deletingId === page.id}
-                                                    className="rounded p-1.5 text-site-muted transition hover:bg-red-50 hover:text-red-600 disabled:opacity-60"
-                                                    title="Delete"
-                                                >
-                                                    {deletingId === page.id
-                                                        ? <LoaderCircle className="h-4 w-4 animate-spin" />
-                                                        : <Trash2 className="h-4 w-4" />
-                                                    }
-                                                </button>
+                                                {!page.is_system && (
+                                                    <button
+                                                        onClick={() => handleDelete(page)}
+                                                        disabled={deletingId === page.id}
+                                                        className="rounded p-1.5 text-site-muted transition hover:bg-red-50 hover:text-red-600 disabled:opacity-60"
+                                                        title="Delete"
+                                                    >
+                                                        {deletingId === page.id
+                                                            ? <LoaderCircle className="h-4 w-4 animate-spin" />
+                                                            : <Trash2 className="h-4 w-4" />
+                                                        }
+                                                    </button>
+                                                )}
                                             </div>
                                         </td>
                                     </tr>

@@ -95,6 +95,11 @@ class PageController extends Controller
     {
         abort_unless($business->isOwnedBy(auth()->user()), 403);
 
+        if ($page->is_system) {
+            return to_route('businesses.pages.index', $business)
+                ->with('error', 'System pages cannot be deleted. You can hide it instead.');
+        }
+
         $page->delete();
 
         return to_route('businesses.pages.index', $business)

@@ -139,6 +139,7 @@ export interface Page {
     slug:         string;
     content:      string | null;
     type:         PageType;
+    is_system:    boolean;
     is_published: boolean;
     sort_order:   number;
     created_at:   string;
