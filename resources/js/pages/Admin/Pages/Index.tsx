@@ -1,6 +1,6 @@
 import { Link, router } from '@inertiajs/react';
 import { useState } from 'react';
-import { Eye, EyeOff, LoaderCircle, Pencil, Plus, Trash2 } from 'lucide-react';
+import { Eye, EyeOff, LoaderCircle, Pencil, Plus, Search, Trash2, X } from 'lucide-react';
 import AppSidebarLayout from '@/layouts/app/app-sidebar-layout';
 import { show } from '@/routes/businesses';
 import { create, destroy, index, publish } from '@/routes/businesses/pages';
@@ -24,6 +24,19 @@ export default function PagesIndex({ business, pages }: Props) {
     const b = { business: business.slug };
     const [togglingId, setTogglingId] = useState<number | null>(null);
     const [deletingId, setDeletingId] = useState<number | null>(null);
+    const [search, setSearch] = useState('');
+    const [statusFilter, setStatusFilter] = useState<'all' | 'published' | 'draft'>('all');
+
+    const filtered = pages.filter((p) => {
+        const matchesSearch = !search || p.title.toLowerCase().includes(search.toLowerCase());
+        const matchesStatus =
+            statusFilter === 'all' ||
+            (statusFilter === 'published' && p.is_published) ||
+            (statusFilter === 'draft' && !p.is_published);
+        return matchesSearch && matchesStatus;
+    });
+
+    const isFiltered = !!search || statusFilter !== 'all';
 
     const handleTogglePublish = (page: Page) => {
         setTogglingId(page.id);
@@ -64,6 +77,39 @@ export default function PagesIndex({ business, pages }: Props) {
                     </Link>
                 </div>
 
+                {/* Filters */}
+                <div className="mb-4 flex flex-wrap items-center gap-2">
+                    <div className="relative min-w-48 flex-1">
+                        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-site-muted" />
+                        <input
+                            type="text"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            placeholder="Search pages…"
+                            className="w-full rounded-lg border border-site-border bg-white py-2 pl-9 pr-3 text-sm text-site-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/30"
+                        />
+                    </div>
+                    <select
+                        value={statusFilter}
+                        onChange={(e) => setStatusFilter(e.target.value as typeof statusFilter)}
+                        className="rounded-lg border border-site-border bg-white px-3 py-2 text-sm text-site-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/30"
+                    >
+                        <option value="all">All status</option>
+                        <option value="published">Published</option>
+                        <option value="draft">Draft</option>
+                    </select>
+                    {isFiltered && (
+                        <button
+                            type="button"
+                            onClick={() => { setSearch(''); setStatusFilter('all'); }}
+                            className="flex items-center gap-1 text-xs text-site-muted transition hover:text-site-fg"
+                        >
+                            <X className="h-3.5 w-3.5" />
+                            Clear
+                        </button>
+                    )}
+                </div>
+
                 {pages.length === 0 ? (
                     <div className="rounded-2xl border border-site-border bg-site-surface p-12 text-center">
                         <p className="text-sm font-medium text-site-fg">No pages yet</p>
@@ -78,29 +124,31 @@ export default function PagesIndex({ business, pages }: Props) {
                         </Link>
                     </div>
                 ) : (
-                    <div className="overflow-hidden rounded-xl border border-site-border bg-white">
-                        <table className="w-full text-left">
+                    <div className="overflow-x-auto rounded-xl border border-site-border bg-white">
+                        <table className="min-w-160 w-full text-left">
                             <thead>
                                 <tr className="border-b border-site-border bg-site-surface">
+                                    <th className="py-2.5 pl-4 pr-3 text-xs font-semibold uppercase tracking-wide text-site-muted">#</th>
                                     <th className="py-2.5 pl-4 pr-3 text-xs font-semibold uppercase tracking-wide text-site-muted">Title</th>
-                                    <th className="hidden px-3 py-2.5 text-xs font-semibold uppercase tracking-wide text-site-muted sm:table-cell">Type</th>
-                                    <th className="hidden px-3 py-2.5 text-xs font-semibold uppercase tracking-wide text-site-muted md:table-cell">Slug</th>
+                                    <th className="px-3 py-2.5 text-xs font-semibold uppercase tracking-wide text-site-muted">Type</th>
+                                    <th className="px-3 py-2.5 text-xs font-semibold uppercase tracking-wide text-site-muted">Slug</th>
                                     <th className="px-3 py-2.5 text-xs font-semibold uppercase tracking-wide text-site-muted">Status</th>
                                     <th className="py-2.5 pl-3 pr-4" />
                                 </tr>
                             </thead>
                             <tbody>
-                                {pages.map((page) => (
+                                {filtered.map((page, i) => (
                                     <tr key={page.id} className="border-b border-site-border last:border-0 hover:bg-site-surface/50">
+                                        <td className="py-3 pl-4 pr-3 text-xs tabular-nums text-site-muted">{i + 1}</td>
                                         <td className="py-3 pl-4 pr-3">
                                             <p className="text-sm font-medium text-site-fg">{page.title}</p>
                                         </td>
-                                        <td className="hidden px-3 py-3 sm:table-cell">
+                                        <td className="px-3 py-3">
                                             <span className="text-sm text-site-muted">
                                                 {page.type ? (PAGE_LABELS[page.type] ?? page.type) : 'Custom'}
                                             </span>
                                         </td>
-                                        <td className="hidden px-3 py-3 md:table-cell">
+                                        <td className="px-3 py-3">
                                             <code className="rounded bg-site-surface px-1.5 py-0.5 text-xs text-site-muted">
                                                 {page.slug}
                                             </code>

@@ -1,19 +1,35 @@
 import { Link } from '@inertiajs/react';
-import { Plus } from 'lucide-react';
+import { Plus, Package } from 'lucide-react';
 import { useState } from 'react';
 import { ProductDetailModal } from '@/components/admin/products/ProductDetailModal';
+import { ProductFilters } from '@/components/admin/products/ProductFilters';
+import type { ProductFiltersState } from '@/components/admin/products/ProductFilters';
 import { ProductRow } from '@/components/admin/products/ProductRow';
 import AppSidebarLayout from '@/layouts/app/app-sidebar-layout';
 import { show } from '@/routes/businesses';
 import { create, index } from '@/routes/businesses/products';
 import type { Business, Product } from '@/types';
 
-type Props = {
-    business: Business;
-    products: { data: Product[]; total: number };
+type Category = { id: number; name: string };
+
+type PaginatedProducts = {
+    data: Product[];
+    total: number;
+    per_page: number;
+    current_page: number;
+    last_page: number;
+    next_page_url: string | null;
+    prev_page_url: string | null;
 };
 
-export default function ProductsIndex({ business, products }: Props) {
+type Props = {
+    business: Business;
+    products: PaginatedProducts;
+    categories: Category[];
+    filters: ProductFiltersState;
+};
+
+export default function ProductsIndex({ business, products, categories, filters }: Props) {
     const [viewingProduct, setViewingProduct] = useState<Product | null>(null);
     const b = { business: business.slug };
 
@@ -39,12 +55,13 @@ export default function ProductsIndex({ business, products }: Props) {
                     </Link>
                 </div>
 
+                <ProductFilters indexUrl={index(b).url} filters={filters} categories={categories} />
+
                 {products.data.length === 0 ? (
                     <div className="rounded-2xl border border-site-border bg-site-surface p-12 text-center">
-                        <p className="text-sm font-medium text-site-fg">No products yet</p>
-                        <p className="mt-1 text-xs text-site-muted">
-                            Add your first product to start selling.
-                        </p>
+                        <Package className="mx-auto mb-3 h-8 w-8 text-site-muted" />
+                        <p className="text-sm font-medium text-site-fg">No products found</p>
+                        <p className="mt-1 text-xs text-site-muted">Try adjusting your filters or add a new product.</p>
                         <Link
                             href={create(b).url}
                             className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-brand hover:underline"
@@ -53,10 +70,11 @@ export default function ProductsIndex({ business, products }: Props) {
                         </Link>
                     </div>
                 ) : (
-                    <div className="overflow-hidden rounded-xl border border-site-border bg-white">
-                        <table className="w-full text-left">
+                    <div className="overflow-x-auto rounded-xl border border-site-border bg-white">
+                        <table className="min-w-180 w-full text-left">
                             <thead>
                                 <tr className="border-b border-site-border bg-site-surface">
+                                    <th className="py-2.5 pl-4 pr-3 text-xs font-semibold uppercase tracking-wide text-site-muted">#</th>
                                     <th className="py-2.5 pl-4 pr-3 text-xs font-semibold uppercase tracking-wide text-site-muted">Product</th>
                                     <th className="px-3 py-2.5 text-xs font-semibold uppercase tracking-wide text-site-muted">Price</th>
                                     <th className="px-3 py-2.5 text-xs font-semibold uppercase tracking-wide text-site-muted">Stock</th>
@@ -65,16 +83,36 @@ export default function ProductsIndex({ business, products }: Props) {
                                 </tr>
                             </thead>
                             <tbody>
-                                {products.data.map((product) => (
+                                {products.data.map((product, i) => (
                                     <ProductRow
                                         key={product.id}
                                         business={business}
                                         product={product}
+                                        rowNumber={(products.current_page - 1) * products.per_page + i + 1}
                                         onView={setViewingProduct}
                                     />
                                 ))}
                             </tbody>
                         </table>
+                    </div>
+                )}
+
+                {/* Pagination */}
+                {(products.prev_page_url || products.next_page_url) && (
+                    <div className="mt-4 flex justify-between">
+                        <Link
+                            href={products.prev_page_url ?? '#'}
+                            className={`text-sm font-medium ${products.prev_page_url ? 'text-brand hover:underline' : 'pointer-events-none text-site-muted'}`}
+                        >
+                            ← Previous
+                        </Link>
+                        <span className="text-sm text-site-muted">Page {products.current_page} of {products.last_page}</span>
+                        <Link
+                            href={products.next_page_url ?? '#'}
+                            className={`text-sm font-medium ${products.next_page_url ? 'text-brand hover:underline' : 'pointer-events-none text-site-muted'}`}
+                        >
+                            Next →
+                        </Link>
                     </div>
                 )}
             </div>

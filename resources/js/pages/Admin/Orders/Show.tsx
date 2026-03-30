@@ -30,7 +30,7 @@ const SOURCE_LABELS: Record<string, string> = {
 
 export default function OrderShow({ business, order, statuses }: Props) {
     const b = { business: business.slug };
-    const o = { business: business.slug, order: order.id };
+    const o = { business: business.slug, order: order.order_id! };
 
     const { data, setData, submit, processing } = useForm({ status: order.status });
 
@@ -39,13 +39,13 @@ export default function OrderShow({ business, order, statuses }: Props) {
             breadcrumbs={[
                 { title: business.name, href: businessShow(b).url },
                 { title: 'Orders',      href: index(b).url },
-                { title: `#${order.id}`, href: show(o).url },
+                { title: `#${order.order_id}`, href: show(o).url },
             ]}
         >
             <div className="p-6 lg:p-8">
                 <div className="mb-6 flex items-center justify-between">
                     <div>
-                        <h1 className="text-xl font-bold text-site-fg">Order #{order.id}</h1>
+                        <h1 className="text-xl font-bold text-site-fg">Order #{order.order_id}</h1>
                         <p className="mt-0.5 text-sm text-site-muted">
                             {new Date(order.created_at).toLocaleString()}
                         </p>

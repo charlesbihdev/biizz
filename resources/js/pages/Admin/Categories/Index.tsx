@@ -1,5 +1,5 @@
 import { router, useForm } from '@inertiajs/react';
-import { FolderOpen, LoaderCircle, Pencil, Plus, Trash2 } from 'lucide-react';
+import { FolderOpen, LoaderCircle, Pencil, Plus, Search, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import {
     AlertDialog,
@@ -118,6 +118,11 @@ export default function CategoriesIndex({ business, categories }: Props) {
     const [editTarget, setEditTarget] = useState<Category | null>(null);
     const [deleteTarget, setDeleteTarget] = useState<Category | null>(null);
     const [deleting, setDeleting] = useState(false);
+    const [search, setSearch] = useState('');
+
+    const filtered = search
+        ? categories.filter((c) => c.name.toLowerCase().includes(search.toLowerCase()))
+        : categories;
 
     const handleDelete = () => {
         if (!deleteTarget) { return; }
@@ -151,6 +156,20 @@ export default function CategoriesIndex({ business, categories }: Props) {
                     </button>
                 </div>
 
+                {/* Search */}
+                <div className="mb-4">
+                    <div className="relative max-w-xs">
+                        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-site-muted" />
+                        <input
+                            type="text"
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                            placeholder="Search categories…"
+                            className="w-full rounded-lg border border-site-border bg-white py-2 pl-9 pr-3 text-sm text-site-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/30"
+                        />
+                    </div>
+                </div>
+
                 {categories.length === 0 ? (
                     <div className="rounded-2xl border border-site-border bg-site-surface p-12 text-center">
                         <div className="mx-auto mb-3 flex h-10 w-10 items-center justify-center rounded-xl bg-brand-dim">
@@ -169,18 +188,20 @@ export default function CategoriesIndex({ business, categories }: Props) {
                         </button>
                     </div>
                 ) : (
-                    <div className="overflow-hidden rounded-xl border border-site-border bg-white">
-                        <table className="w-full text-left">
+                    <div className="overflow-x-auto rounded-xl border border-site-border bg-white">
+                        <table className="min-w-120 w-full text-left">
                             <thead>
                                 <tr className="border-b border-site-border bg-site-surface">
+                                    <th className="py-2.5 pl-4 pr-3 text-xs font-semibold uppercase tracking-wide text-site-muted">#</th>
                                     <th className="py-2.5 pl-4 pr-3 text-xs font-semibold uppercase tracking-wide text-site-muted">Category</th>
                                     <th className="px-3 py-2.5 text-xs font-semibold uppercase tracking-wide text-site-muted">Products</th>
                                     <th className="py-2.5 pl-3 pr-4" />
                                 </tr>
                             </thead>
                             <tbody>
-                                {categories.map((cat) => (
+                                {filtered.map((cat, i) => (
                                     <tr key={cat.id} className="border-b border-site-border last:border-0 hover:bg-site-surface/50">
+                                        <td className="py-3 pl-4 pr-3 text-xs tabular-nums text-site-muted">{i + 1}</td>
                                         <td className="py-3 pl-4 pr-3">
                                             <p className="text-sm font-medium text-site-fg">{cat.name}</p>
                                             {cat.description && (

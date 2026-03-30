@@ -63,7 +63,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
             // Payments (connect/disconnect/default actions; the GET redirects to settings)
             Route::prefix('payments')->name('payments.')->group(function () {
-                Route::get('/', fn(Business $business) => redirect()->route('businesses.settings.edit', $business))->name('edit');
+                Route::get('/', fn (Business $business) => redirect()->route('businesses.settings.edit', $business))->name('edit');
                 Route::post('/', [PaymentController::class, 'store'])->name('store');
                 Route::patch('/default', [PaymentController::class, 'setDefault'])->name('setDefault');
                 Route::delete('/{provider}', [PaymentController::class, 'destroy'])->name('destroy');
@@ -80,8 +80,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
             // Orders
             Route::prefix('orders')->name('orders.')->controller(OrderController::class)->group(function () {
                 Route::get('/', 'index')->name('index');
-                Route::get('/{order}', 'show')->name('show');
-                Route::patch('/{order}/status', 'updateStatus')->name('updateStatus');
+                Route::get('/{order:order_id}', 'show')->name('show');
+                Route::patch('/{order:order_id}/status', 'updateStatus')->name('updateStatus');
             });
 
             // Pages
