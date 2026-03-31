@@ -1,10 +1,10 @@
 import ClassicThemeShell       from '../ThemeShell';
-import { AccountSidebar }       from '../components/Account/AccountSidebar';
-import { OrdersSection }        from '../components/Account/OrdersSection';
-import { PaymentsSection }      from '../components/Account/PaymentsSection';
-import { AddressesSection }     from '../components/Account/AddressesSection';
-import { ProfileSection }       from '../components/Account/ProfileSection';
-import type { AccountProps }    from '../components/Account/types';
+import { AccountSidebar }       from '../Components/Account/AccountSidebar';
+import { OrdersSection }        from '../Components/Account/OrdersSection';
+import { PaymentsSection }      from '../Components/Account/PaymentsSection';
+import { AddressesSection }     from '../Components/Account/AddressesSection';
+import { ProfileSection }       from '../Components/Account/ProfileSection';
+import type { AccountProps }    from '../Components/Account/types';
 
 export default function Account({ business, pages, section, orders, payments, addresses, filters }: AccountProps) {
     const { theme_settings: s } = business;

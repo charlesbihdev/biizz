@@ -33,7 +33,7 @@ export default function WhatsAppCheckout({ business, primary }: { business: Busi
     const { customer } = useCustomerAuth();
 
     const [name, setName]   = useState(customer?.name ?? '');
-    const [phone, setPhone] = useState('');
+    const [phone, setPhone] = useState(customer?.phone ?? '');
 
     const whatsappNumber = business.social_links?.whatsapp ?? business.phone;
     const hasContact = !!(whatsappNumber || business.contact_email);

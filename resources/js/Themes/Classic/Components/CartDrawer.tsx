@@ -1,4 +1,5 @@
 import { router } from '@inertiajs/react';
+import StorefrontController from '@/actions/App/Http/Controllers/StorefrontController';
 import { X, Minus, Plus, ShoppingCart } from 'lucide-react';
 import type { CartItem } from '@/types/business';
 
@@ -23,7 +24,7 @@ export default function CartDrawer({
 
     const handleCheckout = () => {
         onCheckout();
-        router.visit(`/s/${businessSlug}/checkout`);
+        router.visit(StorefrontController.checkout.url(businessSlug));
     };
 
     return (

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\OrderStatus;
 use App\Enums\PaymentStatus;
 use App\Http\Requests\Storefront\CheckoutRequest;
 use App\Models\Business;
@@ -70,12 +71,12 @@ class CheckoutController extends Controller
 
         $orderId = $this->generateOrderId();
 
-        $customerId = isset($validated['customer_id'])
+        $customerId = auth('customer')->id() ?? (isset($validated['customer_id'])
             ? Customer::withoutGlobalScopes()
                 ->where('id', $validated['customer_id'])
                 ->where('business_id', $business->id)
                 ->value('id')
-            : null;
+            : null);
 
         $order = DB::transaction(function () use ($business, $validated, $total, $orderItems, $reference, $orderId, $customerId): Order {
             $order = Order::withoutGlobalScopes()->create([
@@ -174,12 +175,12 @@ class CheckoutController extends Controller
 
         $reference = Str::random(24);
         $orderId = $this->generateOrderId();
-        $customerId = isset($validated['customer_id'])
+        $customerId = auth('customer')->id() ?? (isset($validated['customer_id'])
             ? Customer::withoutGlobalScopes()
                 ->where('id', $validated['customer_id'])
                 ->where('business_id', $business->id)
                 ->value('id')
-            : null;
+            : null);
 
         $order = DB::transaction(function () use ($business, $validated, $total, $orderItems, $reference, $orderId, $customerId): Order {
             $order = Order::withoutGlobalScopes()->create([

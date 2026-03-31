@@ -1,4 +1,6 @@
 import { Link, router } from '@inertiajs/react';
+import StorefrontController from '@/actions/App/Http/Controllers/StorefrontController';
+import { show as account } from '@/actions/App/Http/Controllers/CustomerAccountController';
 import { destroy as logoutRoute } from '@/actions/App/Http/Controllers/StorefrontAuth/LogoutController';
 import { useEffect, useState } from 'react';
 import {
@@ -16,7 +18,6 @@ import {
 } from 'lucide-react';
 import type { Business, CustomerLoginMode, Page } from '@/types/business';
 import { useCustomerAuth } from '@/Themes/Shared/Hooks/useCustomerAuth';
-import { shop } from '@/actions/App/Http/Controllers/StorefrontController';
 import { useSearch } from '@/Themes/Shared/Hooks/useSearch';
 
 interface Props {
@@ -75,7 +76,7 @@ export default function StorefrontNav({
         setQuery: setSearchQuery,
         handleSubmit: handleSearch,
     } = useSearch(slug, {
-        target: shop.url(slug),
+        target: StorefrontController.shop.url(slug),
     });
 
     const activeCategorySlug =
@@ -146,7 +147,7 @@ export default function StorefrontNav({
                         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 sm:px-6 lg:px-8">
                             <div className="flex items-center gap-3">
                                 <Link
-                                    href={`/s/${slug}/contact`}
+                                    href={StorefrontController.contact.url(slug)}
                                     className="text-xs text-white/80 transition hover:text-white"
                                 >
                                     Help &amp; Support
@@ -193,7 +194,7 @@ export default function StorefrontNav({
                                 <Menu className="h-5 w-5" />
                             </button>
                             <Link
-                                href={`/s/${slug}`}
+                                href={StorefrontController.show.url(slug)}
                                 className="shrink-0 transition-opacity hover:opacity-80"
                             >
                                 {logo_url ? (
@@ -277,12 +278,12 @@ export default function StorefrontNav({
                         <div className="flex items-center justify-between">
                             <div className="flex items-center overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none]">
                                 <NavLink
-                                    href={`/s/${slug}`}
+                                    href={StorefrontController.show.url(slug)}
                                     active={
                                         !activeCategorySlug &&
                                         typeof window !== 'undefined' &&
                                         window.location.pathname ===
-                                            `/s/${slug}`
+                                            StorefrontController.show.url(slug)
                                     }
                                     accent={accent}
                                     primary={primary}
@@ -292,11 +293,11 @@ export default function StorefrontNav({
                                 </NavLink>
                                 {s.show_shop_page !== false && (
                                     <NavLink
-                                        href={`/s/${slug}/shop`}
+                                        href={StorefrontController.shop.url(slug)}
                                         active={
                                             typeof window !== 'undefined' &&
                                             window.location.pathname ===
-                                                `/s/${slug}/shop`
+                                                StorefrontController.shop.url(slug)
                                         }
                                         accent={accent}
                                         primary={primary}
@@ -307,7 +308,7 @@ export default function StorefrontNav({
                                 {categories.map((cat) => (
                                     <NavLink
                                         key={cat.id}
-                                        href={`/s/${slug}?category=${cat.slug}`}
+                                        href={StorefrontController.show.url(slug, { query: { category: cat.slug } })}
                                         active={activeCategorySlug === cat.slug}
                                         accent={accent}
                                         primary={primary}
@@ -320,11 +321,11 @@ export default function StorefrontNav({
                             {pages.length > 0 && (
                                 <div className="hidden shrink-0 items-center lg:flex">
                                     <NavLink
-                                        href={`/s/${slug}/contact`}
+                                        href={StorefrontController.contact.url(slug)}
                                         active={
                                             typeof window !== 'undefined' &&
                                             window.location.pathname ===
-                                                `/s/${slug}/contact`
+                                                StorefrontController.contact.url(slug)
                                         }
                                         accent={accent}
                                         primary={primary}
@@ -334,11 +335,11 @@ export default function StorefrontNav({
                                     {pages.slice(0, 4).map((page) => (
                                         <NavLink
                                             key={page.id}
-                                            href={`/s/${slug}/pages/${page.slug}`}
+                                            href={StorefrontController.page.url({ business: slug, page: page.slug })}
                                             active={
                                                 typeof window !== 'undefined' &&
                                                 window.location.pathname ===
-                                                    `/s/${slug}/pages/${page.slug}`
+                                                    StorefrontController.page.url({ business: slug, page: page.slug })
                                             }
                                             accent={accent}
                                             primary={primary}
@@ -392,13 +393,13 @@ export default function StorefrontNav({
                             </form>
 
                             <DrawerSection label="Shop">
-                                <DrawerLink href={`/s/${slug}`} accent={accent}>
+                                <DrawerLink href={StorefrontController.shop.url(slug)} accent={accent}>
                                     All Products
                                 </DrawerLink>
                                 {categories.map((cat) => (
                                     <DrawerLink
                                         key={cat.id}
-                                        href={`/s/${slug}?category=${cat.slug}`}
+                                        href={StorefrontController.show.url(slug, { query: { category: cat.slug } })}
                                         active={activeCategorySlug === cat.slug}
                                         accent={accent}
                                     >
@@ -409,7 +410,7 @@ export default function StorefrontNav({
 
                             <DrawerSection label="Info">
                                 <DrawerLink
-                                    href={`/s/${slug}/contact`}
+                                    href={StorefrontController.contact.url(slug)}
                                     accent={accent}
                                 >
                                     Contact Us
@@ -417,13 +418,24 @@ export default function StorefrontNav({
                                 {pages.map((page) => (
                                     <DrawerLink
                                         key={page.id}
-                                        href={`/s/${slug}/pages/${page.slug}`}
+                                        href={StorefrontController.page.url({ business: slug, page: page.slug })}
                                         accent={accent}
                                     >
                                         {pageLabel(page)}
                                     </DrawerLink>
                                 ))}
                             </DrawerSection>
+
+                            {isAuthenticated && (
+                                <DrawerSection label="Account">
+                                    <DrawerLink
+                                        href={account.url(slug)}
+                                        accent={accent}
+                                    >
+                                        My Account
+                                    </DrawerLink>
+                                </DrawerSection>
+                            )}
 
                             {whatsappHref && (
                                 <a
@@ -508,6 +520,14 @@ function AccountButton({
                                 {customer?.email}
                             </p>
                         </div>
+                        <Link
+                            href={account.url(businessSlug)}
+                            className="flex w-full items-center gap-2 px-4 py-2 text-sm text-zinc-600 transition hover:bg-zinc-50"
+                            onClick={() => setOpen(false)}
+                        >
+                            <User className="h-4 w-4" />
+                            My Account
+                        </Link>
                         <button
                             type="button"
                             onClick={() => {

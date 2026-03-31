@@ -118,7 +118,7 @@ function PaystackCheckout({ business, primary, accent }: Props) {
 
     const [name, setName]   = useState(customer?.name  ?? '');
     const [email, setEmail] = useState(customer?.email ?? '');
-    const [phone, setPhone] = useState('');
+    const [phone, setPhone] = useState(customer?.phone ?? '');
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
@@ -157,7 +157,7 @@ function JunipayCheckout({ business, primary, accent }: Props) {
 
     const [name, setName]   = useState(customer?.name  ?? '');
     const [email, setEmail] = useState(customer?.email ?? '');
-    const [phone, setPhone] = useState('');
+    const [phone, setPhone] = useState(customer?.phone ?? '');
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
