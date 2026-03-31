@@ -1,5 +1,7 @@
+import { useState } from 'react';
 import { Link } from '@inertiajs/react';
-import { Download, ShoppingCart } from 'lucide-react';
+import { ArrowRight, Download, ShoppingCart } from 'lucide-react';
+import StorefrontController from '@/actions/App/Http/Controllers/StorefrontController';
 import type { CartItem, Product } from '@/types/business';
 
 interface Props {
@@ -22,10 +24,13 @@ export default function ProductCard({ product, onAddToCart, accentColor, primary
     const textMuted  = primary + 'b3'; // 70% opacity
     const textSubtle = primary + '73'; // 45% opacity
 
+    const [added, setAdded] = useState(false);
+
     const handleAdd = (e: React.MouseEvent) => {
         e.preventDefault();
         if (outStock) { return; }
         onAddToCart({ id: product.id, name: product.name, price, quantity: 1, image });
+        setAdded(true);
     };
 
     const href = businessSlug ? `/s/${businessSlug}/p/${product.slug}` : undefined;
@@ -99,6 +104,15 @@ export default function ProductCard({ product, onAddToCart, accentColor, primary
                     <div className="rounded-xl border border-zinc-200 py-2 text-center text-xs font-medium" style={{ color: textMuted }}>
                         Unavailable
                     </div>
+                ) : added && businessSlug ? (
+                    <Link
+                        href={StorefrontController.checkout.url(businessSlug)}
+                        className="flex w-full items-center justify-center gap-1.5 rounded-xl border-2 py-2 text-xs font-bold transition hover:opacity-80 active:scale-[0.98]"
+                        style={{ borderColor: accent, color: accent }}
+                    >
+                        <ArrowRight className="h-3.5 w-3.5" />
+                        Checkout
+                    </Link>
                 ) : (
                     <button
                         onClick={handleAdd}
