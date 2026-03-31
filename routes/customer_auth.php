@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\Route;
 |--------------------------------------------------------------------------
 | Storefront Customer Auth Routes
 |--------------------------------------------------------------------------
+| Authentication actions (login, register, logout, OAuth).
 | All routes are scoped to a business via the 'business' middleware (set by
 | the parent group in storefront.php). BusinessContext is available here.
 |

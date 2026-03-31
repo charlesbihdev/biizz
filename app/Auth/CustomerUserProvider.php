@@ -22,7 +22,7 @@ use Illuminate\Support\Facades\Hash;
  */
 class CustomerUserProvider implements UserProvider
 {
-    public function retrieveById(mixed $identifier): ?Authenticatable
+    public function retrieveById($identifier): ?Authenticatable
     {
         return Customer::withoutGlobalScope(BusinessScope::class)
             ->where('id', $identifier)
@@ -30,7 +30,7 @@ class CustomerUserProvider implements UserProvider
             ->first();
     }
 
-    public function retrieveByToken(mixed $identifier, mixed $token): ?Authenticatable
+    public function retrieveByToken($identifier, #[\SensitiveParameter] $token): ?Authenticatable
     {
         return Customer::withoutGlobalScope(BusinessScope::class)
             ->where('id', $identifier)
@@ -39,14 +39,14 @@ class CustomerUserProvider implements UserProvider
             ->first();
     }
 
-    public function updateRememberToken(Authenticatable $user, mixed $token): void
+    public function updateRememberToken(Authenticatable $user, #[\SensitiveParameter] $token): void
     {
         /** @var Customer $user */
         $user->setRememberToken($token);
         $user->save();
     }
 
-    public function retrieveByCredentials(array $credentials): ?Authenticatable
+    public function retrieveByCredentials(#[\SensitiveParameter] array $credentials): ?Authenticatable
     {
         return Customer::withoutGlobalScope(BusinessScope::class)
             ->where('business_id', BusinessContext::current()->id)
@@ -54,12 +54,12 @@ class CustomerUserProvider implements UserProvider
             ->first();
     }
 
-    public function validateCredentials(Authenticatable $user, array $credentials): bool
+    public function validateCredentials(Authenticatable $user, #[\SensitiveParameter] array $credentials): bool
     {
         return Hash::check($credentials['password'], $user->getAuthPassword());
     }
 
-    public function rehashPasswordIfRequired(Authenticatable $user, array $credentials, bool $force = false): void
+    public function rehashPasswordIfRequired(Authenticatable $user, #[\SensitiveParameter] array $credentials, bool $force = false): void
     {
         if (! Hash::needsRehash($user->getAuthPassword()) && ! $force) {
             return;

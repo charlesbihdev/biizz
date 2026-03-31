@@ -1,12 +1,15 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from '@inertiajs/react';
 import { useCustomerAuth } from '@/Themes/Shared/Hooks/useCustomerAuth';
+import { useCustomerAddresses } from '@/Themes/Shared/Hooks/useCustomerAddresses';
 import { ChevronLeft, MessageCircle, Phone } from 'lucide-react';
 import OrderSummary from './OrderSummary';
 import { useCartStore } from '@/stores/cartStore';
-import type { Business } from '@/types/business';
+import type { Business, CustomerAddress } from '@/types/business';
 
-function buildWhatsAppUrl(business: Business, items: { name: string; price: number; quantity: number }[], total: number, name: string, phone: string): string {
+interface Props { business: Business; primary: string; addresses?: CustomerAddress[] }
+
+function buildWhatsAppUrl(business: Business, items: { name: string; price: number; quantity: number }[], total: number, name: string, phone: string, address: string, city: string, country: string): string {
     const lines = items.map(
         (item) => `- ${item.name} (x${item.quantity}) — GHS ${(item.price * item.quantity).toFixed(2)}`,
     );
@@ -20,6 +23,7 @@ function buildWhatsAppUrl(business: Business, items: { name: string; price: numb
         '',
         `Name: ${name}`,
         `Phone: ${phone}`,
+        `Delivery Address: ${address}, ${city}, ${country}`
     ].join('\n');
 
     const raw = business.social_links?.whatsapp ?? business.phone ?? '';
@@ -28,30 +32,47 @@ function buildWhatsAppUrl(business: Business, items: { name: string; price: numb
     return `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
 }
 
-export default function WhatsAppCheckout({ business, primary }: { business: Business; primary: string }) {
+export default function WhatsAppCheckout({ business, primary, addresses }: Props) {
     const { items, total, itemCount, removeFromCart, updateQuantity } = useCartStore();
     const { customer } = useCustomerAuth();
+    const addrHook = useCustomerAddresses(addresses);
 
     const [name, setName]   = useState(customer?.name ?? '');
-    const [phone, setPhone] = useState('');
+    const [phone, setPhone] = useState(customer?.phone ?? '');
+    
+    const [address, setAddress] = useState('');
+    const [city, setCity] = useState('');
+    const [region, setRegion] = useState('');
+    const [country, setCountry] = useState('Ghana');
+
+    useEffect(() => {
+        if (addrHook.selectedAddress) {
+            setAddress(addrHook.selectedAddress.street_address);
+            setCity(addrHook.selectedAddress.city);
+            setRegion(addrHook.selectedAddress.region || '');
+            setCountry(addrHook.selectedAddress.country);
+        } else {
+            setAddress('');
+            setCity('');
+            setRegion('');
+            setCountry('Ghana');
+        }
+    }, [addrHook.selectedAddress]);
 
     const whatsappNumber = business.social_links?.whatsapp ?? business.phone;
     const hasContact = !!(whatsappNumber || business.contact_email);
+    const isManual = addrHook.selectedAddressId === null;
 
     const handleSend = (e: React.FormEvent) => {
         e.preventDefault();
-        const url = buildWhatsAppUrl(business, items, total, name, phone);
+        const url = buildWhatsAppUrl(business, items, total, name, phone, address, city, country);
         window.open(url, '_blank', 'noopener');
     };
 
     return (
         <main className="mx-auto max-w-4xl px-6 py-12 lg:px-8">
             <nav className="mb-8 flex items-center gap-2 text-sm" style={{ color: primary + 'b3' }}>
-                <Link
-                    href={`/s/${business.slug}`}
-                    className="flex items-center gap-1 transition hover:opacity-80"
-                    style={{ color: primary + 'b3' }}
-                >
+                <Link href={`/s/${business.slug}`} className="flex items-center gap-1 transition hover:opacity-80" style={{ color: primary + 'b3' }}>
                     <ChevronLeft className="h-3.5 w-3.5" />
                     Back to store
                 </Link>
@@ -68,35 +89,78 @@ export default function WhatsAppCheckout({ business, primary }: { business: Busi
 
             <div className="grid gap-10 lg:grid-cols-5">
                 {whatsappNumber ? (
-                    <form onSubmit={handleSend} className="space-y-5 lg:col-span-3">
-                        <h2 className="text-lg font-semibold" style={{ color: primary }}>Your Details</h2>
+                    <form onSubmit={handleSend} className="space-y-6 lg:col-span-3">
+                        <div className="space-y-5">
+                            <h2 className="text-lg font-semibold" style={{ color: primary }}>Your Details</h2>
 
-                        <div>
-                            <label className="mb-1.5 block text-sm font-medium" style={{ color: primary + 'cc' }}>
-                                Full Name
-                            </label>
-                            <input
-                                type="text"
-                                required
-                                value={name}
-                                onChange={(e) => setName(e.target.value)}
-                                className="w-full rounded-xl border border-zinc-200 px-4 py-3 text-sm outline-none transition focus:border-zinc-400"
-                                placeholder="John Doe"
-                            />
+                            <div>
+                                <label className="mb-1.5 block text-sm font-medium" style={{ color: primary + 'cc' }}>Full Name</label>
+                                <input type="text" required value={name} onChange={(e) => setName(e.target.value)}
+                                    className="w-full rounded-xl border border-zinc-200 px-4 py-3 text-sm outline-none transition focus:border-zinc-400" placeholder="John Doe" />
+                            </div>
+
+                            <div>
+                                <label className="mb-1.5 block text-sm font-medium" style={{ color: primary + 'cc' }}>Phone Number</label>
+                                <input type="tel" required value={phone} onChange={(e) => setPhone(e.target.value)}
+                                    className="w-full rounded-xl border border-zinc-200 px-4 py-3 text-sm outline-none transition focus:border-zinc-400" placeholder="+233 XX XXX XXXX" />
+                            </div>
                         </div>
 
-                        <div>
-                            <label className="mb-1.5 block text-sm font-medium" style={{ color: primary + 'cc' }}>
-                                Phone Number
-                            </label>
-                            <input
-                                type="tel"
-                                required
-                                value={phone}
-                                onChange={(e) => setPhone(e.target.value)}
-                                className="w-full rounded-xl border border-zinc-200 px-4 py-3 text-sm outline-none transition focus:border-zinc-400"
-                                placeholder="+233 XX XXX XXXX"
-                            />
+                        <hr className="border-zinc-100" />
+
+                        <div className="space-y-5">
+                            <h2 className="text-lg font-semibold" style={{ color: primary }}>Delivery Address</h2>
+
+                            {addrHook.hasAddresses && (
+                                <div className="flex flex-col gap-2">
+                                    {addrHook.addresses.map(addr => (
+                                        <label key={addr.id} className={`flex cursor-pointer items-start gap-3 rounded-xl border p-4 transition ${addrHook.selectedAddressId === addr.id ? 'border-zinc-900 bg-zinc-50' : 'border-zinc-200'}`}>
+                                            <input type="radio" className="mt-1" name="address_id" 
+                                                checked={addrHook.selectedAddressId === addr.id}
+                                                onChange={() => addrHook.setSelectedAddressId(addr.id)} 
+                                            />
+                                            <div>
+                                                <p className="text-sm font-medium text-zinc-900">{addr.street_address}</p>
+                                                <p className="text-xs text-zinc-500">{addr.city}{addr.region ? `, ${addr.region}` : ''}, {addr.country}</p>
+                                            </div>
+                                        </label>
+                                    ))}
+                                    <label className={`flex cursor-pointer items-center gap-3 rounded-xl border p-4 transition ${isManual ? 'border-zinc-900 bg-zinc-50' : 'border-zinc-200'}`}>
+                                        <input type="radio" name="address_id"
+                                            checked={isManual}
+                                            onChange={() => addrHook.setSelectedAddressId(null)} 
+                                        />
+                                        <p className="text-sm font-medium text-zinc-900">Enter a new address</p>
+                                    </label>
+                                </div>
+                            )}
+
+                            {isManual && (
+                                <div className="space-y-5 rounded-xl border border-zinc-100 bg-zinc-50/50 p-5">
+                                    <div>
+                                        <label className="mb-1.5 block text-sm font-medium" style={{ color: primary + 'cc' }}>Street Address</label>
+                                        <input type="text" required value={address} onChange={e => setAddress(e.target.value)}
+                                            className="w-full rounded-xl border border-zinc-200 px-4 py-3 text-sm outline-none transition focus:border-zinc-400 bg-white" placeholder="123 Example Street" />
+                                    </div>
+                                    <div className="grid gap-5 sm:grid-cols-2">
+                                        <div>
+                                            <label className="mb-1.5 block text-sm font-medium" style={{ color: primary + 'cc' }}>City</label>
+                                            <input type="text" required value={city} onChange={e => setCity(e.target.value)}
+                                                className="w-full rounded-xl border border-zinc-200 px-4 py-3 text-sm outline-none transition focus:border-zinc-400 bg-white" placeholder="Accra" />
+                                        </div>
+                                        <div>
+                                            <label className="mb-1.5 block text-sm font-medium" style={{ color: primary + 'cc' }}>Region / State</label>
+                                            <input type="text" required value={region} onChange={e => setRegion(e.target.value)}
+                                                className="w-full rounded-xl border border-zinc-200 px-4 py-3 text-sm outline-none transition focus:border-zinc-400 bg-white" placeholder="Greater Accra" />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <label className="mb-1.5 block text-sm font-medium" style={{ color: primary + 'cc' }}>Country</label>
+                                        <input type="text" required value={country} onChange={e => setCountry(e.target.value)}
+                                            className="w-full rounded-xl border border-zinc-200 px-4 py-3 text-sm outline-none transition focus:border-zinc-400 bg-white" placeholder="Ghana" />
+                                    </div>
+                                </div>
+                            )}
                         </div>
 
                         <button

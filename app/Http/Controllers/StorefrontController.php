@@ -29,14 +29,14 @@ class StorefrontController extends Controller
         $products = $business->products()
             ->active()
             ->inStock()
-            ->when($category, fn($q) => $q->where('category_id', $category->id))
+            ->when($category, fn ($q) => $q->where('category_id', $category->id))
             ->with(['category', 'images'])
             ->paginate($perPage)
             ->withQueryString();
 
         $business->load([
-            'categories' => fn($q) => $q->orderBy('sort_order'),
-            'pages' => fn($q) => $q->published(),
+            'categories' => fn ($q) => $q->orderBy('sort_order'),
+            'pages' => fn ($q) => $q->published(),
         ]);
 
         return Inertia::render('Storefront/Main', [
@@ -65,12 +65,12 @@ class StorefrontController extends Controller
 
         $products = $business->products()
             ->active()
-            ->when($category, fn($q) => $q->where('category_id', $category->id))
-            ->when($inStock, fn($q) => $q->inStock())
-            ->when(request('min_price'), fn($q) => $q->where('price', '>=', request('min_price')))
-            ->when(request('max_price'), fn($q) => $q->where('price', '<=', request('max_price')))
-            ->when(request('q'), fn($q) => $q->where('name', 'like', '%' . request('q') . '%'))
-            ->when(true, fn($q) => match ($sort) {
+            ->when($category, fn ($q) => $q->where('category_id', $category->id))
+            ->when($inStock, fn ($q) => $q->inStock())
+            ->when(request('min_price'), fn ($q) => $q->where('price', '>=', request('min_price')))
+            ->when(request('max_price'), fn ($q) => $q->where('price', '<=', request('max_price')))
+            ->when(request('q'), fn ($q) => $q->where('name', 'like', '%'.request('q').'%'))
+            ->when(true, fn ($q) => match ($sort) {
                 'price_asc' => $q->orderBy('price'),
                 'price_desc' => $q->orderByDesc('price'),
                 'name_asc' => $q->orderBy('name'),
@@ -86,8 +86,8 @@ class StorefrontController extends Controller
         ];
 
         $business->load([
-            'categories' => fn($q) => $q->orderBy('sort_order'),
-            'pages' => fn($q) => $q->published(),
+            'categories' => fn ($q) => $q->orderBy('sort_order'),
+            'pages' => fn ($q) => $q->published(),
         ]);
 
         return Inertia::render('Storefront/Shop', [
@@ -147,8 +147,8 @@ class StorefrontController extends Controller
             ->withQueryString();
 
         $business->load([
-            'categories' => fn($q) => $q->orderBy('sort_order'),
-            'pages' => fn($q) => $q->published(),
+            'categories' => fn ($q) => $q->orderBy('sort_order'),
+            'pages' => fn ($q) => $q->published(),
         ]);
 
         return Inertia::render('Storefront/Main', [
@@ -171,13 +171,13 @@ class StorefrontController extends Controller
         $related = $business->products()
             ->active()
             ->inStock()
-            ->when($product->category_id, fn($q) => $q->where('category_id', $product->category_id))
+            ->when($product->category_id, fn ($q) => $q->where('category_id', $product->category_id))
             ->where('id', '!=', $product->id)
             ->with('images')
             ->limit(4)
             ->get();
 
-        $business->load(['pages' => fn($q) => $q->published()]);
+        $business->load(['pages' => fn ($q) => $q->published()]);
 
         return Inertia::render('Storefront/Product', [
             'business' => $business,
@@ -195,13 +195,16 @@ class StorefrontController extends Controller
     {
         abort_unless($business->is_active, 404);
 
-        $business->load(['pages' => fn($q) => $q->published()]);
+        $business->load(['pages' => fn ($q) => $q->published()]);
+
+        $customer = auth('customer')->user();
 
         return Inertia::render('Storefront/Checkout', [
-            'business'    => $business,
-            'pages'       => $business->pages,
+            'business' => $business,
+            'pages' => $business->pages,
             'hasPaystack' => $business->hasPaystackConfigured(),
-            'hasJunipay'  => $business->hasJunipayConfigured(),
+            'hasJunipay' => $business->hasJunipayConfigured(),
+            'addresses' => $customer ? $customer->addresses()->get() : [],
         ]);
     }
 
@@ -212,7 +215,7 @@ class StorefrontController extends Controller
     {
         abort_unless($business->is_active, 404);
 
-        $business->load(['pages' => fn($q) => $q->published()]);
+        $business->load(['pages' => fn ($q) => $q->published()]);
 
         return Inertia::render('Storefront/Contact', [
             'business' => $business,
@@ -231,7 +234,7 @@ class StorefrontController extends Controller
 
         abort_unless($business->is_active && ($page->is_published || $isPreview), 404);
 
-        $business->load(['pages' => fn($q) => $q->published()]);
+        $business->load(['pages' => fn ($q) => $q->published()]);
 
         return Inertia::render('Storefront/Page', [
             'business' => $business,

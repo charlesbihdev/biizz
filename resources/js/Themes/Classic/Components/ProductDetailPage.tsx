@@ -4,7 +4,7 @@ import { ChevronLeft, ShoppingCart, X, ZoomIn } from 'lucide-react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useCartStore } from '@/stores/cartStore';
 import type { CartItem, Product } from '@/types/business';
-import ProductCard from './ProductCard';
+import ProductCard from './Common/ProductCard';
 
 interface Props {
     businessSlug:  string;

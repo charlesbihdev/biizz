@@ -12,7 +12,7 @@ use App\Models\Payment;
 use App\Models\Product;
 use App\Services\Payments\JunipayGateway;
 use App\Services\Payments\PaymentGatewayFactory;
-use App\Services\Payments\VerificationResult;
+use App\Services\PaymentVerificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
@@ -25,6 +25,8 @@ use Symfony\Component\HttpFoundation\Response as HttpResponse;
 
 class CheckoutController extends Controller
 {
+    public function __construct(private readonly PaymentVerificationService $verificationService) {}
+
     /**
      * Process the checkout: create order, initialize payment, redirect to provider.
      * Junipay uses the inline Payment Form — route to initiateJunipay() instead.
@@ -69,12 +71,12 @@ class CheckoutController extends Controller
 
         $orderId = $this->generateOrderId();
 
-        $customerId = isset($validated['customer_id'])
+        $customerId = auth('customer')->id() ?? (isset($validated['customer_id'])
             ? Customer::withoutGlobalScopes()
-            ->where('id', $validated['customer_id'])
-            ->where('business_id', $business->id)
-            ->value('id')
-            : null;
+                ->where('id', $validated['customer_id'])
+                ->where('business_id', $business->id)
+                ->value('id')
+            : null);
 
         $order = DB::transaction(function () use ($business, $validated, $total, $orderItems, $reference, $orderId, $customerId): Order {
             $order = Order::withoutGlobalScopes()->create([
@@ -84,6 +86,10 @@ class CheckoutController extends Controller
                 'customer_name' => $validated['customer_name'],
                 'customer_email' => $validated['customer_email'],
                 'customer_phone' => $validated['customer_phone'],
+                'delivery_address' => $validated['delivery_address'] ?? null,
+                'delivery_city' => $validated['delivery_city'] ?? null,
+                'delivery_region' => $validated['delivery_region'] ?? null,
+                'delivery_country' => $validated['delivery_country'] ?? null,
                 'total' => $total,
                 'currency' => 'GHS',
                 'status' => OrderStatus::Pending,
@@ -107,19 +113,37 @@ class CheckoutController extends Controller
                 'status' => PaymentStatus::Pending,
             ]);
 
+            if ($customerId && ! empty($validated['save_address'])) {
+                $customer = Customer::withoutGlobalScopes()
+                    ->where('id', $customerId)
+                    ->where('business_id', $business->id)
+                    ->first();
+                if ($customer) {
+                    $customer->addresses()->firstOrCreate([
+                        'street_address' => $validated['delivery_address'],
+                        'city' => $validated['delivery_city'],
+                        'region' => $validated['delivery_region'] ?? null,
+                        'country' => $validated['delivery_country'] ?? 'Ghana',
+                    ], [
+                        'label' => 'Delivery Address',
+                        'is_default' => $customer->addresses()->count() === 0,
+                    ]);
+                }
+            }
+
             return $order;
         });
 
         try {
-            $factory  = app(PaymentGatewayFactory::class);
-            $gateway  = $factory->make($business);
+            $factory = app(PaymentGatewayFactory::class);
+            $gateway = $factory->make($business);
             $callback = route('storefront.checkout.callback', $business);
-            $result   = $gateway->initialize($order, $business, $callback);
+            $result = $gateway->initialize($order, $business, $callback);
         } catch (\Throwable $e) {
             Log::error('Checkout payment initialization failed', [
                 'business_id' => $business->id,
-                'reference'   => $reference,
-                'error'       => $e->getMessage(),
+                'reference' => $reference,
+                'error' => $e->getMessage(),
             ]);
 
             return to_route('storefront.checkout', $business)
@@ -163,37 +187,41 @@ class CheckoutController extends Controller
             $total += $subtotal;
 
             $orderItems[] = [
-                'product_id'   => $product->id,
+                'product_id' => $product->id,
                 'product_name' => $product->name,
-                'unit_price'   => $product->price,
-                'quantity'     => $quantity,
-                'subtotal'     => $subtotal,
+                'unit_price' => $product->price,
+                'quantity' => $quantity,
+                'subtotal' => $subtotal,
             ];
         }
 
-        $reference  = Str::random(24);
-        $orderId    = $this->generateOrderId();
-        $customerId = isset($validated['customer_id'])
+        $reference = Str::random(24);
+        $orderId = $this->generateOrderId();
+        $customerId = auth('customer')->id() ?? (isset($validated['customer_id'])
             ? Customer::withoutGlobalScopes()
-            ->where('id', $validated['customer_id'])
-            ->where('business_id', $business->id)
-            ->value('id')
-            : null;
+                ->where('id', $validated['customer_id'])
+                ->where('business_id', $business->id)
+                ->value('id')
+            : null);
 
         $order = DB::transaction(function () use ($business, $validated, $total, $orderItems, $reference, $orderId, $customerId): Order {
             $order = Order::withoutGlobalScopes()->create([
-                'business_id'      => $business->id,
-                'customer_id'      => $customerId,
-                'order_id'         => $orderId,
-                'customer_name'    => $validated['customer_name'],
-                'customer_email'   => $validated['customer_email'],
-                'customer_phone'   => $validated['customer_phone'],
-                'total'            => $total,
-                'currency'         => 'GHS',
-                'status'           => OrderStatus::Pending,
-                'payment_ref'      => $reference,
+                'business_id' => $business->id,
+                'customer_id' => $customerId,
+                'order_id' => $orderId,
+                'customer_name' => $validated['customer_name'],
+                'customer_email' => $validated['customer_email'],
+                'customer_phone' => $validated['customer_phone'],
+                'delivery_address' => $validated['delivery_address'] ?? null,
+                'delivery_city' => $validated['delivery_city'] ?? null,
+                'delivery_region' => $validated['delivery_region'] ?? null,
+                'delivery_country' => $validated['delivery_country'] ?? null,
+                'total' => $total,
+                'currency' => 'GHS',
+                'status' => OrderStatus::Pending,
+                'payment_ref' => $reference,
                 'payment_provider' => 'junipay',
-                'source'           => 'storefront',
+                'source' => 'storefront',
             ]);
 
             foreach ($orderItems as $item) {
@@ -202,31 +230,49 @@ class CheckoutController extends Controller
 
             Payment::withoutGlobalScopes()->create([
                 'business_id' => $business->id,
-                'order_id'    => $order->id,
+                'order_id' => $order->id,
                 'customer_id' => $customerId,
-                'gateway'     => 'junipay',
-                'reference'   => $reference,
-                'amount'      => $total,
-                'currency'    => 'GHS',
-                'status'      => PaymentStatus::Pending,
+                'gateway' => 'junipay',
+                'reference' => $reference,
+                'amount' => $total,
+                'currency' => 'GHS',
+                'status' => PaymentStatus::Pending,
             ]);
+
+            if ($customerId && ! empty($validated['save_address'])) {
+                $customer = Customer::withoutGlobalScopes()
+                    ->where('id', $customerId)
+                    ->where('business_id', $business->id)
+                    ->first();
+                if ($customer) {
+                    $customer->addresses()->firstOrCreate([
+                        'street_address' => $validated['delivery_address'],
+                        'city' => $validated['delivery_city'],
+                        'region' => $validated['delivery_region'] ?? null,
+                        'country' => $validated['delivery_country'] ?? 'Ghana',
+                    ], [
+                        'label' => 'Delivery Address',
+                        'is_default' => $customer->addresses()->count() === 0,
+                    ]);
+                }
+            }
 
             return $order;
         });
 
         try {
             /** @var JunipayGateway $gateway */
-            $gateway     = app(PaymentGatewayFactory::class)->make($business);
+            $gateway = app(PaymentGatewayFactory::class)->make($business);
             $callbackUrl = route('storefront.checkout.callback', $business);
 
             return Inertia::render('Storefront/Checkout', [
                 'junipay_init' => [
-                    'token'        => $gateway->getPaymentFormToken(),
-                    'client_id'    => $business->junipay_client_id,
-                    'reference'    => $reference,
-                    'amount'       => (int) $order->total,
-                    'description'  => "Order #{$order->order_id} for {$business->name}",
-                    'email'        => $order->customer_email,
+                    'token' => $gateway->getPaymentFormToken(),
+                    'client_id' => $business->junipay_client_id,
+                    'reference' => $reference,
+                    'amount' => (int) $order->total,
+                    'description' => "Order #{$order->order_id} for {$business->name}",
+                    'email' => $order->customer_email,
                     'callback_url' => $callbackUrl,
                     'redirect_url' => $callbackUrl,
                 ],
@@ -234,8 +280,8 @@ class CheckoutController extends Controller
         } catch (\Throwable $e) {
             Log::error('Junipay token fetch failed', [
                 'business_id' => $business->id,
-                'reference'   => $reference,
-                'error'       => $e->getMessage(),
+                'reference' => $reference,
+                'error' => $e->getMessage(),
             ]);
 
             return to_route('storefront.checkout', $business)
@@ -289,7 +335,7 @@ class CheckoutController extends Controller
             return to_route('storefront.checkout', $business)->with('error', 'Payment verification failed. Please contact the store.');
         }
 
-        $this->processVerification($payment, $result);
+        $this->verificationService->process($payment, $result);
 
         if ($payment->isSuccessful()) {
             return to_route('storefront.checkout.success', ['business' => $business, 'ref' => $reference]);
@@ -357,7 +403,7 @@ class CheckoutController extends Controller
 
         try {
             $result = $gateway->verify($reference, $business, $providerTxnId);
-            $this->processVerification($payment, $result);
+            $this->verificationService->process($payment, $result);
         } catch (\Throwable $e) {
             Log::error('Webhook verification failed', [
                 'reference' => $reference,
@@ -386,7 +432,7 @@ class CheckoutController extends Controller
                 ->first();
         }
 
-        $business->load(['pages' => fn($q) => $q->published()]);
+        $business->load(['pages' => fn ($q) => $q->published()]);
 
         return Inertia::render('Storefront/CheckoutSuccess', [
             'business' => $business,
@@ -409,48 +455,5 @@ class CheckoutController extends Controller
         } while (Order::withoutGlobalScopes()->where('order_id', $orderId)->exists());
 
         return $orderId;
-    }
-
-    /**
-     * Update payment and order records based on verification result.
-     */
-    private function processVerification(Payment $payment, VerificationResult $result): void
-    {
-        if ($result->successful) {
-            $expectedMinor = (int) ($payment->amount * 100);
-
-            if ($result->amountInMinorUnit !== $expectedMinor) {
-                Log::warning('Payment amount mismatch', [
-                    'reference' => $result->reference,
-                    'expected' => $expectedMinor,
-                    'received' => $result->amountInMinorUnit,
-                ]);
-                $payment->update([
-                    'status' => PaymentStatus::Failed,
-                    'metadata' => $result->metadata,
-                ]);
-
-                return;
-            }
-
-            $now = now();
-
-            $payment->update([
-                'status' => PaymentStatus::Success,
-                'transaction_id' => $result->transactionId,
-                'paid_at' => $now,
-                'metadata' => $result->metadata,
-            ]);
-
-            $payment->order()->update([
-                'status' => OrderStatus::Paid,
-                'paid_at' => $now,
-            ]);
-        } else {
-            $payment->update([
-                'status' => PaymentStatus::Failed,
-                'metadata' => $result->metadata,
-            ]);
-        }
     }
 }

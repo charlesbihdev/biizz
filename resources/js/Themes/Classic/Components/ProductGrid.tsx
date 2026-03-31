@@ -1,5 +1,5 @@
 import type { CartItem, Category, Product } from '@/types/business';
-import ProductCard from './ProductCard';
+import ProductCard from './Common/ProductCard';
 
 interface Props {
     products:       Product[];

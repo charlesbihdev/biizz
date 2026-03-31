@@ -6,7 +6,7 @@ import { useCustomerAuth } from '@/Themes/Shared/Hooks/useCustomerAuth';
 import AuthModal from './Components/Auth/AuthModal';
 import CartDrawer from './Components/CartDrawer';
 import ToastProvider from '@/components/toast-provider';
-import StorefrontNav from './Components/StorefrontNav';
+import StorefrontNav from './Components/Navigation/StorefrontNav';
 import StoreFooter from './Components/StoreFooter';
 
 export type CartActions = {
