@@ -123,6 +123,21 @@ export function OrderView({ order, business, accent }: OrderViewProps) {
                             )}
                         </div>
                     </div>
+                    
+                    {/* Delivery Address */}
+                    {order.delivery_address && (
+                        <div className="rounded-2xl border border-zinc-100 bg-white p-6 shadow-sm mt-6">
+                            <h3 className="mb-4 flex items-center gap-2 text-base font-semibold text-zinc-900">
+                                <MapPin className="h-5 w-5 text-zinc-400" />
+                                Delivery address
+                            </h3>
+                            <div className="space-y-1 text-sm text-zinc-600">
+                                <p className="font-medium text-zinc-900">{order.delivery_address}</p>
+                                <p>{order.delivery_city}{order.delivery_region ? `, ${order.delivery_region}` : ''}</p>
+                                <p>{order.delivery_country}</p>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

@@ -86,6 +86,10 @@ class CheckoutController extends Controller
                 'customer_name' => $validated['customer_name'],
                 'customer_email' => $validated['customer_email'],
                 'customer_phone' => $validated['customer_phone'],
+                'delivery_address' => $validated['delivery_address'] ?? null,
+                'delivery_city' => $validated['delivery_city'] ?? null,
+                'delivery_region' => $validated['delivery_region'] ?? null,
+                'delivery_country' => $validated['delivery_country'] ?? null,
                 'total' => $total,
                 'currency' => 'GHS',
                 'status' => OrderStatus::Pending,
@@ -108,6 +112,24 @@ class CheckoutController extends Controller
                 'currency' => 'GHS',
                 'status' => PaymentStatus::Pending,
             ]);
+
+            if ($customerId && ! empty($validated['save_address'])) {
+                $customer = Customer::withoutGlobalScopes()
+                    ->where('id', $customerId)
+                    ->where('business_id', $business->id)
+                    ->first();
+                if ($customer) {
+                    $customer->addresses()->firstOrCreate([
+                        'street_address' => $validated['delivery_address'],
+                        'city' => $validated['delivery_city'],
+                        'region' => $validated['delivery_region'] ?? null,
+                        'country' => $validated['delivery_country'] ?? 'Ghana',
+                    ], [
+                        'label' => 'Delivery Address',
+                        'is_default' => $customer->addresses()->count() === 0,
+                    ]);
+                }
+            }
 
             return $order;
         });
@@ -190,6 +212,10 @@ class CheckoutController extends Controller
                 'customer_name' => $validated['customer_name'],
                 'customer_email' => $validated['customer_email'],
                 'customer_phone' => $validated['customer_phone'],
+                'delivery_address' => $validated['delivery_address'] ?? null,
+                'delivery_city' => $validated['delivery_city'] ?? null,
+                'delivery_region' => $validated['delivery_region'] ?? null,
+                'delivery_country' => $validated['delivery_country'] ?? null,
                 'total' => $total,
                 'currency' => 'GHS',
                 'status' => OrderStatus::Pending,
@@ -212,6 +238,24 @@ class CheckoutController extends Controller
                 'currency' => 'GHS',
                 'status' => PaymentStatus::Pending,
             ]);
+
+            if ($customerId && ! empty($validated['save_address'])) {
+                $customer = Customer::withoutGlobalScopes()
+                    ->where('id', $customerId)
+                    ->where('business_id', $business->id)
+                    ->first();
+                if ($customer) {
+                    $customer->addresses()->firstOrCreate([
+                        'street_address' => $validated['delivery_address'],
+                        'city' => $validated['delivery_city'],
+                        'region' => $validated['delivery_region'] ?? null,
+                        'country' => $validated['delivery_country'] ?? 'Ghana',
+                    ], [
+                        'label' => 'Delivery Address',
+                        'is_default' => $customer->addresses()->count() === 0,
+                    ]);
+                }
+            }
 
             return $order;
         });

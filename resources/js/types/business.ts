@@ -222,6 +222,10 @@ export interface Order {
     customer_name:    string | null;
     customer_email:   string | null;
     customer_phone:   string | null;
+    delivery_address: string | null;
+    delivery_city:    string | null;
+    delivery_region:  string | null;
+    delivery_country: string | null;
     total:            string;
     currency:         string;
     status:           OrderStatus;

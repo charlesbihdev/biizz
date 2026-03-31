@@ -20,6 +20,12 @@ class CheckoutRequest extends FormRequest
             'customer_email' => ['required', 'email', 'max:255'],
             'customer_phone' => ['required', 'string', 'max:50'],
 
+            'delivery_address' => ['required', 'string', 'max:255'],
+            'delivery_city' => ['required', 'string', 'max:100'],
+            'delivery_region' => ['required', 'string', 'max:100'],
+            'delivery_country' => ['required', 'string', 'max:100'],
+            'save_address' => ['boolean'],
+
             'items' => ['required', 'array', 'min:1'],
             'items.*.id' => ['required', 'integer', 'exists:products,id'],
             'items.*.quantity' => ['required', 'integer', 'min:1', 'max:100'],

@@ -55,20 +55,23 @@ export function AccountSidebar({ business, section, accent }: AccountSidebarProp
 
                 {/* Nav */}
                 <nav className="p-2">
-                    {navItems.map(({ key, label, icon, href }) => (
-                        <Link
-                            key={key}
-                            href={href}
-                            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition"
-                            style={section === key
-                                ? { backgroundColor: accent + '18', color: accent }
-                                : { color: '#52525b' }}
-                        >
-                            {icon}
-                            {label}
-                            {section === key && <ChevronRight className="ml-auto h-3.5 w-3.5 opacity-60" />}
-                        </Link>
-                    ))}
+                    {navItems.map(({ key, label, icon, href }) => {
+                        const isActive = section === key || (key === 'orders' && section === 'order') || (key === 'payments' && section === 'payment');
+                        return (
+                            <Link
+                                key={key}
+                                href={href}
+                                className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition"
+                                style={isActive
+                                    ? { backgroundColor: accent + '18', color: accent }
+                                    : { color: '#52525b' }}
+                            >
+                                {icon}
+                                {label}
+                                {isActive && <ChevronRight className="ml-auto h-3.5 w-3.5 opacity-60" />}
+                            </Link>
+                        );
+                    })}
                 </nav>
 
                 <div className="border-t border-zinc-100 p-2">

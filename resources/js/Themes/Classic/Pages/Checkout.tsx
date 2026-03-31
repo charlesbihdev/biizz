@@ -6,22 +6,25 @@ import WhatsAppCheckout from '../Components/WhatsAppCheckout';
 import PaymentCheckout from '../Components/PaymentCheckout';
 import { useCartStore } from '@/stores/cartStore';
 import { useCustomerAuth } from '@/Themes/Shared/Hooks/useCustomerAuth';
-import type { Business, Page } from '@/types/business';
+import type { Business, Page, CustomerAddress } from '@/types/business';
 
 interface Props {
     business:   Business;
     pages:      Page[];
     hasPayment: boolean;
+    addresses?: CustomerAddress[];
 }
 
 function CheckoutContent({
     business,
     hasPayment,
     openAuth,
+    addresses,
 }: {
     business:  Business;
     hasPayment: boolean;
     openAuth:  CartActions['openAuth'];
+    addresses?: CustomerAddress[];
 }) {
     const { itemCount } = useCartStore();
     const { requiresLoginForCheckout } = useCustomerAuth();
@@ -67,13 +70,13 @@ function CheckoutContent({
     }
 
     if (!hasPayment) {
-        return <WhatsAppCheckout business={business} primary={primary} />;
+        return <WhatsAppCheckout business={business} primary={primary} addresses={addresses} />;
     }
 
-    return <PaymentCheckout business={business} primary={primary} accent={accent} />;
+    return <PaymentCheckout business={business} primary={primary} accent={accent} addresses={addresses} />;
 }
 
-export default function Checkout({ business, pages, hasPayment }: Props) {
+export default function Checkout({ business, pages, hasPayment, addresses }: Props) {
     return (
         <ClassicThemeShell business={business} pages={pages}>
             {(actions) => (
@@ -81,6 +84,7 @@ export default function Checkout({ business, pages, hasPayment }: Props) {
                     business={business}
                     hasPayment={hasPayment}
                     openAuth={actions.openAuth}
+                    addresses={addresses}
                 />
             )}
         </ClassicThemeShell>

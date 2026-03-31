@@ -106,6 +106,11 @@ interface CheckoutData {
     customer_name:  string;
     customer_email: string;
     customer_phone: string;
+    delivery_address: string;
+    delivery_city:    string;
+    delivery_region:  string;
+    delivery_country: string;
+    save_address:     boolean;
 }
 
 interface UseJunipayCheckoutReturn {

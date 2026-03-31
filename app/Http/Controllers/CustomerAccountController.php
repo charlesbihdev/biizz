@@ -219,7 +219,7 @@ class CustomerAccountController extends Controller
             'label' => ['required', 'string', 'max:100'],
             'street_address' => ['required', 'string', 'max:255'],
             'city' => ['required', 'string', 'max:100'],
-            'region' => ['nullable', 'string', 'max:100'],
+            'region' => ['required', 'string', 'max:100'],
             'country' => ['required', 'string', 'max:100'],
             'is_default' => ['boolean'],
         ]);
@@ -231,6 +231,34 @@ class CustomerAccountController extends Controller
         $customer->addresses()->create($data);
 
         return back()->with('success', 'Address saved.');
+    }
+
+    /**
+     * Update a saved address.
+     */
+    public function updateAddress(Request $request, Business $business, CustomerAddress $address): RedirectResponse
+    {
+        /** @var Customer $customer */
+        $customer = Auth::guard('customer')->user() ?? abort(403);
+
+        abort_if($address->customer_id !== $customer->id, 403);
+
+        $data = $request->validate([
+            'label' => ['required', 'string', 'max:100'],
+            'street_address' => ['required', 'string', 'max:255'],
+            'city' => ['required', 'string', 'max:100'],
+            'region' => ['required', 'string', 'max:100'],
+            'country' => ['required', 'string', 'max:100'],
+            'is_default' => ['boolean'],
+        ]);
+
+        if (! empty($data['is_default'])) {
+            $customer->addresses()->where('id', '!=', $address->id)->update(['is_default' => false]);
+        }
+
+        $address->update($data);
+
+        return back()->with('success', 'Address updated.');
     }
 
     /**

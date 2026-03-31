@@ -53,7 +53,8 @@ Route::prefix('s')->group(function () {
         Route::get('/{business:slug}/pages/{page:slug}', [StorefrontController::class, 'page'])
             ->name('storefront.page');
 
-        // ── Customer auth ──────────────────────────────────────────────────────
+        // ── Customer auth & account ────────────────────────────────────────────
         require base_path('routes/customer_auth.php');
+        require base_path('routes/customer.php');
     });
 });
