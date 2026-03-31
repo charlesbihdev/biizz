@@ -41,8 +41,14 @@ Route::get('/{business:slug}/account', [CustomerAccountController::class, 'show'
 Route::get('/{business:slug}/account/orders', [CustomerAccountController::class, 'orders'])
     ->name('customer.account.orders');
 
+Route::get('/{business:slug}/account/orders/{order:order_id}', [CustomerAccountController::class, 'showOrder'])
+    ->name('customer.account.orders.show');
+
 Route::get('/{business:slug}/account/payments', [CustomerAccountController::class, 'payments'])
     ->name('customer.account.payments');
+
+Route::get('/{business:slug}/account/payments/{order:payment_ref}', [CustomerAccountController::class, 'showPayment'])
+    ->name('customer.account.payments.show');
 
 Route::get('/{business:slug}/account/addresses', [CustomerAccountController::class, 'addresses'])
     ->name('customer.account.addresses');

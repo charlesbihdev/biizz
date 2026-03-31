@@ -69,6 +69,27 @@ class CustomerAccountController extends Controller
     }
 
     /**
+     * Show a detailed order view.
+     */
+    public function showOrder(Business $business, Order $order): Response|RedirectResponse
+    {
+        $customer = Auth::guard('customer')->user();
+
+        if (! $customer || $order->customer_id !== $customer->id) {
+            abort(404);
+        }
+
+        $order->load('items');
+
+        return Inertia::render('Storefront/Account', [
+            'business' => $business,
+            'pages' => $this->publishedPages($business),
+            'section' => 'order',
+            'order' => $order,
+        ]);
+    }
+
+    /**
      * Payments section — orders with a payment reference, paginated and filterable.
      */
     public function payments(Business $business): Response|RedirectResponse
@@ -100,6 +121,27 @@ class CustomerAccountController extends Controller
             'section' => 'payments',
             'payments' => $payments,
             'filters' => $this->filterState(),
+        ]);
+    }
+
+    /**
+     * Show a detailed payment view.
+     */
+    public function showPayment(Business $business, Order $order): Response|RedirectResponse
+    {
+        $customer = Auth::guard('customer')->user();
+
+        if (! $customer || $order->customer_id !== $customer->id) {
+            abort(404);
+        }
+
+        $order->load('items');
+
+        return Inertia::render('Storefront/Account', [
+            'business' => $business,
+            'pages' => $this->publishedPages($business),
+            'section' => 'payment',
+            'order' => $order,
         ]);
     }
 

@@ -3,7 +3,7 @@ import type { Business, PaginatedData, Page, Product } from '@/types/business';
 import ClassicThemeShell from './ThemeShell';
 import CategoryFilter from './Components/CategoryFilter';
 import HeroSection from './Components/HeroSection';
-import Pagination from './Components/Pagination';
+import Pagination from './Components/Common/Pagination';
 import ProductGrid from './Components/ProductGrid';
 
 interface Props {

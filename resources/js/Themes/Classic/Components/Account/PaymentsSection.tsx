@@ -1,6 +1,7 @@
 import { router }         from '@inertiajs/react';
 import { CreditCard }     from 'lucide-react';
-import { payments as paymentsRoute, verifyPayment } from '@/actions/App/Http/Controllers/CustomerAccountController';
+import { payments as paymentsRoute, verifyPayment, showPayment } from '@/actions/App/Http/Controllers/CustomerAccountController';
+import { Link } from '@inertiajs/react';
 import { AccountFilters } from './AccountFilters';
 import { FlashMessages }  from './FlashMessages';
 import { Pagination }     from './Pagination';
@@ -47,21 +48,29 @@ export function PaymentsSection({ payments, business, accent, filters }: Payment
                                 </div>
                                 <div className="flex shrink-0 flex-col items-end gap-2">
                                     <StatusBadge status={order.status} />
-                                    <p className="text-sm font-bold text-zinc-900">GHS {Number(order.total).toFixed(2)}</p>
+                                    <p className="text-sm font-bold text-zinc-900">{order.currency} {Number(order.total).toFixed(2)}</p>
                                     {order.paid_at && (
                                         <p className="text-xs text-zinc-400">{formatDate(order.paid_at)}</p>
                                     )}
-                                    {order.status === 'pending' && (
-                                        <button
-                                            type="button"
-                                            onClick={() => router.post(verifyPayment.url({ business, order }))}
-                                            className="rounded-lg px-3 py-1.5 text-xs font-semibold text-white transition hover:opacity-90"
-                                            style={{ backgroundColor: accent }}
-                                        >
-                                            Verify
-                                        </button>
-                                    )}
                                 </div>
+                            </div>
+                            <div className="mt-4 flex items-center justify-end gap-3 border-t border-zinc-100 pt-3">
+                                {order.status === 'pending' && (
+                                    <button
+                                        type="button"
+                                        onClick={() => router.post(verifyPayment.url({ business: business.slug, order: order.id }))}
+                                        className="rounded-lg px-4 py-1.5 text-xs font-bold text-zinc-600 bg-zinc-100 hover:bg-zinc-200 transition"
+                                    >
+                                        Verify Payment
+                                    </button>
+                                )}
+                                <Link
+                                    href={showPayment.url({ business: business.slug, order: String(order.payment_ref ?? order.id) })}
+                                    className="rounded-lg px-4 py-1.5 text-xs font-semibold text-white transition hover:opacity-90"
+                                    style={{ backgroundColor: accent }}
+                                >
+                                    View
+                                </Link>
                             </div>
                         </div>
                     ))}

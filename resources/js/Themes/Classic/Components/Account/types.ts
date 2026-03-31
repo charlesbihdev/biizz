@@ -2,7 +2,7 @@ import type { Business, CustomerAddress, Order, OrderStatus, Page } from '@/type
 
 export type { Business, CustomerAddress, Order, OrderStatus, Page };
 
-export type Section = 'orders' | 'payments' | 'addresses' | 'profile';
+export type Section = 'orders' | 'payments' | 'addresses' | 'profile' | 'order' | 'payment';
 
 export type PaginatedOrders = {
     data:          Order[];
@@ -28,6 +28,7 @@ export interface AccountProps {
     section:    Section;
     orders?:    PaginatedOrders;
     payments?:  PaginatedOrders;
+    order?:     Order;
     addresses?: CustomerAddress[];
     filters?:   FilterState;
 }

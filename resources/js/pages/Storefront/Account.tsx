@@ -3,7 +3,7 @@ import { THEME_MAP } from '@/types/theme';
 import StorefrontHead from '@/Themes/Shared/StorefrontHead';
 import type { Business, CustomerAddress, Order, Page } from '@/types/business';
 
-type Section = 'orders' | 'payments' | 'addresses' | 'profile';
+type Section = 'orders' | 'payments' | 'addresses' | 'profile' | 'order' | 'payment';
 
 type PaginatedOrders = {
     data:          Order[];
@@ -29,11 +29,12 @@ type Props = {
     section:    Section;
     orders?:    PaginatedOrders;
     payments?:  PaginatedOrders;
+    order?:     Order;
     addresses?: CustomerAddress[];
     filters?:   FilterState;
 };
 
-export default function StorefrontAccount({ business, pages, section, orders, payments, addresses, filters }: Props) {
+export default function StorefrontAccount({ business, pages, section, orders, payments, order, addresses, filters }: Props) {
     const theme   = THEME_MAP[business.theme_id as keyof typeof THEME_MAP] ?? THEME_MAP['classic'];
     const Account = theme.Account;
 
@@ -46,6 +47,7 @@ export default function StorefrontAccount({ business, pages, section, orders, pa
                 section={section}
                 orders={orders}
                 payments={payments}
+                order={order}
                 addresses={addresses}
                 filters={filters}
             />

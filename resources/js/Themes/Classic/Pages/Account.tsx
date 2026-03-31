@@ -4,9 +4,12 @@ import { OrdersSection }        from '../Components/Account/OrdersSection';
 import { PaymentsSection }      from '../Components/Account/PaymentsSection';
 import { AddressesSection }     from '../Components/Account/AddressesSection';
 import { ProfileSection }       from '../Components/Account/ProfileSection';
+import { OrderView }            from '../Components/Account/OrderView';
+import { PaymentView }          from '../Components/Account/PaymentView';
 import type { AccountProps }    from '../Components/Account/types';
 
-export default function Account({ business, pages, section, orders, payments, addresses, filters }: AccountProps) {
+export default function Account(props: AccountProps) {
+    const { business, pages, section, orders, payments, addresses, filters } = props;
     const { theme_settings: s } = business;
     const primary = s.primary_color ?? '#1a1a1a';
     const accent  = s.accent_color  ?? primary;
@@ -32,6 +35,12 @@ export default function Account({ business, pages, section, orders, payments, ad
                         )}
                         {section === 'profile' && (
                             <ProfileSection business={business} accent={accent} />
+                        )}
+                        {section === 'order' && props.order && (
+                            <OrderView order={props.order} business={business} accent={accent} />
+                        )}
+                        {section === 'payment' && props.order && (
+                            <PaymentView order={props.order} business={business} accent={accent} />
                         )}
                     </section>
                 </div>
