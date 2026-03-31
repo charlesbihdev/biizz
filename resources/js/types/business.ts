@@ -160,6 +160,21 @@ export interface PaginatedData<T> {
     prev_page_url:    string | null;
 }
 
+// ─── Customer Address ────────────────────────────────────────────────────────
+
+export interface CustomerAddress {
+    id:             number;
+    customer_id:    number;
+    label:          string;
+    street_address: string;
+    city:           string;
+    region:         string | null;
+    country:        string;
+    is_default:     boolean;
+    created_at:     string;
+    updated_at:     string;
+}
+
 // ─── Customer ────────────────────────────────────────────────────────────────
 
 export interface Customer {
@@ -178,6 +193,7 @@ export interface AuthenticatedCustomer {
     id:         number;
     name:       string;
     email:      string | null;
+    phone:      string | null;
     avatar:     string | null;
     google_id:  string | null;
 }

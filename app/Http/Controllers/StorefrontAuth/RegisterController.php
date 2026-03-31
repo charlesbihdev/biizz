@@ -23,6 +23,7 @@ class RegisterController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'email' => ['required', 'email', 'max:255'],
+            'phone' => ['nullable', 'string', 'max:50'],
             'password' => ['required', 'confirmed', Password::defaults()],
         ]);
 
@@ -37,6 +38,7 @@ class RegisterController extends Controller
             'business_id' => $business->id,
             'name' => $data['name'],
             'email' => $data['email'],
+            'phone' => $data['phone'] ?? null,
             'password' => $data['password'],
             'email_verified_at' => now(),
         ]);
