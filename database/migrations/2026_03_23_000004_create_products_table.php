@@ -13,6 +13,7 @@ return new class extends Migration
             $table->foreignId('business_id')->constrained()->cascadeOnDelete();
             $table->foreignId('category_id')->constrained()->restrictOnDelete();
             $table->string('name');
+            $table->string('slug');
             $table->text('description')->nullable();
             $table->decimal('price', 12, 2);
             $table->unsignedInteger('stock')->default(0);
@@ -20,6 +21,7 @@ return new class extends Migration
             $table->jsonb('metadata')->default('{}'); // flexible per-product extra data
             $table->timestamps();
 
+            $table->unique(['business_id', 'slug']);
             $table->index('business_id');
             $table->index(['business_id', 'category_id']);
             $table->index(['business_id', 'is_active']);

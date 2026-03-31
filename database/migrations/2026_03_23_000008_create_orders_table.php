@@ -18,6 +18,10 @@ return new class extends Migration
             $table->string('customer_name')->nullable();
             $table->string('customer_email')->nullable();
             $table->string('customer_phone', 50)->nullable();
+            $table->string('delivery_address')->nullable();
+            $table->string('delivery_city')->nullable();
+            $table->string('delivery_region')->nullable();
+            $table->string('delivery_country')->nullable();
             $table->decimal('total', 12, 2);
             $table->char('currency', 3)->default('GHS');
             $table->string('status', 30)->default('pending');
