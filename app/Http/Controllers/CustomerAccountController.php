@@ -14,7 +14,6 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -184,7 +183,7 @@ class CustomerAccountController extends Controller
     }
 
     /**
-     * Update the customer's profile (name, email, phone).
+     * Update the customer's profile (name, phone). Email is immutable.
      */
     public function updateProfile(Request $request, Business $business): RedirectResponse
     {
@@ -193,12 +192,6 @@ class CustomerAccountController extends Controller
 
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => [
-                'required',
-                'email',
-                'max:255',
-                Rule::unique('customers')->where('business_id', $business->id)->ignore($customer->id),
-            ],
             'phone' => ['nullable', 'string', 'max:50'],
         ]);
 
