@@ -29,7 +29,7 @@ export default function HeroSection() {
                 >
                     <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-brand" />
                     <span className="text-xs font-medium uppercase tracking-wide text-site-muted">
-                        E-commerce OS for Africa
+                        E-commerce OS for Entrepreneurs
                     </span>
                 </div>
 
@@ -38,12 +38,12 @@ export default function HeroSection() {
                     className="animate-fade-up text-5xl font-bold leading-[1.1] tracking-tight text-site-fg sm:text-6xl lg:text-7xl"
                     style={STAGGER[1]}
                 >
-                    Sell like a brand.{' '}
+                    Set up once.{' '}
                     <span
                         className="bg-clip-text text-transparent"
                         style={{ backgroundImage: 'linear-gradient(135deg, oklch(0.65 0.16 58), oklch(0.52 0.14 45))' }}
                     >
-                        Run like a business.
+                        Your AI sells for you.
                     </span>
                 </h1>
 
@@ -52,8 +52,7 @@ export default function HeroSection() {
                     className="animate-fade-up mx-auto mt-6 max-w-2xl text-lg leading-relaxed text-site-muted"
                     style={STAGGER[2]}
                 >
-                    One platform. Multiple storefronts. Built-in payments, an AI agent that sells on WhatsApp,
-                    and themes designed for the way African merchants actually work.
+                    One platform. Your own online store, built-in payments, and an AI that sells for you on WhatsApp while you sleep.
                 </p>
 
                 {/* CTAs */}

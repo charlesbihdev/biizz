@@ -11,8 +11,8 @@ export default function Home() {
     return (
         <>
             <Head>
-                <title>biizz.app — E-commerce OS for Africa</title>
-                <meta name="description" content="Professional storefronts, built-in payments, and an AI agent that sells on WhatsApp. One platform for African merchants." />
+                <title>biizz.app — E-commerce OS for Entrepreneurs</title>
+                <meta name="description" content="Your own online store, built-in payments, and an AI that sells for you on WhatsApp while you sleep. Set up once, sell forever." />
             </Head>
 
             <div className="bg-site-bg">
