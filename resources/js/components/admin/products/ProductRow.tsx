@@ -64,7 +64,7 @@ export function ProductRow({ business, product, rowNumber, onView }: Props) {
                             <Eye className="h-4 w-4" />
                         </button>
                         <Link
-                            href={edit({ ...b, product: product.id }).url}
+                            href={edit({ ...b, product: product.slug }).url}
                             className="rounded-lg p-1.5 text-site-muted transition hover:bg-site-surface hover:text-site-fg"
                         >
                             <Pencil className="h-4 w-4" />

@@ -38,7 +38,7 @@ type FormData = {
 
 export default function EditPage({ business, page }: Props) {
     const b = { business: business.slug };
-    const bp = { business: business.slug, page: page.id };
+    const bp = { business: business.slug, page: page.slug };
     const finalContentRef = useRef<string | null>(null);
     const imagesRef = useRef<File[]>([]);
 

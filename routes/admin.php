@@ -49,9 +49,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::get('/', 'index')->name('index');
                 Route::get('/new', 'create')->name('create');
                 Route::post('/', 'store')->name('store');
-                Route::get('/{product}', 'edit')->name('edit');
-                Route::patch('/{product}', 'update')->name('update');
-                Route::delete('/{product}', 'destroy')->name('destroy');
+                Route::get('/{product:slug}', 'edit')->name('edit');
+                Route::patch('/{product:slug}', 'update')->name('update');
+                Route::delete('/{product:slug}', 'destroy')->name('destroy');
             });
 
             // Theme
@@ -89,16 +89,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::get('/', 'index')->name('index');
                 Route::get('/new', 'create')->name('create');
                 Route::post('/', 'store')->name('store');
-                Route::get('/{page}', 'edit')->name('edit');
-                Route::patch('/{page}', 'update')->name('update');
-                Route::delete('/{page}', 'destroy')->name('destroy');
-                Route::patch('/{page}/publish', 'togglePublish')->name('publish');
+                Route::get('/{page:slug}', 'edit')->name('edit');
+                Route::patch('/{page:slug}', 'update')->name('update');
+                Route::delete('/{page:slug}', 'destroy')->name('destroy');
+                Route::patch('/{page:slug}/publish', 'togglePublish')->name('publish');
             });
 
             // Media uploads (theme images etc.)
             Route::post('media', [MediaController::class, 'store'])->name('media.store');
 
             // Digital product file uploads (50 MB limit)
-            Route::post('products/{product}/files', [MediaController::class, 'storeFile'])->name('products.files.store');
+            Route::post('products/{product:slug}/files', [MediaController::class, 'storeFile'])->name('products.files.store');
         });
 });
