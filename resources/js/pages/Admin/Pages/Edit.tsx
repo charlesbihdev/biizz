@@ -38,7 +38,7 @@ type FormData = {
 
 export default function EditPage({ business, page }: Props) {
     const b = { business: business.slug };
-    const bp = { business: business.slug, page: page.id };
+    const bp = { business: business.slug, page: page.slug };
     const finalContentRef = useRef<string | null>(null);
     const imagesRef = useRef<File[]>([]);
 
@@ -103,7 +103,7 @@ export default function EditPage({ business, page }: Props) {
                     {/* ── Left: content ── */}
                     <div className="flex min-w-0 flex-1 flex-col gap-5">
                         <div className="flex flex-col gap-1.5">
-                            <Label htmlFor="title">Title</Label>
+                            <Label htmlFor="title">Title <span className="text-red-500">*</span></Label>
                             <Input
                                 id="title"
                                 value={data.title}
@@ -112,6 +112,7 @@ export default function EditPage({ business, page }: Props) {
                                 }
                                 placeholder="e.g. Privacy Policy"
                                 autoFocus
+                                required
                                 className="border-site-border focus-visible:ring-brand/30"
                             />
                             <InputError message={errors.title} />

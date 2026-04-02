@@ -108,7 +108,7 @@ export function ProductDetailModal({ business, product, onClose }: Props) {
 
                         <div className="mt-auto pt-2">
                             <Link
-                                href={edit({ ...b, product: product.id }).url}
+                                href={edit({ ...b, product: product.slug }).url}
                                 className="inline-flex items-center gap-2 rounded-full bg-brand px-5 py-2 text-sm font-bold text-white transition hover:bg-brand-hover"
                             >
                                 <Pencil className="h-4 w-4" />

@@ -76,13 +76,14 @@ function CategoryFormDialog({
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="flex flex-col gap-5 pt-2">
                     <div className="flex flex-col gap-1.5">
-                        <Label htmlFor="cat-name">Name</Label>
+                        <Label htmlFor="cat-name">Name <span className="text-red-500">*</span></Label>
                         <Input
                             id="cat-name"
                             value={data.name}
                             onChange={(e) => setData('name', e.target.value)}
                             placeholder="e.g. Dresses"
                             autoFocus
+                            required
                             className="border-site-border focus-visible:ring-brand/30"
                         />
                         <InputError message={errors.name} />

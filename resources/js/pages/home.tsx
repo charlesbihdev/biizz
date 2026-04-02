@@ -1,18 +1,21 @@
 import { Head } from '@inertiajs/react';
-import LandingNav from './home/LandingNav';
-import HeroSection from './home/HeroSection';
-import StorefrontPreview from './home/StorefrontPreview';
-import PillarsSection from './home/PillarsSection';
-import SocialProofSection from './home/SocialProofSection';
-import FinalCTA from './home/FinalCTA';
-import LandingFooter from './home/LandingFooter';
+import LandingNav from '@/components/Landing/LandingNav';
+import HeroSection from '@/components/Landing/HeroSection';
+import StorefrontPreview from '@/components/Landing/StorefrontPreview';
+import PillarsSection from '@/components/Landing/PillarsSection';
+import SocialProofSection from '@/components/Landing/SocialProofSection';
+import FinalCTA from '@/components/Landing/FinalCTA';
+import LandingFooter from '@/components/Landing/LandingFooter';
 
 export default function Home() {
     return (
         <>
             <Head>
-                <title>biizz.app — E-commerce OS for Africa</title>
-                <meta name="description" content="Professional storefronts, built-in payments, and an AI agent that sells on WhatsApp. One platform for African merchants." />
+                <title>biizz.app - E-commerce OS for Entrepreneurs</title>
+                <meta
+                    name="description"
+                    content="Your own online store, built-in payments, and an AI that sells for you on WhatsApp while you sleep. Set up once, sell forever."
+                />
             </Head>
 
             <div className="bg-site-bg">

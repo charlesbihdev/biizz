@@ -13,12 +13,18 @@ return new class extends Migration
             $table->foreignId('business_id')->constrained()->cascadeOnDelete();
             $table->string('name');
             $table->string('email')->nullable();
+            $table->string('password')->nullable();
+            $table->string('google_id')->nullable();
+            $table->string('avatar')->nullable();
+            $table->timestamp('email_verified_at')->nullable();
+            $table->rememberToken();
             $table->string('phone', 50)->nullable();
             $table->text('notes')->nullable();
             $table->timestamps();
 
             $table->index('business_id');
             $table->unique(['business_id', 'email']);
+            $table->unique(['business_id', 'google_id']);
         });
     }
 

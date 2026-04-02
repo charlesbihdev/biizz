@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Eye, EyeOff, LoaderCircle, Pencil, Plus, Search, Trash2, X } from 'lucide-react';
 import AppSidebarLayout from '@/layouts/app/app-sidebar-layout';
 import { show } from '@/routes/businesses';
-import { create, destroy, index, publish } from '@/routes/businesses/pages';
+import { create, destroy, edit, index, publish } from '@/routes/businesses/pages';
 import type { Business, Page, PageType } from '@/types';
 
 const PAGE_LABELS: Record<NonNullable<PageType>, string> = {
@@ -40,7 +40,7 @@ export default function PagesIndex({ business, pages }: Props) {
 
     const handleTogglePublish = (page: Page) => {
         setTogglingId(page.id);
-        router.patch(publish({ ...b, page: page.id }).url, {}, {
+        router.patch(publish({ ...b, page: page.slug }).url, {}, {
             preserveScroll: true,
             onFinish: () => setTogglingId(null),
         });
@@ -49,7 +49,7 @@ export default function PagesIndex({ business, pages }: Props) {
     const handleDelete = (page: Page) => {
         if (!confirm(`Delete "${page.title}"? This cannot be undone.`)) { return; }
         setDeletingId(page.id);
-        router.delete(destroy({ ...b, page: page.id }).url, {
+        router.delete(destroy({ ...b, page: page.slug }).url, {
             preserveScroll: true,
             onFinish: () => setDeletingId(null),
         });
@@ -184,15 +184,13 @@ export default function PagesIndex({ business, pages }: Props) {
                                                 >
                                                     <Eye className="h-4 w-4" />
                                                 </Link>
-                                                <a
-                                                    href={`/dashboard/b/${business.slug}/pages/${page.id}`}
-                                                    target="_blank"
-                                                    rel="noopener"
+                                                <Link
+                                                    href={edit({ ...b, page: page.slug }).url}
                                                     className="rounded p-1.5 text-site-muted hover:bg-site-surface hover:text-site-fg"
                                                     title="Edit"
                                                 >
                                                     <Pencil className="h-4 w-4" />
-                                                </a>
+                                                </Link>
                                                 {!page.is_system && (
                                                     <button
                                                         onClick={() => handleDelete(page)}

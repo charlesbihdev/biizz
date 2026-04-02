@@ -17,6 +17,7 @@ return new class extends Migration
 
             // Brand identity
             $table->string('logo_url', 2048)->nullable();
+            $table->string('favicon_url', 2048)->nullable();
             $table->string('tagline', 150)->nullable();
 
             // Store classification
@@ -25,6 +26,9 @@ return new class extends Migration
 
             // Business profile
             $table->text('description')->nullable();
+            $table->string('seo_title')->nullable();
+            $table->string('seo_description', 300)->nullable();
+            $table->string('seo_image', 2048)->nullable();
             $table->string('contact_email')->nullable();
             $table->string('phone', 30)->nullable();
             $table->text('address')->nullable();
@@ -45,7 +49,9 @@ return new class extends Migration
             // Meta
             $table->string('meta_pixel_id', 50)->nullable();
             $table->boolean('ai_enabled')->default(false);
+            $table->enum('customer_login_mode', ['none', 'checkout', 'full'])->default('checkout');
             $table->boolean('is_active')->default(false);
+            $table->boolean('show_branding')->default(true);
             $table->timestamps();
         });
 

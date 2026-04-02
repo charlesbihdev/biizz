@@ -27,7 +27,7 @@ export default function EditProduct({ business, product, categories }: Props) {
     });
 
     const handleSubmit = () => {
-        post(update({ ...b, product: product.id }).url, {
+        post(update({ ...b, product: product.slug }).url, {
             preserveScroll: true,
             preserveState:  true,
             forceFormData:  true,
@@ -41,7 +41,7 @@ export default function EditProduct({ business, product, categories }: Props) {
             breadcrumbs={[
                 { title: business.name, href: show(b).url },
                 { title: 'Products',    href: index(b).url },
-                { title: product.name,  href: edit({ ...b, product: product.id }).url },
+                { title: product.name,  href: edit({ ...b, product: product.slug }).url },
             ]}
         >
             <div className="p-6 lg:p-8">

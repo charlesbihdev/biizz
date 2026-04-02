@@ -27,7 +27,7 @@ export function DeleteProductDialog({ business, product, open, onOpenChange }: P
 
     const handleConfirm = () => {
         setDeleting(true);
-        router.visit(destroy({ ...b, product: product.id }).url, {
+        router.visit(destroy({ ...b, product: product.slug }).url, {
             method: 'delete',
             onFinish: () => setDeleting(false),
         });

@@ -24,14 +24,24 @@ export function ProfileSection({ business, accent }: ProfileSectionProps) {
     }
 
     const fields = [
-        { label: 'Full Name',    key: 'name',  type: 'text',  placeholder: 'Jane Doe',         autoComplete: 'name',  required: true  },
-        { label: 'Email',        key: 'email', type: 'email', placeholder: 'you@example.com',  autoComplete: 'email', required: true  },
-        { label: 'Phone Number', key: 'phone', type: 'tel',   placeholder: '+233 XX XXX XXXX', autoComplete: 'tel',   required: false },
+        { label: 'Full Name',    key: 'name',  type: 'text', placeholder: 'Jane Doe',         autoComplete: 'name',  required: true  },
+        { label: 'Phone Number', key: 'phone', type: 'tel',  placeholder: '+233 XX XXX XXXX', autoComplete: 'tel',   required: false },
     ] as const;
 
     return (
         <form onSubmit={submit} className="max-w-md space-y-5">
             <FlashMessages />
+
+            <div>
+                <label className="mb-1.5 block text-sm font-medium text-zinc-700">Email</label>
+                <input
+                    type="email"
+                    value={data.email}
+                    readOnly
+                    className="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-400 outline-none cursor-not-allowed"
+                />
+            </div>
+
             {fields.map(({ label, key, type, placeholder, autoComplete, required }) => (
                 <div key={key}>
                     <label className="mb-1.5 block text-sm font-medium text-zinc-700">{label}</label>
