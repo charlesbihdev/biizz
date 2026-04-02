@@ -1,5 +1,6 @@
 import { Link, useForm } from '@inertiajs/react';
-import { LoaderCircle } from 'lucide-react';
+import { Eye, EyeOff, LoaderCircle } from 'lucide-react';
+import { useState } from 'react';
 import InputError from '@/components/input-error';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -26,6 +27,8 @@ function GoogleButton() {
 }
 
 export default function Register() {
+    const [showPassword, setShowPassword] = useState(false);
+    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
     const { data, setData, submit, processing, errors } = useForm({
         name: '',
         email: '',
@@ -34,7 +37,7 @@ export default function Register() {
     });
 
     return (
-        <AuthSimpleLayout title="Create your account" description="Free forever. No credit card needed.">
+        <AuthSimpleLayout title="Create your account" description="Start selling online in minutes.">
             <form
                 onSubmit={(e) => { e.preventDefault(); submit(registerStore()); }}
                 className="flex flex-col gap-4"
@@ -48,7 +51,7 @@ export default function Register() {
                         onChange={(e) => setData('name', e.target.value)}
                         autoComplete="name"
                         autoFocus
-                        placeholder="Abena Kofi"
+                        placeholder="John Doe"
                         className="border-site-border focus-visible:ring-brand/30"
                     />
                     <InputError message={errors.name} />
@@ -70,29 +73,49 @@ export default function Register() {
 
                 <div className="flex flex-col gap-1.5">
                     <Label htmlFor="password">Password</Label>
-                    <Input
-                        id="password"
-                        type="password"
-                        value={data.password}
-                        onChange={(e) => setData('password', e.target.value)}
-                        autoComplete="new-password"
-                        placeholder="••••••••"
-                        className="border-site-border focus-visible:ring-brand/30"
-                    />
+                    <div className="relative">
+                        <Input
+                            id="password"
+                            type={showPassword ? 'text' : 'password'}
+                            value={data.password}
+                            onChange={(e) => setData('password', e.target.value)}
+                            autoComplete="new-password"
+                            placeholder="••••••••"
+                            className="border-site-border pr-10 focus-visible:ring-brand/30"
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-site-muted hover:text-site-fg"
+                            tabIndex={-1}
+                        >
+                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                    </div>
                     <InputError message={errors.password} />
                 </div>
 
                 <div className="flex flex-col gap-1.5">
                     <Label htmlFor="password_confirmation">Confirm password</Label>
-                    <Input
-                        id="password_confirmation"
-                        type="password"
-                        value={data.password_confirmation}
-                        onChange={(e) => setData('password_confirmation', e.target.value)}
-                        autoComplete="new-password"
-                        placeholder="••••••••"
-                        className="border-site-border focus-visible:ring-brand/30"
-                    />
+                    <div className="relative">
+                        <Input
+                            id="password_confirmation"
+                            type={showConfirmPassword ? 'text' : 'password'}
+                            value={data.password_confirmation}
+                            onChange={(e) => setData('password_confirmation', e.target.value)}
+                            autoComplete="new-password"
+                            placeholder="••••••••"
+                            className="border-site-border pr-10 focus-visible:ring-brand/30"
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-site-muted hover:text-site-fg"
+                            tabIndex={-1}
+                        >
+                            {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                    </div>
                     <InputError message={errors.password_confirmation} />
                 </div>
 

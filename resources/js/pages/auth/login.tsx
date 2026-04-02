@@ -1,5 +1,6 @@
 import { Link, useForm } from '@inertiajs/react';
-import { LoaderCircle } from 'lucide-react';
+import { Eye, EyeOff, LoaderCircle } from 'lucide-react';
+import { useState } from 'react';
 import InputError from '@/components/input-error';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
@@ -34,6 +35,7 @@ function GoogleButton() {
 }
 
 export default function Login({ canResetPassword, canRegister, status }: LoginProps) {
+    const [showPassword, setShowPassword] = useState(false);
     const { data, setData, submit, processing, errors } = useForm({
         email: '',
         password: '',
@@ -77,15 +79,25 @@ export default function Login({ canResetPassword, canRegister, status }: LoginPr
                             </Link>
                         )}
                     </div>
-                    <Input
-                        id="password"
-                        type="password"
-                        value={data.password}
-                        onChange={(e) => setData('password', e.target.value)}
-                        autoComplete="current-password"
-                        placeholder="••••••••"
-                        className="border-site-border focus-visible:ring-brand/30"
-                    />
+                    <div className="relative">
+                        <Input
+                            id="password"
+                            type={showPassword ? 'text' : 'password'}
+                            value={data.password}
+                            onChange={(e) => setData('password', e.target.value)}
+                            autoComplete="current-password"
+                            placeholder="••••••••"
+                            className="border-site-border pr-10 focus-visible:ring-brand/30"
+                        />
+                        <button
+                            type="button"
+                            onClick={() => setShowPassword(!showPassword)}
+                            className="absolute right-3 top-1/2 -translate-y-1/2 text-site-muted hover:text-site-fg"
+                            tabIndex={-1}
+                        >
+                            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                        </button>
+                    </div>
                     <InputError message={errors.password} />
                 </div>
 
