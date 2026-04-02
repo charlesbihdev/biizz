@@ -34,8 +34,7 @@ class CategoryController extends Controller
 
         $business->categories()->create($validated);
 
-        return to_route('businesses.categories.index', $business)
-            ->with('success', 'Category created.');
+        return back()->with('success', 'Category created.');
     }
 
     public function update(Request $request, Business $business, Category $category): RedirectResponse
