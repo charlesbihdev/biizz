@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Admin\BusinessController;
 use App\Http\Controllers\Admin\CategoryController;
+use App\Http\Controllers\Admin\CustomerController;
 use App\Http\Controllers\Admin\MediaController;
 use App\Http\Controllers\Admin\OrderController;
 use App\Http\Controllers\Admin\PageController;
@@ -75,6 +76,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::post('/', 'store')->name('store');
                 Route::patch('/{category}', 'update')->name('update');
                 Route::delete('/{category}', 'destroy')->name('destroy');
+            });
+
+            // Customers
+            Route::prefix('customers')->name('customers.')->controller(CustomerController::class)->group(function () {
+                Route::get('/', 'index')->name('index');
+                Route::get('/{customer}', 'show')->name('show');
+                Route::patch('/{customer}', 'update')->name('update');
+                Route::patch('/{customer}/block', 'toggleBlock')->name('block');
+                Route::delete('/{customer}', 'destroy')->name('destroy');
             });
 
             // Orders

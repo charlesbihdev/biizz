@@ -93,6 +93,11 @@ class GoogleController extends Controller
             }
         }
 
+        if ($customer->is_blocked) {
+            return redirect($returnUrl ?? route('storefront.show', $business->slug))
+                ->with('error', 'Your account has been blocked. Please contact the site admin.');
+        }
+
         Auth::guard('customer')->login($customer, remember: true);
 
         $request->session()->regenerate();

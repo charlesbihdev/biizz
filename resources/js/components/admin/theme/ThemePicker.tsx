@@ -1,20 +1,8 @@
 import { router } from '@inertiajs/react';
 import { Check } from 'lucide-react';
 import { switchMethod } from '@/routes/businesses/theme';
+import { THEME_LIST } from '@/Themes/registry';
 import type { Business, ThemeId } from '@/types';
-
-const THEMES: { id: ThemeId; label: string; description: string }[] = [
-    {
-        id: 'classic',
-        label: 'Classic',
-        description: 'Clean, versatile layout. Works for any product category.',
-    },
-    {
-        id: 'boutique',
-        label: 'Boutique',
-        description: 'Editorial, fashion-forward. Perfect for clothing & lifestyle.',
-    },
-];
 
 type Props = {
     business: Business;
@@ -38,7 +26,7 @@ export function ThemePicker({ business, activeTheme, onChange }: Props) {
 
     return (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {THEMES.map(({ id, label, description }) => {
+            {THEME_LIST.map(({ id, label, description }) => {
                 const isActive = activeTheme === id;
 
                 return (

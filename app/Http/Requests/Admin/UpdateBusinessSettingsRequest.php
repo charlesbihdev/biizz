@@ -34,6 +34,7 @@ class UpdateBusinessSettingsRequest extends FormRequest
             'seo_description' => ['nullable', 'string', 'max:300'],
             'seo_image' => ['nullable', 'file', 'image', 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:6144'],
             'show_branding' => ['boolean'],
+            'customer_login_mode' => ['required', 'string', 'in:none,checkout,full'],
         ];
     }
 }

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\StorefrontAuth;
 
 use App\Http\Controllers\Controller;
 use App\Models\Business;
+use App\Models\Customer;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -27,6 +28,18 @@ class LoginController extends Controller
         if (! Auth::guard('customer')->attempt($credentials, $request->boolean('remember'))) {
             throw ValidationException::withMessages([
                 'email' => __('auth.failed'),
+            ]);
+        }
+
+        /** @var Customer $customer */
+        $customer = Auth::guard('customer')->user();
+
+        if ($customer->is_blocked) {
+            Auth::guard('customer')->logout();
+            $request->session()->invalidate();
+
+            throw ValidationException::withMessages([
+                'email' => 'Your account has been blocked. Please contact the site admin.',
             ]);
         }
 
