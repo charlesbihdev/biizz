@@ -20,6 +20,7 @@ return new class extends Migration
             $table->rememberToken();
             $table->string('phone', 50)->nullable();
             $table->text('notes')->nullable();
+            $table->boolean('is_blocked')->default(false);
             $table->timestamps();
 
             $table->index('business_id');
