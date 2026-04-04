@@ -11,7 +11,7 @@ import { BUSINESS_CATEGORIES } from '@/data/businessCategories';
 import AppSidebarLayout from '@/layouts/app/app-sidebar-layout';
 import { show } from '@/routes/businesses';
 import { update as settingsUpdate } from '@/routes/businesses/settings';
-import type { Business, BusinessCategory, SocialLinks } from '@/types';
+import type { Business, BusinessCategory, CustomerLoginMode, SocialLinks } from '@/types';
 
 function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
     return (
@@ -61,7 +61,8 @@ export default function BusinessSettings({ business, providers }: Props) {
         seo_title:       business.seo_title ?? '',
         seo_description: business.seo_description ?? '',
         seo_image:       null as File | null,
-        show_branding:   business.show_branding ?? true,
+        show_branding:        business.show_branding ?? true,
+        customer_login_mode:  business.customer_login_mode ?? 'checkout',
     });
 
     const setSocial = (key: keyof SocialLinks, value: string) => {
@@ -339,6 +340,60 @@ export default function BusinessSettings({ business, providers }: Props) {
                                     </p>
                                 </div>
                             </label>
+                        </div>
+                    </FormSection>
+
+                    {/* ── Customer Accounts ── */}
+                    <FormSection
+                        title="Customer Accounts"
+                        description="Control whether customers need an account to shop in your store."
+                    >
+                        <div className="flex flex-col gap-3">
+                            {(
+                                [
+                                    {
+                                        value: 'none',
+                                        label: 'No accounts',
+                                        description: 'Guests only. No login prompt anywhere — fastest checkout experience.',
+                                    },
+                                    {
+                                        value: 'checkout',
+                                        label: 'Optional at checkout',
+                                        description: 'Customers can browse freely but are prompted to log in or continue as guest at checkout.',
+                                    },
+                                    {
+                                        value: 'full',
+                                        label: 'Required',
+                                        description: 'Customers must create an account and log in before they can browse or buy.',
+                                    },
+                                ] as { value: CustomerLoginMode; label: string; description: string }[]
+                            ).map(({ value, label, description }) => {
+                                const isActive = data.customer_login_mode === value;
+                                return (
+                                    <button
+                                        key={value}
+                                        type="button"
+                                        onClick={() => setData('customer_login_mode', value)}
+                                        className={`flex items-start gap-4 rounded-xl border p-4 text-left transition ${
+                                            isActive
+                                                ? 'border-brand bg-brand-dim'
+                                                : 'border-site-border bg-white hover:border-brand/50'
+                                        }`}
+                                    >
+                                        <div className={`mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full border-2 ${
+                                            isActive ? 'border-brand' : 'border-site-border'
+                                        }`}>
+                                            {isActive && <div className="h-2.5 w-2.5 rounded-full bg-brand" />}
+                                        </div>
+                                        <div>
+                                            <p className={`text-sm font-semibold ${isActive ? 'text-brand' : 'text-site-fg'}`}>
+                                                {label}
+                                            </p>
+                                            <p className="mt-0.5 text-xs text-site-muted">{description}</p>
+                                        </div>
+                                    </button>
+                                );
+                            })}
                         </div>
                     </FormSection>
 

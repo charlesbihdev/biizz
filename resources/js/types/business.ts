@@ -1,6 +1,7 @@
 // ─── Theme ───────────────────────────────────────────────────────────────────
 
-export type ThemeId = 'classic' | 'boutique';
+import type { ThemeId } from '@/Themes/registry';
+export type { ThemeId };
 
 export interface ThemeSettings {
     primary_color?:     string;
@@ -184,6 +185,7 @@ export interface Customer {
     email:       string | null;
     phone:       string | null;
     notes:       string | null;
+    is_blocked:  boolean;
     created_at:  string;
     updated_at:  string;
 }

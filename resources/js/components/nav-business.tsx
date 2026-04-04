@@ -10,6 +10,7 @@ import {
     Palette,
     Settings,
     ShoppingBag,
+    Users,
 } from 'lucide-react';
 import {
     SidebarGroup,
@@ -21,6 +22,7 @@ import {
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { show } from '@/routes/businesses';
 import { index as categoriesIndex } from '@/routes/businesses/categories';
+import { index as customersIndex } from '@/routes/businesses/customers';
 import { index as ordersIndex } from '@/routes/businesses/orders';
 import { index as pagesIndex } from '@/routes/businesses/pages';
 import { index as productsIndex } from '@/routes/businesses/products';
@@ -92,10 +94,11 @@ export function NavBusiness({ business }: { business: Business }) {
     const b = { business: business.slug };
 
     const sellItems: NavEntry[] = [
-        { title: 'Overview',   href: show(b).url,            icon: LayoutDashboard, exact: true },
-        { title: 'Orders',     href: ordersIndex(b).url,     icon: ShoppingBag },
-        { title: 'Products',   href: productsIndex(b).url,   icon: Package },
-        { title: 'Categories', href: categoriesIndex(b).url, icon: FolderOpen },
+        { title: 'Overview',   href: show(b).url,             icon: LayoutDashboard, exact: true },
+        { title: 'Orders',     href: ordersIndex(b).url,      icon: ShoppingBag },
+        { title: 'Customers',  href: customersIndex(b).url,   icon: Users },
+        { title: 'Products',   href: productsIndex(b).url,    icon: Package },
+        { title: 'Categories', href: categoriesIndex(b).url,  icon: FolderOpen },
     ];
 
     const storefrontItems: NavEntry[] = [

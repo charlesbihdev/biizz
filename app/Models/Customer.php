@@ -13,7 +13,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 
 #[ScopedBy([BusinessScope::class])]
-#[Fillable(['business_id', 'name', 'email', 'phone', 'notes', 'password', 'google_id', 'avatar', 'email_verified_at'])]
+#[Fillable(['business_id', 'name', 'email', 'phone', 'notes', 'is_blocked', 'password', 'google_id', 'avatar', 'email_verified_at'])]
 class Customer extends Authenticatable
 {
     /** @use HasFactory<CustomerFactory> */
@@ -26,6 +26,7 @@ class Customer extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_blocked' => 'boolean',
         ];
     }
 
