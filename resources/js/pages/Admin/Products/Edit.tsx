@@ -24,6 +24,7 @@ export default function EditProduct({ business, product, categories }: Props) {
         category_id: product.category_id ? String(product.category_id) : '',
         is_active:   product.is_active,
         images:      product.images.map((img) => ({ url: img.url, alt: img.alt ?? '' })),
+        promo_video: product.promo_video ?? '',
     });
 
     const handleSubmit = () => {

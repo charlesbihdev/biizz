@@ -8,19 +8,22 @@ import {
 import { ProductDescriptionField } from '@/components/admin/products/ProductDescriptionField';
 import { ProductPricingCard } from '@/components/admin/products/ProductPricingCard';
 import { QuickAddCategoryDialog } from '@/components/admin/products/QuickAddCategoryDialog';
+import { VideoEmbedField } from '@/components/admin/theme/VideoEmbedField';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { getProductFields } from '@/Themes/registry';
 import type { Business, Category } from '@/types';
 
 export interface ProductFormData {
-    name: string;
-    slug: string;
+    name:        string;
+    slug:        string;
     description: string;
-    price: string;
-    stock: string;
+    price:       string;
+    stock:       string;
     category_id: string;
-    is_active: boolean;
-    images: UploadedImage[];
+    is_active:   boolean;
+    images:      UploadedImage[];
+    promo_video: string;
 }
 
 interface Props {
@@ -56,7 +59,8 @@ export default function ProductForm({
     onSubmit,
     onChange,
 }: Props) {
-    const isDigital = business.business_type === 'digital';
+    const isDigital      = business.business_type === 'digital';
+    const themeFields    = getProductFields(business.theme_id);
 
     const [slugManuallyEdited, setSlugManuallyEdited] = useState(!!data.slug);
 
@@ -120,19 +124,41 @@ export default function ProductForm({
                         onChange={(val) => onChange('description', val)}
                     />
 
-                    {!isDigital && (
-                        <div className="flex flex-col gap-1.5">
-                            <Label>Product photos</Label>
-                            <ImageUploader
-                                businessSlug={business.slug}
-                                images={data.images}
-                                onChange={(imgs) => onChange('images', imgs)}
-                            />
-                            <p className="text-xs text-site-muted">
-                                First photo is the main image. Max 8 photos, 6 MB each.
-                            </p>
+                    <div className="flex flex-col gap-1.5">
+                        <Label>{isDigital ? 'Cover image' : 'Product photos'}</Label>
+                        <ImageUploader
+                            businessSlug={business.slug}
+                            images={data.images}
+                            onChange={(imgs) => onChange('images', imgs)}
+                        />
+                        <p className="text-xs text-site-muted">
+                            {isDigital
+                                ? 'First image is the cover shown on your sales page. Max 8 images, 6 MB each.'
+                                : 'First photo is the main image. Max 8 photos, 6 MB each.'}
+                        </p>
+                    </div>
+
+                    {Object.entries(themeFields).map(([key, field]) => (
+                        <div key={key} className="flex flex-col gap-1.5">
+                            <div className="flex items-center gap-2">
+                                <Label>{field.label}</Label>
+                                {field.hint && (
+                                    <span
+                                        className="cursor-default rounded-full border border-site-border px-2 py-0.5 text-[10px] text-site-muted"
+                                        title={field.hint}
+                                    >
+                                        ?
+                                    </span>
+                                )}
+                            </div>
+                            {field.type === 'video' && (
+                                <VideoEmbedField
+                                    value={(data as Record<string, string>)[key] ?? ''}
+                                    onChange={(url) => onChange(key as keyof ProductFormData, url as never)}
+                                />
+                            )}
                         </div>
-                    )}
+                    ))}
                 </div>
 
                 {/* ── Right: sidebar ── */}

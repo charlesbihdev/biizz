@@ -22,6 +22,7 @@ export default function CreateProduct({ business, categories }: Props) {
         category_id: '',
         is_active:   true,
         images:      [],
+        promo_video: '',
     });
 
     console.log(errors);

@@ -17,7 +17,9 @@ class UpdateBusinessSettingsRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:100'],
             'logo' => ['nullable', 'file', 'image', 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:6144'],
+            'remove_logo' => ['boolean'],
             'favicon' => ['nullable', 'file', 'image', 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:2048'],
+            'remove_favicon' => ['boolean'],
             'tagline' => ['nullable', 'string', 'max:150'],
             'business_category' => ['nullable', 'string', 'max:60'],
             'description' => ['nullable', 'string', 'max:500'],

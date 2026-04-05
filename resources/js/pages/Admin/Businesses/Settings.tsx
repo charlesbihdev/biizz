@@ -34,6 +34,7 @@ export default function BusinessSettings({ business, providers }: Props) {
         _method:              'patch' as string,
         name:                 business.name ?? '',
         logo:                 null as File | null,
+        remove_logo:          false,
         tagline:              business.tagline ?? '',
         business_category:    (business.business_category ?? '') as BusinessCategory | '',
         description:          business.description ?? '',
@@ -49,6 +50,7 @@ export default function BusinessSettings({ business, providers }: Props) {
             twitter:   sl.twitter   ?? '',
         },
         favicon:              null as File | null,
+        remove_favicon:       false,
         seo_title:            business.seo_title ?? '',
         seo_description:      business.seo_description ?? '',
         seo_image:            null as File | null,
@@ -89,8 +91,8 @@ export default function BusinessSettings({ business, providers }: Props) {
                         tagline={data.tagline}
                         errors={errors}
                         onTaglineChange={(v) => setData('tagline', v)}
-                        onLogoChange={(f) => setData('logo', f)}
-                        onFaviconChange={(f) => setData('favicon', f)}
+                        onLogoChange={(f) => setData(d => ({ ...d, logo: f, remove_logo: f === null }))}
+                        onFaviconChange={(f) => setData(d => ({ ...d, favicon: f, remove_favicon: f === null }))}
                     />
 
                     <StoreTypeSection

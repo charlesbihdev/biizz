@@ -19,12 +19,22 @@ class StorefrontController extends Controller
     {
         abort_unless($business->is_active, 404);
 
+        $business->load(['pages' => fn ($q) => $q->published()]);
+
+        // Course Funnel loads only what the page actually needs.
+        if ($business->theme_id === 'course-funnel') {
+            return $this->showCourseFunnel($business);
+        }
+
+        // Classic, Boutique, and future themes: full paginated product list.
         $perPage = (int) ($business->theme_settings['products_per_page'] ?? 24);
 
         $categorySlug = request()->query('category');
         $category = $categorySlug
             ? $business->categories()->where('slug', $categorySlug)->first()
             : null;
+
+        $business->load(['categories' => fn ($q) => $q->orderBy('sort_order')]);
 
         $products = $business->products()
             ->active()
@@ -34,14 +44,49 @@ class StorefrontController extends Controller
             ->paginate($perPage)
             ->withQueryString();
 
-        $business->load([
-            'categories' => fn ($q) => $q->orderBy('sort_order'),
-            'pages' => fn ($q) => $q->published(),
-        ]);
-
         return Inertia::render('Storefront/Main', [
             'business' => $business,
             'products' => $products,
+            'pages' => $business->pages,
+        ]);
+    }
+
+    /**
+     * Homepage for the Course Funnel theme.
+     * catalog_mode OFF: only the one featured product is loaded.
+     * catalog_mode ON:  paginated product list for the catalog grid.
+     */
+    private function showCourseFunnel(Business $business): Response
+    {
+        $catalogMode = (bool) ($business->theme_settings['catalog_mode'] ?? false);
+
+        if ($catalogMode) {
+            $perPage = (int) ($business->theme_settings['products_per_page'] ?? 12);
+
+            $products = $business->products()
+                ->active()
+                ->with('images')
+                ->latest()
+                ->paginate($perPage)
+                ->withQueryString();
+
+            return Inertia::render('Storefront/Main', [
+                'business' => $business,
+                'products' => $products,
+                'pages' => $business->pages,
+            ]);
+        }
+
+        // Single-product funnel: fetch only the featured product.
+        $featuredId = $business->theme_settings['featured_product_id'] ?? null;
+
+        $featuredProduct = $featuredId
+            ? $business->products()->active()->with('images')->find($featuredId)
+            : $business->products()->active()->with('images')->latest()->first();
+
+        return Inertia::render('Storefront/Main', [
+            'business' => $business,
+            'featured_product' => $featuredProduct,
             'pages' => $business->pages,
         ]);
     }
@@ -51,7 +96,11 @@ class StorefrontController extends Controller
      */
     public function shop(Business $business): Response
     {
-        abort_unless($business->is_active && ($business->theme_settings['show_shop_page'] ?? true), 404);
+        $shopEnabled = $business->theme_id === 'course-funnel'
+            ? ($business->theme_settings['catalog_mode'] ?? false)
+            : ($business->theme_settings['show_shop_page'] ?? true);
+
+        abort_unless($business->is_active && $shopEnabled, 404);
 
         $perPage = (int) ($business->theme_settings['products_per_page'] ?? 24);
         $category = null;

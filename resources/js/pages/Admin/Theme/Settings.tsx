@@ -9,10 +9,16 @@ import { FormSection } from '@/components/admin/form-section';
 import AppSidebarLayout from '@/layouts/app/app-sidebar-layout';
 import { show } from '@/routes/businesses';
 import { edit, update } from '@/routes/businesses/theme';
-import type { Business, ThemeId, ThemeSettings } from '@/types';
+import type { Business, CompactProduct, ThemeId, ThemeSettings } from '@/types';
 import { SCHEMA_MAP } from '@/types/theme';
 
-export default function ThemeSettings({ business }: { business: Business }) {
+export default function ThemeSettings({
+    business,
+    compact_products = [],
+}: {
+    business:          Business;
+    compact_products?: CompactProduct[];
+}) {
     const b = { business: business.slug };
 
     const [activeTheme, setActiveTheme] = useState<ThemeId>(business.theme_id as ThemeId);
@@ -114,6 +120,7 @@ export default function ThemeSettings({ business }: { business: Business }) {
                                         value={settings[key]}
                                         allSettings={settings}
                                         onChange={handleFieldChange}
+                                        compactProducts={compact_products}
                                     />
                                 </div>
                             ))}
