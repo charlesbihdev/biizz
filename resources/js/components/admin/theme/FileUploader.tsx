@@ -11,6 +11,7 @@ type Props = {
 
 export function FileUploader({ value, dimensions, onChange }: Props) {
     const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+    const [cleared, setCleared]       = useState(false);
     const inputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
@@ -31,6 +32,7 @@ export function FileUploader({ value, dimensions, onChange }: Props) {
 
         const objectUrl = URL.createObjectURL(file);
         setPreviewUrl(objectUrl);
+        setCleared(false);
         onChange(file);
     };
 
@@ -39,11 +41,12 @@ export function FileUploader({ value, dimensions, onChange }: Props) {
             URL.revokeObjectURL(previewUrl);
             setPreviewUrl(null);
         }
+        setCleared(true);
         if (inputRef.current) { inputRef.current.value = ''; }
         onChange(null);
     };
 
-    const displayUrl = previewUrl ?? value ?? null;
+    const displayUrl = cleared ? null : (previewUrl ?? value ?? null);
 
     return (
         <div className="flex flex-col gap-2">

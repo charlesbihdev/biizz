@@ -115,6 +115,8 @@ class BusinessController extends Controller
             if ($request->hasFile($field)) {
                 $path = $request->file($field)->storePublicly("businesses/{$business->id}", 's3');
                 $data[$column] = Storage::disk('s3')->url($path);
+            } elseif ($request->boolean("remove_{$field}")) {
+                $data[$column] = null;
             }
         }
 

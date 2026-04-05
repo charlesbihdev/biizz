@@ -27,6 +27,7 @@ class UpdateProductRequest extends FormRequest
                 Rule::unique('products')->where('business_id', $this->route('business')->id)->ignore($this->route('product')),
             ],
             'description' => ['nullable', 'string', 'max:5000'],
+            'promo_video' => ['nullable', 'string', 'max:2048'],
             'price' => ['sometimes', 'required', 'numeric', 'min:0', 'max:999999.99'],
             'stock' => ['sometimes', 'required', 'integer', 'min:0'],
             'is_active' => ['boolean'],

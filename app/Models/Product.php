@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
 #[ScopedBy([BusinessScope::class])]
-#[Fillable(['business_id', 'category_id', 'name', 'slug', 'description', 'price', 'stock', 'is_active', 'metadata'])]
+#[Fillable(['business_id', 'category_id', 'name', 'slug', 'description', 'promo_video', 'price', 'stock', 'is_active', 'metadata'])]
 class Product extends Model
 {
     /** @use HasFactory<ProductFactory> */

@@ -4,21 +4,30 @@ import type { ThemeId } from '@/Themes/registry';
 export type { ThemeId };
 
 export interface ThemeSettings {
+    // Classic / shared fields
     primary_color?:     string;
     accent_color?:      string;
     bg_color?:          string;
     color_scheme?:      string;
-    hero_image?:        string;
     show_featured?:     boolean;
     show_testimonials?: boolean;
     show_hero?:         boolean;
     show_shop_page?:    boolean;
     layout_style?:      'grid' | 'masonry' | 'list';
     products_per_page?: '12' | '24' | '36';
+
+    // Course Funnel fields
+    cta_text?:            string;
+    whatsapp_number?:     string;
+    enable_whatsapp_cta?: boolean;
+    enable_payment_cta?:  boolean;
+    catalog_mode?:        boolean;
+    featured_product_id?: number;
+
     [key: string]: unknown; // forward-compatible unknown keys
 }
 
-export type FieldType = 'color' | 'palette' | 'file' | 'boolean' | 'text' | 'select';
+export type FieldType = 'color' | 'palette' | 'file' | 'boolean' | 'text' | 'select' | 'video' | 'product';
 
 export interface SchemaField {
     type:         FieldType;
@@ -27,6 +36,12 @@ export interface SchemaField {
     dimensions?:  string;   // for file fields e.g. '1920x1080'
     options?:     string[]; // for select fields
     placeholder?: string;
+}
+
+export interface CompactProduct {
+    id:     number;
+    name:   string;
+    image?: string;
 }
 
 export type ThemeSchema = Record<string, SchemaField>;
@@ -121,6 +136,7 @@ export interface Product {
     name:        string;
     slug:        string;
     description: string | null;
+    promo_video: string | null;
     price:       string; // decimal comes as string from Laravel
     stock:       number;
     is_active:   boolean;

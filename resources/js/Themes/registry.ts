@@ -1,6 +1,7 @@
 import { lazy, type ComponentType } from 'react';
 import { ClassicSchema } from './Classic/schema';
 import { BoutiqueSchema } from './Boutique/schema';
+import { CourseFunnelSchema } from './CourseFunnel/schema';
 
 // ─── ADD NEW THEMES HERE ONLY ────────────────────────────────────────────────
 // After creating your theme's index.ts + schema.ts, add one entry below.
@@ -23,6 +24,20 @@ const THEMES = {
         load: () => import('./Boutique'),
         active: false,
     },
+    'course-funnel': {
+        label:         'Course Funnel',
+        description:   'Single-product sales page. Perfect for ebooks, courses, and digital downloads.',
+        schema:        CourseFunnelSchema,
+        productFields: {
+            promo_video: {
+                type:  'video' as const,
+                label: 'Demo Video',
+                hint:  'Optional walkthrough video shown on your sales page. Upload an MP4/WebM or paste a YouTube/Vimeo URL.',
+            },
+        },
+        load:   () => import('./CourseFunnel'),
+        active: true,
+    },
 } as const;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -30,6 +45,14 @@ const THEMES = {
 export type ThemeId = keyof typeof THEMES;
 
 export type ThemeRegistry = Record<string, ComponentType<any>>;
+
+export interface ProductFieldDefinition {
+    type:  'video' | 'text' | 'boolean';
+    label: string;
+    hint?: string;
+}
+
+export type ProductFields = Record<string, ProductFieldDefinition>;
 
 // ─── Derived exports — nothing to touch below when adding a theme ─────────────
 
@@ -96,6 +119,15 @@ function createThemeLazy(
             return true;
         },
     });
+}
+
+/**
+ * Returns the theme-specific product field extensions for the given theme id.
+ * Returns an empty object when the theme declares no extensions.
+ */
+export function getProductFields(themeId: string): ProductFields {
+    const theme = THEMES[themeId as ThemeId];
+    return (theme as { productFields?: ProductFields })?.productFields ?? {};
 }
 
 /**

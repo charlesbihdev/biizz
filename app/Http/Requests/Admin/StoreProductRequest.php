@@ -27,6 +27,7 @@ class StoreProductRequest extends FormRequest
                 Rule::unique('products')->where('business_id', $this->route('business')->id),
             ],
             'description' => ['nullable', 'string', 'max:5000'],
+            'promo_video' => ['nullable', 'string', 'max:2048'],
             'price' => ['required', 'numeric', 'min:0', 'max:999999.99'],
             'stock' => ['required', 'integer', 'min:0'],
             'is_active' => ['boolean'],

@@ -1,18 +1,21 @@
 import { FileUploader } from '@/components/admin/theme/FileUploader';
 import { PalettePicker } from '@/components/admin/theme/PalettePicker';
+import { ProductPickerField } from '@/components/admin/theme/ProductPickerField';
+import { VideoEmbedField } from '@/components/admin/theme/VideoEmbedField';
 import { Label } from '@/components/ui/label';
-import type { Business, SchemaField as SchemaFieldType, ThemeSettings } from '@/types';
+import type { Business, CompactProduct, SchemaField as SchemaFieldType, ThemeSettings } from '@/types';
 
 type Props = {
-    fieldKey:    string;
-    field:       SchemaFieldType;
-    business:    Business;
-    value:       ThemeSettings[string];
-    allSettings?: ThemeSettings;
-    onChange:    (key: string, value: ThemeSettings[string] | File) => void;
+    fieldKey:         string;
+    field:            SchemaFieldType;
+    business:         Business;
+    value:            ThemeSettings[string];
+    allSettings?:     ThemeSettings;
+    onChange:         (key: string, value: ThemeSettings[string] | File) => void;
+    compactProducts?: CompactProduct[];
 };
 
-export function SchemaField({ fieldKey, field, business, value, allSettings, onChange }: Props) {
+export function SchemaField({ fieldKey, field, business, value, allSettings, onChange, compactProducts }: Props) {
     const id = `field-${fieldKey}`;
 
     return (
@@ -99,6 +102,21 @@ export function SchemaField({ fieldKey, field, business, value, allSettings, onC
                         </option>
                     ))}
                 </select>
+            )}
+
+            {field.type === 'video' && (
+                <VideoEmbedField
+                    value={value as string | undefined}
+                    onChange={(url) => onChange(fieldKey, url)}
+                />
+            )}
+
+            {field.type === 'product' && (
+                <ProductPickerField
+                    value={value as number | null | undefined}
+                    products={compactProducts ?? []}
+                    onChange={(id) => onChange(fieldKey, id as ThemeSettings[string])}
+                />
             )}
         </div>
     );
