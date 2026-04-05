@@ -31,10 +31,6 @@ class ThemeSettingsData extends Data
         #[Max(50)]
         public readonly ?string $color_scheme = null,
 
-        // Image fields
-        #[Max(2048)]
-        public readonly ?string $hero_image = null,
-
         // Boolean toggles (Classic / shared)
         public readonly bool $show_featured = true,
         public readonly bool $show_testimonials = true,
@@ -48,17 +44,8 @@ class ThemeSettingsData extends Data
         public readonly string $products_per_page = '24',
 
         // Course Funnel fields
-        #[Max(150)]
-        public readonly ?string $hero_headline = null,
-
-        #[Max(300)]
-        public readonly ?string $hero_subheadline = null,
-
         #[Max(50)]
         public readonly ?string $cta_text = null,
-
-        #[Max(2048)]
-        public readonly ?string $promo_video = null,
 
         #[Max(30)]
         public readonly ?string $whatsapp_number = null,
@@ -67,6 +54,5 @@ class ThemeSettingsData extends Data
         public readonly bool $enable_payment_cta = false,
         public readonly bool $catalog_mode = false,
         public readonly ?int $featured_product_id = null,
-        public readonly ?string $sales_content = null,
     ) {}
 }
