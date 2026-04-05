@@ -3,7 +3,6 @@ import { PalettePicker } from '@/components/admin/theme/PalettePicker';
 import { ProductPickerField } from '@/components/admin/theme/ProductPickerField';
 import { VideoEmbedField } from '@/components/admin/theme/VideoEmbedField';
 import { Label } from '@/components/ui/label';
-import { SimpleEditor } from '@/components/tiptap/templates/simple/simple-editor';
 import type { Business, CompactProduct, SchemaField as SchemaFieldType, ThemeSettings } from '@/types';
 
 type Props = {
@@ -103,15 +102,6 @@ export function SchemaField({ fieldKey, field, business, value, allSettings, onC
                         </option>
                     ))}
                 </select>
-            )}
-
-            {field.type === 'richtext' && (
-                <SimpleEditor
-                    value={(value as string) || ''}
-                    onChange={(html) => onChange(fieldKey, html)}
-                    placeholder={field.placeholder}
-                    businessSlug={business.slug}
-                />
             )}
 
             {field.type === 'video' && (

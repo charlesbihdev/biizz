@@ -26,7 +26,6 @@ class UpdateThemeSettingsRequest extends FormRequest
             'primary_color' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'accent_color' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'color_scheme' => ['nullable', 'string', 'max:50'],
-            'hero_image' => ['nullable', 'string', 'max:2048'],
             'show_featured' => ['boolean'],
             'show_testimonials' => ['boolean'],
             'show_hero' => ['boolean'],
@@ -34,10 +33,7 @@ class UpdateThemeSettingsRequest extends FormRequest
             'products_per_page' => ['nullable', 'string', 'in:12,24,36'],
 
             // Course Funnel fields
-            'hero_headline' => ['nullable', 'string', 'max:150'],
-            'hero_subheadline' => ['nullable', 'string', 'max:300'],
             'cta_text' => ['nullable', 'string', 'max:50'],
-            'promo_video' => ['nullable', 'string', 'max:2048'],
             'whatsapp_number' => ['nullable', 'string', 'max:30'],
             'enable_whatsapp_cta' => ['boolean'],
             'enable_payment_cta' => ['boolean'],
@@ -47,7 +43,6 @@ class UpdateThemeSettingsRequest extends FormRequest
                 'integer',
                 Rule::exists('products', 'id')->where('business_id', $business->id),
             ],
-            'sales_content' => ['nullable', 'string'],
         ];
     }
 }

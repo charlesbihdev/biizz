@@ -9,7 +9,6 @@ export interface ThemeSettings {
     accent_color?:      string;
     bg_color?:          string;
     color_scheme?:      string;
-    hero_image?:        string;
     show_featured?:     boolean;
     show_testimonials?: boolean;
     show_hero?:         boolean;
@@ -19,18 +18,16 @@ export interface ThemeSettings {
 
     // Course Funnel fields
     cta_text?:            string;
-    promo_video?:         string;
     whatsapp_number?:     string;
     enable_whatsapp_cta?: boolean;
     enable_payment_cta?:  boolean;
     catalog_mode?:        boolean;
     featured_product_id?: number;
-    sales_content?:       string;
 
     [key: string]: unknown; // forward-compatible unknown keys
 }
 
-export type FieldType = 'color' | 'palette' | 'file' | 'boolean' | 'text' | 'select' | 'richtext' | 'video' | 'product';
+export type FieldType = 'color' | 'palette' | 'file' | 'boolean' | 'text' | 'select' | 'video' | 'product';
 
 export interface SchemaField {
     type:         FieldType;
