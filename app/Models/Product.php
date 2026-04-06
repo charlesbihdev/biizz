@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Str;
 
 #[ScopedBy([BusinessScope::class])]
-#[Fillable(['business_id', 'category_id', 'name', 'slug', 'description', 'promo_video', 'price', 'stock', 'is_active', 'metadata'])]
+#[Fillable(['business_id', 'category_id', 'digital_category', 'name', 'slug', 'description', 'promo_video', 'price', 'compare_at_price', 'stock', 'is_active', 'metadata', 'tags'])]
 class Product extends Model
 {
     /** @use HasFactory<ProductFactory> */
@@ -48,9 +48,11 @@ class Product extends Model
     {
         return [
             'price' => 'decimal:2',
+            'compare_at_price' => 'decimal:2',
             'stock' => 'integer',
             'is_active' => 'boolean',
             'metadata' => 'array',
+            'tags' => 'array',
         ];
     }
 

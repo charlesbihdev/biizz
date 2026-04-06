@@ -1,6 +1,20 @@
 import { useRef, useState } from 'react';
 import { Link2, Upload, X } from 'lucide-react';
 
+/** Converts any YouTube URL variant to its embed form. Non-YouTube URLs pass through. */
+function toEmbedUrl(url: string): string {
+    // youtube.com/watch?v=ID or youtube.com/watch?v=ID&...
+    const watchMatch = url.match(/youtube\.com\/watch\?(?:.*&)?v=([\w-]+)/);
+    if (watchMatch) return `https://www.youtube.com/embed/${watchMatch[1]}`;
+
+    // youtu.be/ID
+    const shortMatch = url.match(/youtu\.be\/([\w-]+)/);
+    if (shortMatch) return `https://www.youtube.com/embed/${shortMatch[1]}`;
+
+    // Already an embed URL or other iframe-compatible URL
+    return url;
+}
+
 const MAX_SIZE_BYTES = 10 * 1024 * 1024; // 10 MB
 
 type Tab = 'upload' | 'embed';
@@ -132,7 +146,7 @@ export function VideoEmbedField({ value, onChange }: Props) {
                         <div className="overflow-hidden rounded-xl border border-site-border">
                             <div className="aspect-video">
                                 <iframe
-                                    src={embedUrl}
+                                    src={toEmbedUrl(embedUrl)}
                                     className="h-full w-full"
                                     allowFullScreen
                                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -142,7 +156,7 @@ export function VideoEmbedField({ value, onChange }: Props) {
                     )}
 
                     <p className="text-xs text-site-muted">
-                        Paste a YouTube embed URL (youtube.com/embed/...) or any iframe-compatible URL.
+                        Paste any YouTube link — watch or share URL. Other iframe-compatible URLs also work.
                     </p>
                 </div>
             )}

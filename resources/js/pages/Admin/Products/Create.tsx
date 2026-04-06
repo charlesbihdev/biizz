@@ -14,15 +14,18 @@ export default function CreateProduct({ business, categories }: Props) {
     const b = { business: business.slug };
 
     const { data, setData, post, processing, errors } = useForm<ProductFormData>({
-        name:        '',
-        slug:        '',
-        description: '',
-        price:       '',
-        stock:       '0',
-        category_id: '',
-        is_active:   true,
-        images:      [],
-        promo_video: '',
+        name:             '',
+        slug:             '',
+        description:      '',
+        price:            '',
+        compare_at_price: '',
+        stock:            '0',
+        category_id:      '',
+        digital_category: 'others',
+        is_active:        true,
+        images:           [],
+        promo_video:      '',
+        tags:             [],
     });
 
     console.log(errors);

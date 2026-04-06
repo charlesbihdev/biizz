@@ -7,11 +7,12 @@ interface Props {
     value: string;
     error?: string;
     businessSlug: string;
+    defaultRichText?: boolean;
     onChange: (value: string) => void;
 }
 
-export function ProductDescriptionField({ value, error, businessSlug, onChange }: Props) {
-    const [richText, setRichText] = useState(() => /<[a-z][\s\S]*>/i.test(value ?? ''));
+export function ProductDescriptionField({ value, error, businessSlug, defaultRichText = false, onChange }: Props) {
+    const [richText, setRichText] = useState(() => defaultRichText || /<[a-z][\s\S]*>/i.test(value ?? ''));
 
     return (
         <div className="flex flex-col gap-1.5">

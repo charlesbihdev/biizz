@@ -66,6 +66,10 @@ class Business extends Model
         });
 
         static::created(function (Business $business): void {
+            if ($business->business_type === 'digital') {
+                return;
+            }
+
             foreach (DefaultPages::stubs() as $stub) {
                 $business->pages()->create($stub)->forceFill(['is_system' => true])->save();
             }
