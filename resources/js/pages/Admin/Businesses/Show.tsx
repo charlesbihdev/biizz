@@ -71,10 +71,13 @@ export default function ShowBusiness({ business }: { business: BusinessWithCount
                         }`} />
                         <div>
                             <p className={`text-sm font-semibold ${business.is_active ? 'text-emerald-800' : 'text-amber-800'}`}>
-                                {business.is_active ? 'Storefront is live' : 'Storefront is offline'}
+                                {business.is_active
+                                    ? (business.business_type === 'digital' ? 'Creator catalog is live' : 'Storefront is live')
+                                    : (business.business_type === 'digital' ? 'Creator catalog is offline' : 'Storefront is offline')
+                                }
                             </p>
                             <a
-                                href={`/s/${business.slug}`}
+                                href={business.business_type === 'digital' ? `/catalog/${business.slug}` : `/s/${business.slug}`}
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className={`inline-flex items-center gap-1 text-xs ${
@@ -82,7 +85,10 @@ export default function ShowBusiness({ business }: { business: BusinessWithCount
                                 }`}
                                 onClick={(e) => { if (!business.is_active) { e.preventDefault(); } }}
                             >
-                                biizz.app/s/{business.slug}
+                                {business.business_type === 'digital'
+                                    ? `biizz.app/catalog/${business.slug}`
+                                    : `biizz.app/s/${business.slug}`
+                                }
                                 {business.is_active && <ExternalLink className="h-3 w-3" />}
                             </a>
                         </div>

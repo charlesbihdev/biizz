@@ -1,12 +1,11 @@
 import { LoaderCircle, Plus } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import InputError from '@/components/input-error';
-import {
-    ImageUploader,
-    type UploadedImage,
-} from '@/components/admin/products/ImageUploader';
+import { DigitalCategoryField } from '@/components/admin/products/DigitalCategoryField';
+import { ImageUploader, type UploadedImage } from '@/components/admin/products/ImageUploader';
 import { ProductDescriptionField } from '@/components/admin/products/ProductDescriptionField';
 import { ProductPricingCard } from '@/components/admin/products/ProductPricingCard';
+import { ProductTagsField } from '@/components/admin/products/ProductTagsField';
 import { QuickAddCategoryDialog } from '@/components/admin/products/QuickAddCategoryDialog';
 import { VideoEmbedField } from '@/components/admin/theme/VideoEmbedField';
 import { Input } from '@/components/ui/input';
@@ -15,15 +14,18 @@ import { getProductFields } from '@/Themes/registry';
 import type { Business, Category } from '@/types';
 
 export interface ProductFormData {
-    name:        string;
-    slug:        string;
-    description: string;
-    price:       string;
-    stock:       string;
-    category_id: string;
-    is_active:   boolean;
-    images:      UploadedImage[];
-    promo_video: string;
+    name:             string;
+    slug:             string;
+    description:      string;
+    price:            string;
+    compare_at_price: string;
+    stock:            string;
+    category_id:      string;
+    digital_category: string;
+    is_active:        boolean;
+    images:           UploadedImage[];
+    promo_video:      string;
+    tags:             string[];
 }
 
 interface Props {
@@ -34,10 +36,7 @@ interface Props {
     processing: boolean;
     submitLabel: string;
     onSubmit: () => void;
-    onChange: <K extends keyof ProductFormData>(
-        key: K,
-        value: ProductFormData[K],
-    ) => void;
+    onChange: <K extends keyof ProductFormData>(key: K, value: ProductFormData[K]) => void;
 }
 
 function slugify(text: string): string {
@@ -49,30 +48,18 @@ function slugify(text: string): string {
         .replace(/-+/g, '-');
 }
 
-export default function ProductForm({
-    business,
-    categories,
-    data,
-    errors,
-    processing,
-    submitLabel,
-    onSubmit,
-    onChange,
-}: Props) {
-    const isDigital      = business.business_type === 'digital';
-    const themeFields    = getProductFields(business.theme_id);
+export default function ProductForm({ business, categories, data, errors, processing, submitLabel, onSubmit, onChange }: Props) {
+    const isDigital   = business.business_type === 'digital';
+    const themeFields = getProductFields(business.theme_id);
 
     const [slugManuallyEdited, setSlugManuallyEdited] = useState(!!data.slug);
+    const [quickAddOpen, setQuickAddOpen]             = useState(false);
+    const pendingCategoryName                         = useRef<string | null>(null);
 
     useEffect(() => {
-        if (!slugManuallyEdited) {
-            onChange('slug', slugify(data.name));
-        }
+        if (!slugManuallyEdited) onChange('slug', slugify(data.name));
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [data.name]);
-
-    const [quickAddOpen, setQuickAddOpen] = useState(false);
-    const pendingCategoryName = useRef<string | null>(null);
 
     useEffect(() => {
         if (!pendingCategoryName.current) return;
@@ -82,6 +69,51 @@ export default function ProductForm({
             pendingCategoryName.current = null;
         }
     }, [categories]);
+
+    // ── Shared sidebar cards ──────────────────────────────────────────────────
+
+    const visibilityCard = (
+        <div className="rounded-2xl border border-site-border bg-white p-4">
+            <label className="flex cursor-pointer items-center gap-3">
+                <input
+                    type="checkbox"
+                    checked={data.is_active}
+                    onChange={(e) => onChange('is_active', e.target.checked)}
+                    className="h-4 w-4 rounded border-site-border accent-brand"
+                />
+                <div>
+                    <p className="text-sm font-medium text-site-fg">
+                        {isDigital ? 'Listed on marketplace' : 'Visible on storefront'}
+                    </p>
+                    <p className="text-xs text-site-muted">
+                        {isDigital ? 'Buyers can discover and purchase this product' : 'Customers can see and buy this product'}
+                    </p>
+                </div>
+            </label>
+        </div>
+    );
+
+    const pricingCard = (
+        <ProductPricingCard
+            price={data.price}
+            compareAtPrice={data.compare_at_price}
+            stock={data.stock}
+            isDigital={isDigital}
+            errors={{ price: errors.price, compare_at_price: errors.compare_at_price, stock: errors.stock }}
+            onChange={(field, val) => onChange(field, val)}
+        />
+    );
+
+    const submitBtn = (
+        <button
+            type="submit"
+            disabled={processing}
+            className="mb-8 flex items-center justify-center gap-2 rounded-full bg-brand py-2.5 text-sm font-bold text-white transition hover:bg-brand-hover disabled:opacity-60"
+        >
+            {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
+            {submitLabel}
+        </button>
+    );
 
     return (
         <>
@@ -97,7 +129,7 @@ export default function ProductForm({
                             id="name"
                             value={data.name}
                             onChange={(e) => onChange('name', e.target.value)}
-                            placeholder="e.g. White Linen Dress"
+                            placeholder={isDigital ? 'e.g. The $100/Day Formula' : 'e.g. White Linen Dress'}
                             autoFocus
                             required
                             className="border-site-border focus-visible:ring-brand/30"
@@ -111,7 +143,7 @@ export default function ProductForm({
                             id="slug"
                             value={data.slug}
                             onChange={(e) => { setSlugManuallyEdited(true); onChange('slug', e.target.value); }}
-                            placeholder="e.g. white-linen-dress"
+                            placeholder="e.g. the-100-day-formula"
                             className="border-site-border font-mono text-sm focus-visible:ring-brand/30"
                         />
                         <InputError message={errors.slug} />
@@ -121,23 +153,32 @@ export default function ProductForm({
                         value={data.description}
                         error={errors.description}
                         businessSlug={business.slug}
+                        defaultRichText={isDigital}
                         onChange={(val) => onChange('description', val)}
                     />
 
-                    <div className="flex flex-col gap-1.5">
-                        <Label>{isDigital ? 'Cover image' : 'Product photos'}</Label>
-                        <ImageUploader
-                            businessSlug={business.slug}
-                            images={data.images}
-                            onChange={(imgs) => onChange('images', imgs)}
-                        />
-                        <p className="text-xs text-site-muted">
-                            {isDigital
-                                ? 'First image is the cover shown on your sales page. Max 8 images, 6 MB each.'
-                                : 'First photo is the main image. Max 8 photos, 6 MB each.'}
-                        </p>
-                    </div>
+                    {/* Physical: images + tags stay in left column */}
+                    {!isDigital && (
+                        <>
+                            <div className="flex flex-col gap-1.5">
+                                <Label>Product photos</Label>
+                                <ImageUploader
+                                    businessSlug={business.slug}
+                                    images={data.images}
+                                    onChange={(imgs) => onChange('images', imgs)}
+                                />
+                                <p className="text-xs text-site-muted">First photo is the main image. Max 8 photos, 6 MB each.</p>
+                            </div>
 
+                            <ProductTagsField
+                                tags={data.tags}
+                                error={errors.tags as string | undefined}
+                                onChange={(val) => onChange('tags', val)}
+                            />
+                        </>
+                    )}
+
+                    {/* Theme-specific fields (physical themes only — digital has no theme) */}
                     {Object.entries(themeFields).map(([key, field]) => (
                         <div key={key} className="flex flex-col gap-1.5">
                             <div className="flex items-center gap-2">
@@ -146,9 +187,7 @@ export default function ProductForm({
                                     <span
                                         className="cursor-default rounded-full border border-site-border px-2 py-0.5 text-[10px] text-site-muted"
                                         title={field.hint}
-                                    >
-                                        ?
-                                    </span>
+                                    >?</span>
                                 )}
                             </div>
                             {field.type === 'video' && (
@@ -163,76 +202,92 @@ export default function ProductForm({
 
                 {/* ── Right: sidebar ── */}
                 <div className="flex w-full shrink-0 flex-col gap-4 lg:w-72">
-                    <div className="rounded-2xl border border-site-border bg-white p-4">
-                        <label className="flex cursor-pointer items-center gap-3">
-                            <input
-                                type="checkbox"
-                                checked={data.is_active}
-                                onChange={(e) => onChange('is_active', e.target.checked)}
-                                className="h-4 w-4 rounded border-site-border accent-brand"
-                            />
-                            <div>
-                                <p className="text-sm font-medium text-site-fg">Visible on storefront</p>
-                                <p className="text-xs text-site-muted">Customers can see and buy this product</p>
+                    {isDigital ? (
+                        // ── Digital sidebar: cover → tags → category → pricing → submit ──
+                        <>
+                            {/* Cover image */}
+                            <div className="flex flex-col gap-2 rounded-2xl border border-site-border bg-white p-4">
+                                <p className="text-xs font-semibold uppercase tracking-wide text-site-muted">Cover image</p>
+                                <ImageUploader
+                                    businessSlug={business.slug}
+                                    images={data.images}
+                                    onChange={(imgs) => onChange('images', imgs)}
+                                />
+                                <p className="text-xs text-site-muted">Shown on your marketplace listing. 6 MB max.</p>
                             </div>
-                        </label>
-                    </div>
 
-                    <div className="flex flex-col gap-4 rounded-2xl border border-site-border bg-white p-4">
-                        <p className="text-xs font-semibold tracking-wide text-site-muted uppercase">Organise</p>
-                        <div className="flex flex-col gap-1.5">
-                            <div className="flex items-center justify-between">
-                                <Label htmlFor="category_id">Category <span className="text-red-500">*</span></Label>
-                                <button
-                                    type="button"
-                                    onClick={() => setQuickAddOpen(true)}
-                                    className="flex items-center gap-1 text-xs text-brand hover:text-brand-hover"
-                                >
-                                    <Plus className="h-3.5 w-3.5" />
-                                    Add
-                                </button>
+                            {/* Tags */}
+                            <div className="rounded-2xl border border-site-border bg-white p-4">
+                                <ProductTagsField
+                                    tags={data.tags}
+                                    error={errors.tags as string | undefined}
+                                    onChange={(val) => onChange('tags', val)}
+                                />
                             </div>
-                            <select
-                                id="category_id"
-                                value={data.category_id}
-                                onChange={(e) => onChange('category_id', e.target.value)}
-                                required
-                                className="w-full rounded-lg border border-site-border bg-white px-3 py-2 text-sm text-site-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/30"
-                            >
-                                <option value="" disabled>Select a category</option>
-                                {categories.map((c) => (
-                                    <option key={c.id} value={c.id}>{c.name}</option>
-                                ))}
-                            </select>
-                            <InputError message={errors.category_id} />
-                        </div>
-                    </div>
 
-                    <ProductPricingCard
-                        price={data.price}
-                        stock={data.stock}
-                        isDigital={isDigital}
-                        errors={{ price: errors.price, stock: errors.stock }}
-                        onChange={(field, val) => onChange(field, val)}
-                    />
+                            {/* Platform category */}
+                            <div className="flex flex-col gap-3 rounded-2xl border border-site-border bg-white p-4">
+                                <p className="text-xs font-semibold uppercase tracking-wide text-site-muted">Organise</p>
+                                <DigitalCategoryField
+                                    value={data.digital_category}
+                                    onChange={(val) => onChange('digital_category', val)}
+                                />
+                            </div>
 
-                    <button
-                        type="submit"
-                        disabled={processing}
-                        className="mb-8 flex items-center justify-center gap-2 rounded-full bg-brand py-2.5 text-sm font-bold text-white transition hover:bg-brand-hover disabled:opacity-60"
-                    >
-                        {processing && <LoaderCircle className="h-4 w-4 animate-spin" />}
-                        {submitLabel}
-                    </button>
+                            {visibilityCard}
+                            {pricingCard}
+                            {submitBtn}
+                        </>
+                    ) : (
+                        // ── Physical sidebar: visibility → category → pricing → submit ──
+                        <>
+                            {visibilityCard}
+
+                            <div className="flex flex-col gap-4 rounded-2xl border border-site-border bg-white p-4">
+                                <p className="text-xs font-semibold uppercase tracking-wide text-site-muted">Organise</p>
+                                <div className="flex flex-col gap-1.5">
+                                    <div className="flex items-center justify-between">
+                                        <Label htmlFor="category_id">Category <span className="text-red-500">*</span></Label>
+                                        <button
+                                            type="button"
+                                            onClick={() => setQuickAddOpen(true)}
+                                            className="flex items-center gap-1 text-xs text-brand hover:text-brand-hover"
+                                        >
+                                            <Plus className="h-3.5 w-3.5" />
+                                            Add
+                                        </button>
+                                    </div>
+                                    <select
+                                        id="category_id"
+                                        value={data.category_id}
+                                        onChange={(e) => onChange('category_id', e.target.value)}
+                                        required
+                                        className="w-full rounded-lg border border-site-border bg-white px-3 py-2 text-sm text-site-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/30"
+                                    >
+                                        <option value="" disabled>Select a category</option>
+                                        {categories.map((c) => (
+                                            <option key={c.id} value={c.id}>{c.name}</option>
+                                        ))}
+                                    </select>
+                                    <InputError message={errors.category_id} />
+                                </div>
+                            </div>
+
+                            {pricingCard}
+                            {submitBtn}
+                        </>
+                    )}
                 </div>
             </form>
 
-            <QuickAddCategoryDialog
-                business={business}
-                open={quickAddOpen}
-                onOpenChange={setQuickAddOpen}
-                onCreated={(name) => { pendingCategoryName.current = name; }}
-            />
+            {!isDigital && (
+                <QuickAddCategoryDialog
+                    business={business}
+                    open={quickAddOpen}
+                    onOpenChange={setQuickAddOpen}
+                    onCreated={(name) => { pendingCategoryName.current = name; }}
+                />
+            )}
         </>
     );
 }

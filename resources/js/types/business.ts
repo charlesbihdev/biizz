@@ -129,20 +129,37 @@ export interface ProductFile {
 }
 
 export interface Product {
+    id:               number;
+    business_id:      number;
+    category_id:      number | null;
+    category:         { id: number; name: string; slug: string } | null;
+    digital_category: string | null;
+    name:             string;
+    slug:             string;
+    description:      string | null;
+    promo_video:      string | null;
+    price:            string; // decimal comes as string from Laravel
+    compare_at_price: string | null;
+    stock:            number;
+    is_active:        boolean;
+    tags:             string[];
+    images:           ProductImage[];
+    files:            ProductFile[];
+    metadata:         Record<string, unknown>;
+    created_at:       string;
+    updated_at:       string;
+}
+
+export type MarketplacePurchaseStatus = 'pending' | 'paid' | 'free';
+
+export interface MarketplacePurchase {
     id:          number;
-    business_id: number;
-    category_id: number | null;
-    category:    { id: number; name: string; slug: string } | null;
-    name:        string;
-    slug:        string;
-    description: string | null;
-    promo_video: string | null;
-    price:       string; // decimal comes as string from Laravel
-    stock:       number;
-    is_active:   boolean;
-    images:      ProductImage[];
-    files:       ProductFile[];
-    metadata:    Record<string, unknown>;
+    user_id:     number;
+    product_id:  number;
+    product?:    Product;
+    amount_paid: string;
+    payment_ref: string | null;
+    status:      MarketplacePurchaseStatus;
     created_at:  string;
     updated_at:  string;
 }

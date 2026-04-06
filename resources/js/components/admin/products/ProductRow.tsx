@@ -1,8 +1,9 @@
 import { Link } from '@inertiajs/react';
-import { Eye, Pencil, Trash2 } from 'lucide-react';
+import { ExternalLink, Eye, Pencil, Trash2 } from 'lucide-react';
 import { useState } from 'react';
 import { DeleteProductDialog } from '@/components/admin/products/DeleteProductDialog';
 import { edit } from '@/routes/businesses/products';
+import { product as marketplaceProduct } from '@/routes/marketplace';
 import type { Business, Product } from '@/types';
 
 type Props = {
@@ -63,6 +64,16 @@ export function ProductRow({ business, product, rowNumber, onView }: Props) {
                         >
                             <Eye className="h-4 w-4" />
                         </button>
+                        {business.business_type === 'digital' && (
+                            <a
+                                href={marketplaceProduct({ business: business.slug, product: product.slug }).url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="rounded-lg p-1.5 text-site-muted transition hover:bg-site-surface hover:text-site-fg"
+                            >
+                                <ExternalLink className="h-4 w-4" />
+                            </a>
+                        )}
                         <Link
                             href={edit({ ...b, product: product.slug }).url}
                             className="rounded-lg p-1.5 text-site-muted transition hover:bg-site-surface hover:text-site-fg"

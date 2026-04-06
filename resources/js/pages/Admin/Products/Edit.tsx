@@ -15,16 +15,19 @@ export default function EditProduct({ business, product, categories }: Props) {
     const b = { business: business.slug };
 
     const { data, setData, post, processing, errors } = useForm({
-        _method:     'patch' as string,
-        name:        product.name,
-        slug:        product.slug ?? '',
-        description: product.description ?? '',
-        price:       product.price,
-        stock:       String(product.stock),
-        category_id: product.category_id ? String(product.category_id) : '',
-        is_active:   product.is_active,
-        images:      product.images.map((img) => ({ url: img.url, alt: img.alt ?? '' })),
-        promo_video: product.promo_video ?? '',
+        _method:          'patch' as string,
+        name:             product.name,
+        slug:             product.slug ?? '',
+        description:      product.description ?? '',
+        price:            product.price,
+        compare_at_price: product.compare_at_price ?? '',
+        stock:            String(product.stock),
+        category_id:      product.category_id ? String(product.category_id) : '',
+        digital_category: product.digital_category ?? 'others',
+        is_active:        product.is_active,
+        images:           product.images.map((img) => ({ url: img.url, alt: img.alt ?? '' })),
+        promo_video:      product.promo_video ?? '',
+        tags:             product.tags ?? [],
     });
 
     const handleSubmit = () => {

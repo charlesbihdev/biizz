@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Business;
 use App\Models\Page;
 use App\Models\Product;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -15,9 +16,14 @@ class StorefrontController extends Controller
      * Render the live storefront for a business.
      * Products are paginated based on the business's theme setting.
      */
-    public function show(Business $business): Response
+    public function show(Business $business): Response|RedirectResponse
     {
         abort_unless($business->is_active, 404);
+
+        // Digital businesses live at /catalog/{slug}, not on the themed storefront.
+        if ($business->business_type === 'digital') {
+            return redirect()->route('catalog.show', $business->slug);
+        }
 
         $business->load(['pages' => fn ($q) => $q->published()]);
 

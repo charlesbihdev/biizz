@@ -93,19 +93,25 @@ export function NavBusiness({ business }: { business: Business }) {
     const { isCurrentOrParentUrl, isCurrentUrl } = useCurrentUrl();
     const b = { business: business.slug };
 
+    const isDigital = business.business_type === 'digital';
+
     const sellItems: NavEntry[] = [
-        { title: 'Overview',   href: show(b).url,             icon: LayoutDashboard, exact: true },
-        { title: 'Orders',     href: ordersIndex(b).url,      icon: ShoppingBag },
-        { title: 'Customers',  href: customersIndex(b).url,   icon: Users },
-        { title: 'Products',   href: productsIndex(b).url,    icon: Package },
-        { title: 'Categories', href: categoriesIndex(b).url,  icon: FolderOpen },
+        { title: 'Overview', href: show(b).url,          icon: LayoutDashboard, exact: true },
+        { title: 'Orders',   href: ordersIndex(b).url,   icon: ShoppingBag },
+        ...(!isDigital ? [
+            { title: 'Customers',  href: customersIndex(b).url,  icon: Users },
+        ] : []),
+        { title: 'Products', href: productsIndex(b).url, icon: Package },
+        ...(!isDigital ? [
+            { title: 'Categories', href: categoriesIndex(b).url, icon: FolderOpen },
+        ] : []),
     ];
 
-    const storefrontItems: NavEntry[] = [
+    const storefrontItems: NavEntry[] = business.business_type === 'physical' ? [
         { title: 'Theme',  href: themeEdit(b).url,  icon: Palette },
         { title: 'Pages',  href: pagesIndex(b).url, icon: FileText },
         { title: 'Domain', href: null,               icon: Globe,   soon: true },
-    ];
+    ] : [];
 
     const engageItems: NavEntry[] = [
         { title: 'WhatsApp AI', href: null, icon: BotMessageSquare,  soon: true },
@@ -127,7 +133,9 @@ export function NavBusiness({ business }: { business: Business }) {
     return (
         <>
             <NavGroup label="Sell"       items={sellItems}       isActive={isActive} />
-            <NavGroup label="Storefront" items={storefrontItems} isActive={isActive} />
+            {storefrontItems.length > 0 && (
+                <NavGroup label="Storefront" items={storefrontItems} isActive={isActive} />
+            )}
             <NavGroup label="Engage"     items={engageItems}     isActive={isActive} />
             <NavGroup label="Settings"   items={settingsItems}   isActive={isActive} />
         </>

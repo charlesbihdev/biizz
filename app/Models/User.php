@@ -13,7 +13,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
-#[Fillable(['name', 'email', 'password', 'google_id', 'avatar'])]
+#[Fillable(['name', 'email', 'password', 'google_id', 'avatar', 'role'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -48,5 +48,21 @@ class User extends Authenticatable
             ->using(BusinessUser::class)
             ->withPivot('role')
             ->withTimestamps();
+    }
+
+    /** @return HasMany<MarketplacePurchase, $this> */
+    public function marketplacePurchases(): HasMany
+    {
+        return $this->hasMany(MarketplacePurchase::class);
+    }
+
+    public function isCreator(): bool
+    {
+        return $this->role === 'creator';
+    }
+
+    public function isBuyer(): bool
+    {
+        return $this->role === 'buyer';
     }
 }
