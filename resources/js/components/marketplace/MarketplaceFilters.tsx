@@ -28,7 +28,7 @@ export default function MarketplaceFilters({ activeCategory, activeSearch }: Pro
                         type="button"
                         onClick={() => navigate()}
                         className={[
-                            'shrink-0 rounded-full border px-3.5 py-1 text-xs font-medium transition',
+                            'shrink-0 rounded-full border px-3.5 py-1 text-xs font-medium capitalize transition',
                             !activeCategory
                                 ? 'border-brand bg-brand text-white'
                                 : 'border-site-border text-site-muted hover:border-brand/50 hover:text-site-fg',
@@ -43,7 +43,7 @@ export default function MarketplaceFilters({ activeCategory, activeSearch }: Pro
                             type="button"
                             onClick={() => navigate(cat)}
                             className={[
-                                'shrink-0 rounded-full border px-3.5 py-1 text-xs font-medium transition',
+                                'shrink-0 rounded-full border px-3.5 py-1 text-xs font-medium capitalize transition',
                                 activeCategory === cat
                                     ? 'border-brand bg-brand text-white'
                                     : 'border-site-border text-site-muted hover:border-brand/50 hover:text-site-fg',

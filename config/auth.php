@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Buyer;
 use App\Models\User;
 
 return [
@@ -47,6 +48,11 @@ return [
             'driver' => 'session',
             'provider' => 'customers',
         ],
+
+        'buyer' => [
+            'driver' => 'session',
+            'provider' => 'buyers',
+        ],
     ],
 
     /*
@@ -74,6 +80,11 @@ return [
 
         'customers' => [
             'driver' => 'customer', // registered in AppServiceProvider
+        ],
+
+        'buyers' => [
+            'driver' => 'eloquent',
+            'model' => Buyer::class,
         ],
 
         // 'users' => [

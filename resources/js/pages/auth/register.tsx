@@ -8,6 +8,7 @@ import AuthSimpleLayout from '@/layouts/auth/auth-simple-layout';
 import { login } from '@/routes';
 import { redirect as googleRedirect } from '@/routes/auth/google';
 import { store as registerStore } from '@/routes/register';
+import { register as buyerRegister } from '@/routes/marketplace';
 
 function GoogleButton() {
     return (
@@ -144,6 +145,13 @@ export default function Register() {
                 Already have an account?{' '}
                 <Link href={login().url} className="font-medium text-brand hover:underline">
                     Sign in
+                </Link>
+            </p>
+
+            <p className="mt-2 text-center text-sm text-site-muted">
+                Want to shop the marketplace?{' '}
+                <Link href={buyerRegister().url} className="font-medium text-brand hover:underline">
+                    Create a buyer account →
                 </Link>
             </p>
         </AuthSimpleLayout>

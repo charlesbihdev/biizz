@@ -50,19 +50,8 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
-    /** @return HasMany<MarketplacePurchase, $this> */
-    public function marketplacePurchases(): HasMany
-    {
-        return $this->hasMany(MarketplacePurchase::class);
-    }
-
     public function isCreator(): bool
     {
         return $this->role === 'creator';
-    }
-
-    public function isBuyer(): bool
-    {
-        return $this->role === 'buyer';
     }
 }

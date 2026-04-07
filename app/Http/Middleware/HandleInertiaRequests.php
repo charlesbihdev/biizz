@@ -40,13 +40,14 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'name' => config('app.name'),
             'auth' => fn () => [
-                'user' => $request->user(),
+                'user' => $request->user('web'),
                 'customer' => BusinessContext::isSet() ? $request->user('customer') : null,
+                'buyer' => $request->user('buyer'),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             // All authenticated pages get the user's businesses list for the sidebar switcher
-            'businesses' => fn () => $request->user()
-                ? $request->user()->ownedBusinesses()->get(['id', 'name', 'slug'])->toArray()
+            'businesses' => fn () => $request->user('web')
+                ? $request->user('web')->ownedBusinesses()->get(['id', 'name', 'slug'])->toArray()
                 : [],
             'flash' => [
                 'success' => fn () => $request->session()->get('success'),

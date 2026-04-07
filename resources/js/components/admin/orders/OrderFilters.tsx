@@ -13,6 +13,7 @@ export type OrderFiltersState = {
 type Props = {
     indexUrl: string;
     filters: OrderFiltersState;
+    isDigital?: boolean;
 };
 
 const DATE_PRESETS = [
@@ -31,7 +32,7 @@ const DATE_PRESETS = [
 const inputClass =
     'rounded-lg border border-site-border bg-white px-3 py-2 text-sm text-site-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/30';
 
-export function OrderFilters({ indexUrl, filters }: Props) {
+export function OrderFilters({ indexUrl, filters, isDigital = false }: Props) {
     const [search, setSearch]       = useState(filters.search);
     const [localDate, setLocalDate] = useState(filters.date);
     const [customFrom, setCustomFrom] = useState(filters.date_from);
@@ -46,7 +47,7 @@ export function OrderFilters({ indexUrl, filters }: Props) {
         router.get(indexUrl, params, {
             preserveState: true,
             preserveScroll: true,
-            only: ['orders', 'filters'],
+            only: [isDigital ? 'purchases' : 'orders', 'filters'],
         });
     };
 

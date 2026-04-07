@@ -6,15 +6,12 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import AuthSimpleLayout from '@/layouts/auth/auth-simple-layout';
-import { register } from '@/routes';
-import { redirect as googleRedirect } from '@/routes/auth/google';
-import { store as loginStore } from '@/routes/login';
-import { request as passwordRequest } from '@/routes/password';
-import { register as buyerRegister } from '@/routes/marketplace';
+import { register } from '@/routes/marketplace';
+import { google as googleRedirect } from '@/routes/marketplace/auth';
+import { store as loginStore } from '@/routes/marketplace/login';
+import { register as creatorRegister } from '@/routes';
 
 interface LoginProps {
-    canResetPassword: boolean;
-    canRegister: boolean;
     status?: string;
 }
 
@@ -35,7 +32,7 @@ function GoogleButton() {
     );
 }
 
-export default function Login({ canResetPassword, canRegister, status }: LoginProps) {
+export default function BuyerLogin({ status }: LoginProps) {
     const [showPassword, setShowPassword] = useState(false);
     const { data, setData, submit, processing, errors } = useForm({
         email: '',
@@ -44,7 +41,7 @@ export default function Login({ canResetPassword, canRegister, status }: LoginPr
     });
 
     return (
-        <AuthSimpleLayout title="Welcome back" description="Sign in to your biizz account">
+        <AuthSimpleLayout title="Welcome back" description="Sign in to your buyer account">
             {status && (
                 <p className="mb-4 text-center text-sm font-medium text-green-600">{status}</p>
             )}
@@ -69,17 +66,7 @@ export default function Login({ canResetPassword, canRegister, status }: LoginPr
                 </div>
 
                 <div className="flex flex-col gap-1.5">
-                    <div className="flex items-center justify-between">
-                        <Label htmlFor="password">Password</Label>
-                        {canResetPassword && (
-                            <Link
-                                href={passwordRequest().url}
-                                className="text-xs text-site-muted hover:text-brand"
-                            >
-                                Forgot password?
-                            </Link>
-                        )}
-                    </div>
+                    <Label htmlFor="password">Password</Label>
                     <div className="relative">
                         <Input
                             id="password"
@@ -134,19 +121,17 @@ export default function Login({ canResetPassword, canRegister, status }: LoginPr
 
             <GoogleButton />
 
-            {canRegister && (
-                <p className="mt-5 text-center text-sm text-site-muted">
-                    Don't have an account?{' '}
-                    <Link href={register().url} className="font-medium text-brand hover:underline">
-                        Create one →
-                    </Link>
-                </p>
-            )}
+            <p className="mt-5 text-center text-sm text-site-muted">
+                Don't have a buyer account?{' '}
+                <Link href={register().url} className="font-medium text-brand hover:underline">
+                    Create one →
+                </Link>
+            </p>
 
             <p className="mt-2 text-center text-sm text-site-muted">
-                Want to shop the marketplace?{' '}
-                <Link href={buyerRegister().url} className="font-medium text-brand hover:underline">
-                    Create a buyer account →
+                Want to sell on biizz?{' '}
+                <Link href={creatorRegister().url} className="font-medium text-brand hover:underline">
+                    Create a creator account →
                 </Link>
             </p>
         </AuthSimpleLayout>

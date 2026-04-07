@@ -2,6 +2,7 @@ import { router, usePage } from '@inertiajs/react';
 import { ShieldCheck } from 'lucide-react';
 import { useState } from 'react';
 import AuthPromptModal from '@/components/marketplace/AuthPromptModal';
+import { buy } from '@/routes/marketplace';
 import type { Auth, Product } from '@/types';
 
 interface Props {
@@ -28,14 +29,14 @@ function SavingsBadge({ price, compareAtPrice }: { price: string; compareAtPrice
 
 export default function PurchaseBox({ product }: Props) {
     const { auth } = usePage<{ auth: Auth }>().props;
-    const user = auth?.user;
+    const user = auth?.buyer;
     const [showAuth, setShowAuth] = useState(false);
     const [loading, setLoading] = useState(false);
 
     const price          = parseFloat(product.price);
     const compareAtPrice = product.compare_at_price ? parseFloat(product.compare_at_price) : null;
     const isFree         = price === 0;
-    const buyUrl         = `/marketplace/${product.business.slug}/${product.slug}/buy`;
+    const buyUrl         = buy({ business: product.business.slug, product: product.slug }).url;
 
     function handleBuy() {
         if (!user) {

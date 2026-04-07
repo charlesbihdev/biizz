@@ -52,7 +52,7 @@ export default function MarketplaceProduct({ product, related }: Props) {
                     <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-10">
                         {/* Left: gallery + description */}
                         <div className="flex min-w-0 flex-1 flex-col gap-7">
-                            <ProductGallery images={product.images} productName={product.name} />
+                            <ProductGallery images={product.images} productName={product.name} promoVideo={product.promo_video} />
 
                             <div>
                                 <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-brand">

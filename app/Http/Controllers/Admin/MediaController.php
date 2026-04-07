@@ -56,10 +56,11 @@ class MediaController extends Controller
 
             $uploaded = $request->file('file');
 
-            $path = $uploaded->store("businesses/{$business->id}/files", 's3');
+            $path = $uploaded->store("businesses/{$business->id}/files", 's3_private');
 
             $file = $product->files()->create([
-                'url' => Storage::disk('s3')->url($path),
+                'path' => $path,
+                'url' => '',
                 'filename' => $uploaded->getClientOriginalName(),
                 'file_size' => $uploaded->getSize(),
                 'mime_type' => $uploaded->getMimeType(),
@@ -67,7 +68,6 @@ class MediaController extends Controller
 
             return response()->json([
                 'id' => $file->id,
-                'url' => $file->url,
                 'filename' => $file->filename,
                 'file_size' => $file->file_size,
             ]);
