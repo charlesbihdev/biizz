@@ -1,11 +1,19 @@
 import { Head, Link } from '@inertiajs/react';
-import { BookOpen, Download, FileText } from 'lucide-react';
+import { BookOpen, Sparkles, Search } from 'lucide-react';
 import BuyerDashboardLayout from '@/layouts/marketplace/buyer-dashboard-layout';
 import { index as marketplaceIndex } from '@/routes/marketplace';
-import { show as libraryShow, read as libraryRead } from '@/routes/marketplace/library';
 import type { MarketplacePurchase, PaginatedData } from '@/types';
+import AnalyticsRow from './Components/Library/AnalyticsRow';
+import FilterBar from './Components/Library/FilterBar';
+import PurchaseCard from './Components/Library/PurchaseCard';
 
-type BuyerStats = { purchase_count: number; total_spent: string };
+type BuyerStats = {
+    purchase_count: number;
+    total_spent: string;
+    pending_count: number;
+    member_since: string;
+    digital_assets: number;
+};
 
 type PurchaseWithProduct = MarketplacePurchase & {
     product: {
@@ -14,8 +22,7 @@ type PurchaseWithProduct = MarketplacePurchase & {
         slug: string;
         digital_category: string | null;
         price: string;
-        compare_at_price: string | null;
-        images: { url: string; alt?: string }[];
+        images: { url: string }[];
         business: { name: string; slug: string };
         files: { id: number }[];
     };
@@ -24,121 +31,105 @@ type PurchaseWithProduct = MarketplacePurchase & {
 interface Props {
     purchases: PaginatedData<PurchaseWithProduct>;
     stats: BuyerStats;
+    filters: { search?: string; status?: string; category?: string };
 }
 
-const EBOOK_CATEGORIES = ['ebooks'];
+export default function Library({ purchases, stats, filters }: Props) {
+    const hasActiveFilters = filters.search || filters.status || filters.category;
 
-function isEbook(category: string | null): boolean {
-    return EBOOK_CATEGORIES.includes(category ?? '');
-}
-
-function PurchaseCard({ purchase }: { purchase: PurchaseWithProduct }) {
-    const { product } = purchase;
-    const cover = product.images[0]?.url;
-    const hasFile = product.files.length > 0;
-    const ebook = isEbook(product.digital_category);
-
-    return (
-        <div className="flex items-start gap-4 rounded-2xl border border-site-border bg-white p-4 transition hover:border-brand/20 hover:shadow-sm">
-            <div className="h-20 w-16 shrink-0 overflow-hidden rounded-xl border border-site-border bg-site-surface">
-                {cover ? (
-                    <img src={cover} alt={product.name} className="h-full w-full object-cover" />
-                ) : (
-                    <div className="flex h-full w-full items-center justify-center">
-                        <FileText className="h-6 w-6 text-site-muted opacity-40" />
-                    </div>
-                )}
-            </div>
-
-            <div className="flex min-w-0 flex-1 flex-col gap-1">
-                <p className="truncate text-sm font-semibold text-site-fg">{product.name}</p>
-                <p className="text-xs text-site-muted">by {product.business.name}</p>
-                <div className="flex items-center gap-2">
-                    {product.digital_category && (
-                        <span className="rounded-full border border-brand/20 bg-brand/5 px-2 py-0.5 text-[10px] font-semibold text-brand capitalize">
-                            {product.digital_category}
-                        </span>
-                    )}
-                    <span className="text-xs text-site-muted">
-                        {purchase.status === 'free' ? 'Free' : `GHS ${parseFloat(purchase.amount_paid).toFixed(2)}`}
-                    </span>
-                    <span className="text-xs text-site-muted">·</span>
-                    <span className="text-xs text-site-muted">
-                        {new Date(purchase.created_at).toLocaleDateString()}
-                    </span>
-                </div>
-
-                {hasFile && (
-                    <div className="mt-2 flex flex-wrap items-center gap-2">
-                        {ebook ? (
-                            <Link
-                                href={libraryRead({ purchase: purchase.id }).url}
-                                className="flex items-center gap-1.5 rounded-lg bg-brand px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-brand-hover"
-                            >
-                                <BookOpen className="h-3.5 w-3.5" />
-                                Read
-                            </Link>
-                        ) : (
-                            <a
-                                href={libraryShow({ purchase: purchase.id }).url}
-                                className="flex items-center gap-1.5 rounded-lg border border-site-border px-3 py-1.5 text-xs font-medium text-site-muted transition hover:border-brand hover:text-brand"
-                            >
-                                <Download className="h-3.5 w-3.5" />
-                                Download
-                            </a>
-                        )}
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-}
-
-export default function Library({ purchases, stats }: Props) {
     return (
         <BuyerDashboardLayout active="library" stats={stats}>
             <Head title="My Library — biizz.market" />
 
-            <div className="mb-6">
-                <h1 className="text-xl font-bold text-site-fg">My Library</h1>
-                <p className="mt-0.5 text-sm text-site-muted">Your purchased and claimed digital products.</p>
+            {/* Header Section */}
+            <div className="mb-10 flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
+                <div>
+                    <h1 className="text-3xl font-black tracking-tight text-site-fg lg:text-4xl">
+                        My <span className="text-brand">Library</span>
+                    </h1>
+                    <p className="mt-2 max-w-lg text-sm font-medium text-site-muted">
+                        Access and manage all your purchased digital products, courses, and e-books in one place.
+                    </p>
+                </div>
+                
+                <Link
+                    href={marketplaceIndex().url}
+                    className="group flex items-center gap-2 self-start rounded-2xl bg-white px-5 py-3 text-xs font-black text-site-fg shadow-sm ring-1 ring-site-border transition-all hover:bg-zinc-50 hover:shadow-md lg:self-auto"
+                >
+                    <Sparkles className="h-4 w-4 text-brand transition-transform group-hover:rotate-12" />
+                    Browse Marketplace
+                </Link>
             </div>
 
+            {/* Analytics Summary */}
+            <AnalyticsRow stats={stats} />
+
+            {/* Action Bar: Search & Filter */}
+            <FilterBar filters={filters} />
+
+            {/* Content Grid */}
             {purchases.data.length === 0 ? (
-                <div className="flex flex-col items-center gap-4 rounded-2xl border border-site-border bg-site-surface py-20 text-center">
-                    <BookOpen className="h-10 w-10 text-site-muted opacity-30" />
-                    <p className="text-base font-bold text-site-fg">Your library is empty</p>
-                    <p className="text-sm text-site-muted">Browse the marketplace and grab your first product.</p>
-                    <Link
-                        href={marketplaceIndex().url}
-                        className="rounded-full bg-brand px-5 py-2 text-sm font-semibold text-white transition hover:bg-brand-hover"
-                    >
-                        Browse Marketplace
-                    </Link>
+                <div className="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-site-border bg-white/50 py-24 text-center">
+                    <div className="flex h-20 w-20 items-center justify-center rounded-full bg-zinc-50 ring-8 ring-zinc-50/50">
+                        {hasActiveFilters ? (
+                            <Search className="h-8 w-8 text-zinc-300" />
+                        ) : (
+                            <BookOpen className="h-8 w-8 text-zinc-300" />
+                        )}
+                    </div>
+                    <h3 className="mt-6 text-xl font-black text-site-fg">
+                        {hasActiveFilters ? 'No matches found' : 'Your library is empty'}
+                    </h3>
+                    <p className="mt-2 max-w-xs text-sm font-medium text-site-muted">
+                        {hasActiveFilters 
+                            ? 'Try adjusting your search or filters to find what you are looking for.' 
+                            : 'Explore our marketplace to discover amazing digital products from creators worldwide.'}
+                    </p>
+                    
+                    {!hasActiveFilters && (
+                        <Link
+                            href={marketplaceIndex().url}
+                            className="mt-8 flex items-center gap-2 rounded-2xl bg-brand px-8 py-3.5 text-xs font-black text-white shadow-xl shadow-brand/20 transition-all hover:bg-brand-hover hover:shadow-brand/30"
+                        >
+                            Explore Marketplace
+                        </Link>
+                    )}
                 </div>
             ) : (
-                <>
-                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                <div className="space-y-10">
+                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                         {purchases.data.map((p) => (
                             <PurchaseCard key={p.id} purchase={p} />
                         ))}
                     </div>
 
+                    {/* Pagination */}
                     {purchases.last_page > 1 && (
-                        <div className="mt-8 flex justify-center gap-3">
-                            {purchases.prev_page_url && (
-                                <Link href={purchases.prev_page_url} className="rounded-full border border-site-border px-5 py-2 text-xs font-medium text-site-muted transition hover:border-brand hover:text-brand">
-                                    Previous
-                                </Link>
-                            )}
-                            {purchases.next_page_url && (
-                                <Link href={purchases.next_page_url} className="rounded-full border border-site-border px-5 py-2 text-xs font-medium text-site-muted transition hover:border-brand hover:text-brand">
-                                    Next
-                                </Link>
-                            )}
+                        <div className="flex items-center justify-between border-t border-site-border pt-8">
+                            <p className="text-xs font-bold text-site-muted uppercase">
+                                Page <span className="text-site-fg">{purchases.current_page}</span> of {purchases.last_page}
+                            </p>
+                            <div className="flex gap-2">
+                                {purchases.prev_page_url && (
+                                    <Link 
+                                        href={purchases.prev_page_url} 
+                                        className="inline-flex h-11 items-center justify-center rounded-2xl border border-site-border bg-white px-6 text-xs font-black text-site-fg shadow-sm transition-all hover:bg-zinc-50 hover:shadow-md active:scale-95"
+                                    >
+                                        Previous
+                                    </Link>
+                                )}
+                                {purchases.next_page_url && (
+                                    <Link 
+                                        href={purchases.next_page_url} 
+                                        className="inline-flex h-11 items-center justify-center rounded-2xl border border-site-border bg-white px-6 text-xs font-black text-site-fg shadow-sm transition-all hover:bg-zinc-50 hover:shadow-md active:scale-95"
+                                    >
+                                        Next
+                                    </Link>
+                                )}
+                            </div>
                         </div>
                     )}
-                </>
+                </div>
             )}
         </BuyerDashboardLayout>
     );

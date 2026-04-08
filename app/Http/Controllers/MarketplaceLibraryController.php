@@ -17,12 +17,36 @@ class MarketplaceLibraryController extends Controller
         /** @var Buyer $buyer */
         $buyer = $request->user('buyer');
 
-        $purchases = MarketplacePurchase::where('buyer_id', $buyer->id)
-            ->whereIn('status', ['paid', 'free'])
-            ->with(['product' => fn ($q) => $q->withoutGlobalScopes()->with('images', 'files', 'business:id,name,slug')])
-            ->latest()
-            ->paginate(12);
+        $search = $request->input('search');
+        $status = $request->input('status'); // paid, free, pending
+        $type = $request->input('category'); // ebook, etc.
 
+        $query = MarketplacePurchase::where('buyer_id', $buyer->id)
+            ->with(['product' => fn ($q) => $q->withoutGlobalScopes()->with('images', 'files', 'business:id,name,slug')]);
+
+        // Filters
+        if ($status && in_array($status, ['paid', 'free', 'pending'])) {
+            $query->where('status', $status);
+        } else {
+            // Default to showing only "inventory" items if no status filter
+            $query->whereIn('status', ['paid', 'free']);
+        }
+
+        if ($search) {
+            $query->whereHas('product', function ($q) use ($search) {
+                $q->withoutGlobalScopes()
+                    ->where('name', 'like', "%{$search}%")
+                    ->orWhereHas('business', fn ($bq) => $bq->where('name', 'like', "%{$search}%"));
+            });
+        }
+
+        if ($type) {
+            $query->whereHas('product', fn ($q) => $q->withoutGlobalScopes()->where('digital_category', $type));
+        }
+
+        $purchases = $query->latest()->paginate(12)->withQueryString();
+
+        // Enriched Analytics
         $stats = [
             'purchase_count' => MarketplacePurchase::where('buyer_id', $buyer->id)
                 ->whereIn('status', ['paid', 'free'])
@@ -30,11 +54,19 @@ class MarketplaceLibraryController extends Controller
             'total_spent' => (string) MarketplacePurchase::where('buyer_id', $buyer->id)
                 ->where('status', 'paid')
                 ->sum('amount_paid'),
+            'pending_count' => MarketplacePurchase::where('buyer_id', $buyer->id)
+                ->where('status', 'pending')
+                ->count(),
+            'member_since' => $buyer->created_at->format('M Y'),
+            'digital_assets' => MarketplacePurchase::where('buyer_id', $buyer->id)
+                ->whereIn('status', ['paid', 'free'])
+                ->count(),
         ];
 
         return Inertia::render('Marketplace/Dashboard/Library', [
             'purchases' => $purchases,
             'stats' => $stats,
+            'filters' => $request->only(['search', 'status', 'category']),
         ]);
     }
 

@@ -12,6 +12,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('product_id')->constrained()->cascadeOnDelete();
             $table->string('url', 2048);
+            $table->string('path')->nullable();
             $table->string('filename', 255);
             $table->unsignedBigInteger('file_size')->nullable(); // bytes
             $table->string('mime_type', 100)->nullable();

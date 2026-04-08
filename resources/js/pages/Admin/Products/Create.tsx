@@ -26,6 +26,7 @@ export default function CreateProduct({ business, categories }: Props) {
         images:           [],
         promo_video:      '',
         tags:             [],
+        digital_file:     null as File | null,
     });
 
     console.log(errors);

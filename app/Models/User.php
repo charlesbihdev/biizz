@@ -13,7 +13,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 
-#[Fillable(['name', 'email', 'password', 'google_id', 'avatar', 'role'])]
+#[Fillable(['name', 'email', 'password', 'google_id', 'avatar'])]
 #[Hidden(['password', 'two_factor_secret', 'two_factor_recovery_codes', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -48,10 +48,5 @@ class User extends Authenticatable
             ->using(BusinessUser::class)
             ->withPivot('role')
             ->withTimestamps();
-    }
-
-    public function isCreator(): bool
-    {
-        return $this->role === 'creator';
     }
 }
