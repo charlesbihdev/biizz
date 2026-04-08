@@ -1,6 +1,7 @@
-import { Head, Link } from '@inertiajs/react';
-import { Download, BookOpen } from 'lucide-react';
+import { Head, Link, router } from '@inertiajs/react';
+import { Download, BookOpen, Sparkles } from 'lucide-react';
 import { index } from '@/routes/marketplace';
+import { creator as becomeCreator } from '@/routes/marketplace/become';
 import { show as libraryShow } from '@/routes/marketplace/library';
 import MarketplaceFooter from '@/components/marketplace/MarketplaceFooter';
 import MarketplaceNav from '@/components/marketplace/MarketplaceNav';
@@ -75,11 +76,20 @@ export default function Library({ purchases }: Props) {
                 <MarketplaceNav />
 
                 <main className="mx-auto max-w-3xl px-5 pt-24 pb-16">
-                    <div className="mb-8">
-                        <h1 className="text-2xl font-bold text-site-fg">My Library</h1>
-                        <p className="mt-1 text-sm text-site-muted">
-                            Your purchased and claimed digital products.
-                        </p>
+                    <div className="mb-8 flex items-start justify-between gap-4">
+                        <div>
+                            <h1 className="text-2xl font-bold text-site-fg">My Library</h1>
+                            <p className="mt-1 text-sm text-site-muted">
+                                Your purchased and claimed digital products.
+                            </p>
+                        </div>
+                        <button
+                            onClick={() => router.post(becomeCreator().url)}
+                            className="flex shrink-0 items-center gap-1.5 rounded-full border border-site-border px-4 py-2 text-xs font-medium text-site-muted transition hover:border-brand hover:text-brand"
+                        >
+                            <Sparkles className="h-3.5 w-3.5" />
+                            Become a creator
+                        </button>
                     </div>
 
                     {purchases.data.length === 0 ? (

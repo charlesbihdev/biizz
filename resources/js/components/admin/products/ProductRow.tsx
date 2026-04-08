@@ -45,7 +45,9 @@ export function ProductRow({ business, product, rowNumber, onView }: Props) {
                 <td className="px-3 py-3 text-sm text-site-fg">
                     GHS {Number(product.price).toFixed(2)}
                 </td>
-                <td className="px-3 py-3 text-sm text-site-muted">{product.stock}</td>
+                <td className="px-3 py-3 text-sm text-site-muted">
+                    {business.business_type === 'digital' ? 'Unlimited' : product.stock}
+                </td>
                 <td className="px-3 py-3">
                     <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${
                         product.is_active

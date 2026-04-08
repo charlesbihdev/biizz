@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Support\Facades\Storage;
 
-#[Fillable(['product_id', 'url', 'filename', 'file_size', 'mime_type'])]
+#[Fillable(['product_id', 'url', 'path', 'filename', 'file_size', 'mime_type'])]
 class ProductFile extends Model
 {
     protected static function boot(): void
@@ -15,10 +15,8 @@ class ProductFile extends Model
         parent::boot();
 
         static::deleting(function (ProductFile $file): void {
-            $path = ltrim((string) parse_url($file->url, PHP_URL_PATH), '/');
-
-            if ($path !== '') {
-                Storage::disk('s3')->delete($path);
+            if ($file->path) {
+                Storage::disk('s3_private')->delete($file->path);
             }
         });
     }

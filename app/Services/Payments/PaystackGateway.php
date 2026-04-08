@@ -9,25 +9,46 @@ use Illuminate\Support\Facades\Http;
 
 class PaystackGateway implements PaymentGateway
 {
-    private const BASE_URL = 'https://api.paystack.co';
-
     public function __construct(
         private string $secretKey,
     ) {}
 
+    /**
+     * Initialize a storefront order payment (physical checkout).
+     * Delegates to initializeForPurchase() — zero behaviour change.
+     */
     public function initialize(Order $order, Business $business, string $callbackUrl): InitializeResult
     {
+        return $this->initializeForPurchase(
+            email: $order->customer_email,
+            amountInPesewas: (int) ($order->total * 100),
+            reference: $order->payment_ref,
+            callbackUrl: $callbackUrl,
+            currency: $order->currency,
+            metadata: ['order_id' => $order->id, 'business_id' => $business->id],
+        );
+    }
+
+    /**
+     * Initialize a marketplace purchase payment.
+     * Used directly by MarketplacePurchaseController.
+     */
+    public function initializeForPurchase(
+        string $email,
+        int $amountInPesewas,
+        string $reference,
+        string $callbackUrl,
+        string $currency = 'GHS',
+        array $metadata = [],
+    ): InitializeResult {
         $response = Http::withToken($this->secretKey)
-            ->post(self::BASE_URL . '/transaction/initialize', [
-                'email' => $order->customer_email,
-                'amount' => (int) ($order->total * 100), // pesewas
-                'currency' => $order->currency,
-                'reference' => $order->payment_ref,
+            ->post($this->baseUrl().'/transaction/initialize', [
+                'email' => $email,
+                'amount' => $amountInPesewas,
+                'currency' => $currency,
+                'reference' => $reference,
                 'callback_url' => $callbackUrl,
-                'metadata' => [
-                    'order_id' => $order->id,
-                    'business_id' => $business->id,
-                ],
+                'metadata' => $metadata,
             ]);
 
         $response->throw();
@@ -43,7 +64,7 @@ class PaystackGateway implements PaymentGateway
     public function verify(string $reference, Business $business, ?string $providerTransactionId = null): VerificationResult
     {
         $response = Http::withToken($this->secretKey)
-            ->get(self::BASE_URL . '/transaction/verify/' . rawurlencode($reference));
+            ->get($this->baseUrl().'/transaction/verify/'.rawurlencode($reference));
 
         $response->throw();
         $data = $response->json('data');
@@ -55,13 +76,13 @@ class PaystackGateway implements PaymentGateway
             amountInMinorUnit: (int) ($data['amount'] ?? 0),
             currency: $data['currency'] ?? 'GHS',
             metadata: [
-                'fees'          => $data['fees'] ?? 0,
-                'customer'      => [
-                    'id'    => $data['customer']['id'] ?? null,
+                'fees' => $data['fees'] ?? 0,
+                'customer' => [
+                    'id' => $data['customer']['id'] ?? null,
                     'email' => $data['customer']['email'] ?? null,
                 ],
-                'metadata'      => $data['metadata'] ?? [],
-                'ip'            => $data['ip_address'] ?? null,
+                'metadata' => $data['metadata'] ?? [],
+                'ip' => $data['ip_address'] ?? null,
                 'authorization' => $data['authorization'] ?? [],
             ],
         );
@@ -78,5 +99,10 @@ class PaystackGateway implements PaymentGateway
         $computed = hash_hmac('sha512', $request->getContent(), $secret);
 
         return hash_equals($computed, $signature);
+    }
+
+    private function baseUrl(): string
+    {
+        return rtrim((string) config('services.paystack.url', 'https://api.paystack.co'), '/');
     }
 }
