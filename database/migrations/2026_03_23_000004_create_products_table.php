@@ -12,13 +12,17 @@ return new class extends Migration
             $table->id();
             $table->foreignId('business_id')->constrained()->cascadeOnDelete();
             $table->foreignId('category_id')->constrained()->restrictOnDelete();
+            $table->string('digital_category')->nullable()->default('Others');
             $table->string('name');
             $table->string('slug');
             $table->text('description')->nullable();
+            $table->string('promo_video', 2048)->nullable();
             $table->decimal('price', 12, 2);
+            $table->decimal('compare_at_price', 12, 2)->nullable();
             $table->unsignedInteger('stock')->default(0);
             $table->boolean('is_active')->default(true);
-            $table->jsonb('metadata')->default('{}'); // flexible per-product extra data
+            $table->jsonb('metadata')->default('{}');
+            $table->json('tags')->default('[]');
             $table->timestamps();
 
             $table->unique(['business_id', 'slug']);

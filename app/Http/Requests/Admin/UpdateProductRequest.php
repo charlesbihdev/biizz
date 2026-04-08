@@ -21,14 +21,16 @@ class UpdateProductRequest extends FormRequest
     {
         /** @var Business $business */
         $business = $this->route('business');
+        $product = $this->route('product');
         $isDigital = $business->business_type === 'digital';
+        $hasFile = $product ? $product->files()->exists() : false;
 
         return [
             'category_id' => $isDigital
                 ? ['nullable', 'integer', 'exists:categories,id']
                 : ['sometimes', 'required', 'integer', 'exists:categories,id'],
             'digital_category' => $isDigital
-                ? ['sometimes', 'required', 'string', 'in:ebooks,courses,templates,coaching,playbooks,webinars,community,services,others']
+                ? ['sometimes', 'required', 'string', Rule::in(['ebooks', 'courses', 'templates', 'coaching', 'playbooks', 'webinars', 'community', 'services', 'others'])]
                 : ['nullable', 'string'],
             'name' => ['sometimes', 'required', 'string', 'max:255'],
             'slug' => [
@@ -43,10 +45,15 @@ class UpdateProductRequest extends FormRequest
             'is_active' => ['boolean'],
             'tags' => ['nullable', 'array'],
             'tags.*' => ['string', 'max:50'],
-            'images' => ['nullable', 'array', 'max:8'],
+            'images' => $isDigital
+                ? ['sometimes', 'required', 'array', 'min:1', 'max:8']
+                : ['nullable', 'array', 'max:8'],
             'images.*.file' => ['nullable', 'file', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:6144'],
             'images.*.alt' => ['nullable', 'string', 'max:255'],
             'images.*.url' => ['nullable', 'string', 'max:2048'],
+            'digital_file' => ($isDigital && ! $hasFile)
+                ? ['required', 'file', 'max:51200', 'mimes:pdf,zip,epub']
+                : ['nullable', 'file', 'max:51200', 'mimes:pdf,zip,epub'],
             'metadata' => ['nullable', 'array'],
         ];
     }

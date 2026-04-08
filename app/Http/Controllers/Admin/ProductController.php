@@ -57,6 +57,7 @@ class ProductController extends Controller
         $product = $business->products()->create($validated);
 
         $this->syncImages($request, $product, $business);
+        $this->syncDigitalFile($request, $product, $business);
 
         return to_route('businesses.products.index', $business)
             ->with('success', 'Product created.');
@@ -82,9 +83,11 @@ class ProductController extends Controller
         $product->update($validated);
 
         if ($hasImages) {
-            $product->images()->each(fn ($img) => $img->delete());
+            $product->images()->delete();
             $this->syncImages($request, $product, $business);
         }
+
+        $this->syncDigitalFile($request, $product, $business);
 
         return to_route('businesses.products.edit', [$business, $product])
             ->with('success', 'Product updated.');
@@ -109,6 +112,24 @@ class ProductController extends Controller
                 'url' => $url,
                 'alt' => $request->input("images.$i.alt"),
                 'sort_order' => $i,
+            ]);
+        }
+    }
+
+    private function syncDigitalFile(StoreProductRequest|UpdateProductRequest $request, Product $product, Business $business): void
+    {
+        if ($request->hasFile('digital_file')) {
+            $uploaded = $request->file('digital_file');
+            $path = $uploaded->store("businesses/{$business->id}/files", 's3_private');
+
+            $product->files()->delete();
+
+            $product->files()->create([
+                'path' => $path,
+                'url' => '',
+                'filename' => $uploaded->getClientOriginalName(),
+                'file_size' => $uploaded->getSize(),
+                'mime_type' => $uploaded->getMimeType(),
             ]);
         }
     }

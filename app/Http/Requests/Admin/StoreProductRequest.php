@@ -28,7 +28,7 @@ class StoreProductRequest extends FormRequest
                 ? ['nullable', 'integer', 'exists:categories,id']
                 : ['required', 'integer', 'exists:categories,id'],
             'digital_category' => $isDigital
-                ? ['required', 'string', 'in:ebooks,courses,templates,coaching,playbooks,webinars,community,services,others']
+                ? ['required', 'string', Rule::in(['ebooks', 'courses', 'templates', 'coaching', 'playbooks', 'webinars', 'community', 'services', 'others'])]
                 : ['nullable', 'string'],
             'name' => ['required', 'string', 'max:255'],
             'slug' => [
@@ -43,10 +43,15 @@ class StoreProductRequest extends FormRequest
             'is_active' => ['boolean'],
             'tags' => ['nullable', 'array'],
             'tags.*' => ['string', 'max:50'],
-            'images' => ['nullable', 'array', 'max:8'],
+            'images' => $isDigital
+                ? ['required', 'array', 'min:1', 'max:8']
+                : ['nullable', 'array', 'max:8'],
             'images.*.file' => ['nullable', 'file', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:6144'],
             'images.*.alt' => ['nullable', 'string', 'max:255'],
             'images.*.url' => ['nullable', 'string', 'max:2048'],
+            'digital_file' => $isDigital
+                ? ['required', 'file', 'max:51200', 'mimes:pdf,zip,epub']
+                : ['nullable', 'file', 'max:51200', 'mimes:pdf,zip,epub'],
             'metadata' => ['nullable', 'array'],
         ];
     }

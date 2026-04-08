@@ -28,6 +28,7 @@ export default function EditProduct({ business, product, categories }: Props) {
         images:           product.images.map((img) => ({ url: img.url, alt: img.alt ?? '' })),
         promo_video:      product.promo_video ?? '',
         tags:             product.tags ?? [],
+        digital_file:     null as File | null,
     });
 
     const handleSubmit = () => {
@@ -57,10 +58,11 @@ export default function EditProduct({ business, product, categories }: Props) {
                 <ProductForm
                     business={business}
                     categories={categories}
-                    data={productData}
+                    data={productData as any}
                     errors={errors}
                     processing={processing}
                     submitLabel="Save changes"
+                    existingFileName={product.files?.[0]?.filename}
                     onSubmit={handleSubmit}
                     onChange={(key, value) => setData(key, value as never)}
                 />

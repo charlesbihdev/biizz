@@ -2,7 +2,10 @@ import { LoaderCircle, Plus } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import InputError from '@/components/input-error';
 import { DigitalCategoryField } from '@/components/admin/products/DigitalCategoryField';
-import { ImageUploader, type UploadedImage } from '@/components/admin/products/ImageUploader';
+import {
+    ImageUploader,
+    type UploadedImage,
+} from '@/components/admin/products/ImageUploader';
 import { ProductDescriptionField } from '@/components/admin/products/ProductDescriptionField';
 import { ProductPricingCard } from '@/components/admin/products/ProductPricingCard';
 import { ProductTagsField } from '@/components/admin/products/ProductTagsField';
@@ -14,18 +17,19 @@ import { getProductFields } from '@/Themes/registry';
 import type { Business, Category } from '@/types';
 
 export interface ProductFormData {
-    name:             string;
-    slug:             string;
-    description:      string;
-    price:            string;
+    name: string;
+    slug: string;
+    description: string;
+    price: string;
     compare_at_price: string;
-    stock:            string;
-    category_id:      string;
+    stock: string;
+    category_id: string;
     digital_category: string;
-    is_active:        boolean;
-    images:           UploadedImage[];
-    promo_video:      string;
-    tags:             string[];
+    is_active: boolean;
+    images: UploadedImage[];
+    promo_video: string;
+    tags: string[];
+    digital_file?: File | null;
 }
 
 interface Props {
@@ -35,8 +39,12 @@ interface Props {
     errors: Partial<Record<keyof ProductFormData, string>>;
     processing: boolean;
     submitLabel: string;
+    existingFileName?: string;
     onSubmit: () => void;
-    onChange: <K extends keyof ProductFormData>(key: K, value: ProductFormData[K]) => void;
+    onChange: <K extends keyof ProductFormData>(
+        key: K,
+        value: ProductFormData[K],
+    ) => void;
 }
 
 function slugify(text: string): string {
@@ -48,13 +56,23 @@ function slugify(text: string): string {
         .replace(/-+/g, '-');
 }
 
-export default function ProductForm({ business, categories, data, errors, processing, submitLabel, onSubmit, onChange }: Props) {
-    const isDigital   = business.business_type === 'digital';
+export default function ProductForm({
+    business,
+    categories,
+    data,
+    errors,
+    processing,
+    submitLabel,
+    existingFileName,
+    onSubmit,
+    onChange,
+}: Props) {
+    const isDigital = business.business_type === 'digital';
     const themeFields = getProductFields(business.theme_id);
 
     const [slugManuallyEdited, setSlugManuallyEdited] = useState(!!data.slug);
-    const [quickAddOpen, setQuickAddOpen]             = useState(false);
-    const pendingCategoryName                         = useRef<string | null>(null);
+    const [quickAddOpen, setQuickAddOpen] = useState(false);
+    const pendingCategoryName = useRef<string | null>(null);
 
     useEffect(() => {
         if (!slugManuallyEdited) onChange('slug', slugify(data.name));
@@ -63,7 +81,9 @@ export default function ProductForm({ business, categories, data, errors, proces
 
     useEffect(() => {
         if (!pendingCategoryName.current) return;
-        const found = categories.find((c) => c.name === pendingCategoryName.current);
+        const found = categories.find(
+            (c) => c.name === pendingCategoryName.current,
+        );
         if (found) {
             onChange('category_id', String(found.id));
             pendingCategoryName.current = null;
@@ -83,10 +103,14 @@ export default function ProductForm({ business, categories, data, errors, proces
                 />
                 <div>
                     <p className="text-sm font-medium text-site-fg">
-                        {isDigital ? 'Listed on marketplace' : 'Visible on storefront'}
+                        {isDigital
+                            ? 'Listed on marketplace'
+                            : 'Visible on storefront'}
                     </p>
                     <p className="text-xs text-site-muted">
-                        {isDigital ? 'Buyers can discover and purchase this product' : 'Customers can see and buy this product'}
+                        {isDigital
+                            ? 'Buyers can discover and purchase this product'
+                            : 'Customers can see and buy this product'}
                     </p>
                 </div>
             </label>
@@ -99,7 +123,11 @@ export default function ProductForm({ business, categories, data, errors, proces
             compareAtPrice={data.compare_at_price}
             stock={data.stock}
             isDigital={isDigital}
-            errors={{ price: errors.price, compare_at_price: errors.compare_at_price, stock: errors.stock }}
+            errors={{
+                price: errors.price,
+                compare_at_price: errors.compare_at_price,
+                stock: errors.stock,
+            }}
             onChange={(field, val) => onChange(field, val)}
         />
     );
@@ -118,18 +146,27 @@ export default function ProductForm({ business, categories, data, errors, proces
     return (
         <>
             <form
-                onSubmit={(e) => { e.preventDefault(); onSubmit(); }}
+                onSubmit={(e) => {
+                    e.preventDefault();
+                    onSubmit();
+                }}
                 className="flex flex-col gap-6 lg:flex-row lg:items-start lg:gap-8"
             >
                 {/* ── Left: content ── */}
                 <div className="flex min-w-0 flex-1 flex-col gap-5">
                     <div className="flex flex-col gap-1.5">
-                        <Label htmlFor="name">Product name <span className="text-red-500">*</span></Label>
+                        <Label htmlFor="name">
+                            Product name <span className="text-red-500">*</span>
+                        </Label>
                         <Input
                             id="name"
                             value={data.name}
                             onChange={(e) => onChange('name', e.target.value)}
-                            placeholder={isDigital ? 'e.g. The $100/Day Formula' : 'e.g. White Linen Dress'}
+                            placeholder={
+                                isDigital
+                                    ? 'e.g. The $100/Day Formula'
+                                    : 'e.g. White Linen Dress'
+                            }
                             autoFocus
                             required
                             className="border-site-border focus-visible:ring-brand/30"
@@ -142,7 +179,10 @@ export default function ProductForm({ business, categories, data, errors, proces
                         <Input
                             id="slug"
                             value={data.slug}
-                            onChange={(e) => { setSlugManuallyEdited(true); onChange('slug', e.target.value); }}
+                            onChange={(e) => {
+                                setSlugManuallyEdited(true);
+                                onChange('slug', e.target.value);
+                            }}
                             placeholder="e.g. the-100-day-formula"
                             className="border-site-border font-mono text-sm focus-visible:ring-brand/30"
                         />
@@ -165,9 +205,15 @@ export default function ProductForm({ business, categories, data, errors, proces
                                 <ImageUploader
                                     businessSlug={business.slug}
                                     images={data.images}
-                                    onChange={(imgs) => onChange('images', imgs)}
+                                    onChange={(imgs) =>
+                                        onChange('images', imgs)
+                                    }
                                 />
-                                <p className="text-xs text-site-muted">First photo is the main image. Max 8 photos, 6 MB each.</p>
+                                <p className="text-xs text-site-muted">
+                                    First photo is the main image. Max 8 photos,
+                                    6 MB each.
+                                </p>
+                                <InputError message={errors.images as string} />
                             </div>
 
                             <ProductTagsField
@@ -187,15 +233,30 @@ export default function ProductForm({ business, categories, data, errors, proces
                                     <span
                                         className="cursor-default rounded-full border border-site-border px-2 py-0.5 text-[10px] text-site-muted"
                                         title={field.hint}
-                                    >?</span>
+                                    >
+                                        ?
+                                    </span>
                                 )}
                             </div>
                             {field.type === 'video' && (
                                 <VideoEmbedField
-                                    value={(data as Record<string, string>)[key] ?? ''}
-                                    onChange={(url) => onChange(key as keyof ProductFormData, url as never)}
+                                    value={
+                                        (
+                                            data as unknown as Record<
+                                                string,
+                                                string
+                                            >
+                                        )[key] ?? ''
+                                    }
+                                    onChange={(url) =>
+                                        onChange(
+                                            key as keyof ProductFormData,
+                                            url as never,
+                                        )
+                                    }
                                 />
                             )}
+                            <InputError message={errors[key as keyof typeof errors] as string} />
                         </div>
                     ))}
                 </div>
@@ -207,13 +268,21 @@ export default function ProductForm({ business, categories, data, errors, proces
                         <>
                             {/* Cover image */}
                             <div className="flex flex-col gap-2 rounded-2xl border border-site-border bg-white p-4">
-                                <p className="text-xs font-semibold uppercase tracking-wide text-site-muted">Cover image</p>
+                                <p className="text-xs font-semibold tracking-wide text-site-muted uppercase">
+                                    Cover image{' '}
+                                    <span className="text-red-500">*</span>
+                                </p>
                                 <ImageUploader
                                     businessSlug={business.slug}
                                     images={data.images}
-                                    onChange={(imgs) => onChange('images', imgs)}
+                                    onChange={(imgs) =>
+                                        onChange('images', imgs)
+                                    }
                                 />
-                                <p className="text-xs text-site-muted">Shown on your marketplace listing. 6 MB max.</p>
+                                <p className="text-xs text-site-muted">
+                                    Shown on your marketplace listing. 6 MB max.
+                                </p>
+                                <InputError message={errors.images as string} />
                             </div>
 
                             {/* Tags */}
@@ -227,11 +296,51 @@ export default function ProductForm({ business, categories, data, errors, proces
 
                             {/* Platform category */}
                             <div className="flex flex-col gap-3 rounded-2xl border border-site-border bg-white p-4">
-                                <p className="text-xs font-semibold uppercase tracking-wide text-site-muted">Organise</p>
+                                <p className="text-xs font-semibold tracking-wide text-site-muted uppercase">
+                                    Organise
+                                </p>
                                 <DigitalCategoryField
                                     value={data.digital_category}
-                                    onChange={(val) => onChange('digital_category', val)}
+                                    error={errors.digital_category}
+                                    onChange={(val) =>
+                                        onChange('digital_category', val)
+                                    }
                                 />
+                            </div>
+
+                            {/* Digital File Upload */}
+                            <div className="flex flex-col gap-3 rounded-2xl border border-site-border bg-white p-4">
+                                <div className="flex flex-col gap-1">
+                                    <p className="text-xs font-semibold tracking-wide text-site-muted uppercase">
+                                        Digital File{' '}
+                                        <span className="text-red-500">*</span>
+                                    </p>
+                                    <p className="text-xs text-site-muted">
+                                        Upload the file you are selling (PDF,
+                                        ZIP, EPUB).
+                                    </p>
+                                </div>
+                                {existingFileName && !data.digital_file && (
+                                    <div className="rounded-lg bg-green-50 px-3 py-2 text-xs font-medium text-green-700">
+                                        Current file: {existingFileName}
+                                    </div>
+                                )}
+                                <Input
+                                    type="file"
+                                    accept=".pdf,.zip,.epub"
+                                    onChange={(e) =>
+                                        onChange(
+                                            'digital_file',
+                                            e.target.files?.[0] || null,
+                                        )
+                                    }
+                                    className="cursor-pointer border-site-border text-sm file:mr-4 file:rounded-full file:border-0 file:bg-brand/10 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-brand hover:file:bg-brand/20 focus-visible:ring-brand/30"
+                                />
+                                {errors.digital_file && (
+                                    <InputError
+                                        message={errors.digital_file as string}
+                                    />
+                                )}
                             </div>
 
                             {visibilityCard}
@@ -244,13 +353,22 @@ export default function ProductForm({ business, categories, data, errors, proces
                             {visibilityCard}
 
                             <div className="flex flex-col gap-4 rounded-2xl border border-site-border bg-white p-4">
-                                <p className="text-xs font-semibold uppercase tracking-wide text-site-muted">Organise</p>
+                                <p className="text-xs font-semibold tracking-wide text-site-muted uppercase">
+                                    Organise
+                                </p>
                                 <div className="flex flex-col gap-1.5">
                                     <div className="flex items-center justify-between">
-                                        <Label htmlFor="category_id">Category <span className="text-red-500">*</span></Label>
+                                        <Label htmlFor="category_id">
+                                            Category{' '}
+                                            <span className="text-red-500">
+                                                *
+                                            </span>
+                                        </Label>
                                         <button
                                             type="button"
-                                            onClick={() => setQuickAddOpen(true)}
+                                            onClick={() =>
+                                                setQuickAddOpen(true)
+                                            }
                                             className="flex items-center gap-1 text-xs text-brand hover:text-brand-hover"
                                         >
                                             <Plus className="h-3.5 w-3.5" />
@@ -260,13 +378,22 @@ export default function ProductForm({ business, categories, data, errors, proces
                                     <select
                                         id="category_id"
                                         value={data.category_id}
-                                        onChange={(e) => onChange('category_id', e.target.value)}
+                                        onChange={(e) =>
+                                            onChange(
+                                                'category_id',
+                                                e.target.value,
+                                            )
+                                        }
                                         required
                                         className="w-full rounded-lg border border-site-border bg-white px-3 py-2 text-sm text-site-fg focus:outline-none focus-visible:ring-2 focus-visible:ring-brand/30"
                                     >
-                                        <option value="" disabled>Select a category</option>
+                                        <option value="" disabled>
+                                            Select a category
+                                        </option>
                                         {categories.map((c) => (
-                                            <option key={c.id} value={c.id}>{c.name}</option>
+                                            <option key={c.id} value={c.id}>
+                                                {c.name}
+                                            </option>
                                         ))}
                                     </select>
                                     <InputError message={errors.category_id} />
@@ -285,7 +412,9 @@ export default function ProductForm({ business, categories, data, errors, proces
                     business={business}
                     open={quickAddOpen}
                     onOpenChange={setQuickAddOpen}
-                    onCreated={(name) => { pendingCategoryName.current = name; }}
+                    onCreated={(name) => {
+                        pendingCategoryName.current = name;
+                    }}
                 />
             )}
         </>
