@@ -13,9 +13,9 @@ export default function LandingNav() {
     return (
         <header
             className={[
-                'fixed top-0 left-0 right-0 z-50 transition-all duration-300',
+                'fixed top-0 right-0 left-0 z-50 transition-all duration-300',
                 stuck
-                    ? 'animate-nav-in border-b border-site-border bg-site-bg/90 backdrop-blur-md shadow-sm'
+                    ? 'animate-nav-in border-b border-site-border bg-site-bg/90 shadow-sm backdrop-blur-md'
                     : 'bg-transparent',
             ].join(' ')}
         >
@@ -25,15 +25,17 @@ export default function LandingNav() {
                 </span>
 
                 <nav className="hidden items-center gap-8 md:flex">
-                    {['Features', 'Pricing', 'Docs'].map((item) => (
-                        <a
-                            key={item}
-                            href={`#${item.toLowerCase()}`}
-                            className="text-sm text-site-muted transition hover:text-site-fg"
-                        >
-                            {item}
-                        </a>
-                    ))}
+                    {['Features', 'Pricing', 'Docs', 'Marketplace'].map(
+                        (item) => (
+                            <Link
+                                key={item}
+                                href={`${item.toLowerCase()}`}
+                                className="text-sm text-site-muted transition hover:text-site-fg"
+                            >
+                                {item}
+                            </Link>
+                        ),
+                    )}
                 </nav>
 
                 <div className="flex items-center gap-3">
