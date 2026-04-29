@@ -1,5 +1,4 @@
-import { Library, Wallet, Clock, ShieldCheck } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Library, Clock, TrendingUp } from 'lucide-react';
 
 type Stats = {
     purchase_count: number;
@@ -10,52 +9,51 @@ type Stats = {
 };
 
 export default function AnalyticsRow({ stats }: { stats: Stats }) {
+    const formattedSpend = (() => {
+        const n = parseFloat(stats.total_spent ?? '0');
+        return isNaN(n) ? 'GHS 0.00' : `GHS ${n.toFixed(2)}`;
+    })();
+
     const cards = [
         {
             label: 'Digital Assets',
-            value: stats.digital_assets,
-            subtitle: 'Ready to read or download',
+            value: String(stats.digital_assets),
+            sub: 'Ready to access',
             icon: Library,
-            color: 'text-blue-600',
-            bg: 'bg-blue-50',
-            border: 'border-blue-100',
+            accent: false,
         },
         {
-            label: 'Pending Orders',
-            value: stats.pending_count,
-            subtitle: 'Awaiting confirmation',
+            label: 'Total Spent',
+            value: formattedSpend,
+            sub: `Across ${stats.purchase_count} purchase${stats.purchase_count !== 1 ? 's' : ''}`,
+            icon: TrendingUp,
+            accent: true,
+        },
+        {
+            label: 'Pending',
+            value: String(stats.pending_count),
+            sub: 'Awaiting confirmation',
             icon: Clock,
-            color: 'text-amber-600',
-            bg: 'bg-amber-50',
-            border: 'border-amber-100',
+            accent: false,
         },
     ];
 
     return (
-        <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-3">
             {cards.map((card) => (
                 <div
                     key={card.label}
-                    className={cn(
-                        'relative overflow-hidden rounded-2xl border bg-white p-5 shadow-sm transition-all hover:shadow-md',
-                        card.border
-                    )}
+                    className="flex items-center gap-4 rounded-2xl border border-site-border bg-white px-5 py-4 shadow-sm"
                 >
-                    <div className="flex items-start justify-between">
-                        <div>
-                            <p className="text-xs font-bold tracking-tight text-site-muted uppercase">
-                                {card.label}
-                            </p>
-                            <h3 className="mt-1 text-xl font-black text-site-fg">
-                                {card.value}
-                            </h3>
-                            <p className="mt-0.5 text-[10px] font-medium text-site-muted">
-                                {card.subtitle}
-                            </p>
-                        </div>
-                        <div className={cn('flex h-10 w-10 items-center justify-center rounded-xl ring-1 ring-inset', card.bg, card.color, card.border.replace('border-', 'ring-'))}>
-                            <card.icon className="h-5 w-5" />
-                        </div>
+                    <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${card.accent ? 'bg-brand/10' : 'bg-zinc-50'}`}>
+                        <card.icon className={`h-5 w-5 ${card.accent ? 'text-brand' : 'text-site-muted'}`} />
+                    </div>
+                    <div className="min-w-0">
+                        <p className={`text-lg font-black tracking-tight ${card.accent ? 'text-brand' : 'text-site-fg'}`}>
+                            {card.value}
+                        </p>
+                        <p className="text-[10px] font-bold text-site-muted uppercase">{card.label}</p>
+                        <p className="text-[10px] font-medium text-site-muted/70">{card.sub}</p>
                     </div>
                 </div>
             ))}

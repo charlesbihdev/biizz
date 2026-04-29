@@ -24,6 +24,14 @@ class CustomerUserProvider implements UserProvider
 {
     public function retrieveById($identifier): ?Authenticatable
     {
+        // Customer identity is per-business. Outside a storefront request the
+        // customer guard has no business to scope to, so it is treated as not
+        // authenticated rather than throwing — admin pages and other guards
+        // routinely probe this guard during their own auth flow.
+        if (! BusinessContext::isSet()) {
+            return null;
+        }
+
         return Customer::withoutGlobalScope(BusinessScope::class)
             ->where('id', $identifier)
             ->where('business_id', BusinessContext::current()->id)
@@ -32,6 +40,10 @@ class CustomerUserProvider implements UserProvider
 
     public function retrieveByToken($identifier, #[\SensitiveParameter] $token): ?Authenticatable
     {
+        if (! BusinessContext::isSet()) {
+            return null;
+        }
+
         return Customer::withoutGlobalScope(BusinessScope::class)
             ->where('id', $identifier)
             ->where('business_id', BusinessContext::current()->id)
@@ -48,6 +60,10 @@ class CustomerUserProvider implements UserProvider
 
     public function retrieveByCredentials(#[\SensitiveParameter] array $credentials): ?Authenticatable
     {
+        if (! BusinessContext::isSet()) {
+            return null;
+        }
+
         return Customer::withoutGlobalScope(BusinessScope::class)
             ->where('business_id', BusinessContext::current()->id)
             ->where('email', $credentials['email'])
