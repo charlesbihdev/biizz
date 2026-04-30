@@ -167,3 +167,32 @@ export function ensureContrast(
     }
     return current;
 }
+
+/**
+ * Like `ensureContrast`, but adjusts the L channel only -- preserves hue + saturation.
+ * Direction is chosen by `against`'s luminance: darken if surface is light, lighten if dark.
+ *
+ * Used for `highlightStrong` so the user's chosen hue (gold, pink, green) stays recognizable
+ * while becoming visible against the surface, instead of falling back to primary.
+ *
+ * Deterministic: fixed step, hard iteration cap.
+ */
+export function ensureContrastHsl(color: string, against: string, minRatio: number): string {
+    const { h, s, l: startL } = rgbToHsl(parseHex(color));
+    const direction = relativeLuminance(against) > 0.5 ? -1 : 1;
+    const STEP = 0.04;
+    const MAX_ITERATIONS = 25;
+    let l = startL;
+    for (let i = 0; i < MAX_ITERATIONS; i++) {
+        const candidate = toHex(hslToRgb({ h, s, l }));
+        if (contrastRatio(candidate, against) >= minRatio) {
+            return candidate;
+        }
+        const nextL = l + direction * STEP;
+        if (nextL <= 0 || nextL >= 1) {
+            return toHex(hslToRgb({ h, s, l: Math.max(0, Math.min(1, nextL)) }));
+        }
+        l = nextL;
+    }
+    return toHex(hslToRgb({ h, s, l }));
+}

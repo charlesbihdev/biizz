@@ -1,4 +1,4 @@
-import { ChevronDown, ChevronUp, RotateCcw } from 'lucide-react';
+import { RotateCcw, SlidersHorizontal } from 'lucide-react';
 import { useRef, useState } from 'react';
 import { DEFAULT_PALETTE, PALETTES } from '@/Themes/Shared/palettes';
 
@@ -11,8 +11,6 @@ interface Props {
 }
 
 export function PalettePicker({ value, primary: primaryProp, highlight: highlightProp, surface: surfaceProp, onChange }: Props) {
-    const [customOpen, setCustomOpen] = useState(false);
-
     const activePalette   = PALETTES.find((p) => p.id === value);
     const currentPrimary   = primaryProp   ?? activePalette?.primary   ?? DEFAULT_PALETTE.primary;
     const currentHighlight = highlightProp ?? activePalette?.highlight ?? DEFAULT_PALETTE.highlight;
@@ -24,6 +22,9 @@ export function PalettePicker({ value, primary: primaryProp, highlight: highligh
         || activePalette.highlight.toLowerCase() !== currentHighlight.toLowerCase()
         || activePalette.surface.toLowerCase()   !== currentSurface.toLowerCase()
     );
+
+    // Auto-expand the customize panel if the user has already diverged from a preset.
+    const [customOpen, setCustomOpen] = useState(() => isModified);
 
     const handlePaletteClick = (id: string) => {
         const p = PALETTES.find((pal) => pal.id === id)!;
@@ -99,14 +100,15 @@ export function PalettePicker({ value, primary: primaryProp, highlight: highligh
             </div>
 
             {/* ── Reset / Customize controls ── */}
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between gap-3">
                 <button
                     type="button"
                     onClick={() => setCustomOpen((o) => !o)}
-                    className="flex items-center gap-1.5 text-xs font-medium text-site-muted hover:text-site-fg"
+                    aria-expanded={customOpen}
+                    className="inline-flex items-center gap-2 rounded-lg border border-site-border bg-white px-3 py-1.5 text-sm font-medium text-site-fg transition hover:border-zinc-400 hover:bg-zinc-50"
                 >
-                    {customOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-                    Customize colors
+                    <SlidersHorizontal className="h-4 w-4" />
+                    {customOpen ? 'Hide custom colors' : 'Customize colors'}
                 </button>
 
                 {isModified && activePalette && (

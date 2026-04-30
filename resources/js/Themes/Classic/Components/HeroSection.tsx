@@ -35,7 +35,7 @@ export default function HeroSection({ business }: Props) {
                 <a
                     href="#products"
                     className="mt-6 inline-flex items-center gap-2 rounded-full px-7 py-2.5 text-sm font-semibold transition hover:opacity-90"
-                    style={{ backgroundColor: tokens.highlightStrong, color: tokens.ctaFg }}
+                    style={{ backgroundColor: tokens.highlightStrong, color: tokens.highlightStrongFg }}
                 >
                     Shop Now ↓
                 </a>

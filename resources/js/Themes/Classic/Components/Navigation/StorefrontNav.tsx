@@ -260,8 +260,8 @@ export default function StorefrontNav({
                                 <ShoppingCart className="h-6 w-6" />
                                 {itemCount > 0 && (
                                     <span
-                                        className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full text-[10px] leading-none font-bold text-white"
-                                        style={{ backgroundColor: tokens.ctaBg, color: tokens.ctaFg }}
+                                        className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full text-[10px] leading-none font-bold"
+                                        style={{ backgroundColor: tokens.highlightStrong, color: tokens.highlightStrongFg }}
                                     >
                                         {itemCount > 9 ? '9+' : itemCount}
                                     </span>

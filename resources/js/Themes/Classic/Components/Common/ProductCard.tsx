@@ -14,10 +14,13 @@ interface Props {
 }
 
 export default function ProductCard({ product, onAddToCart, tokens, isDigital, businessSlug }: Props) {
-    const image    = product.images[0]?.url;
-    const price    = parseFloat(product.price);
-    const outStock = !isDigital && product.stock === 0;
-    const lowStock = !isDigital && !outStock && product.stock <= 5;
+    const image       = product.images[0]?.url;
+    const price       = parseFloat(product.price);
+    const compareAt   = product.compare_at_price ? parseFloat(product.compare_at_price) : null;
+    const onSale      = compareAt !== null && compareAt > price;
+    const discountPct = onSale ? Math.round(((compareAt - price) / compareAt) * 100) : 0;
+    const outStock    = !isDigital && product.stock === 0;
+    const lowStock    = !isDigital && !outStock && product.stock <= 5;
 
     const [added, setAdded] = useState(false);
 
@@ -59,10 +62,18 @@ export default function ProductCard({ product, onAddToCart, tokens, isDigital, b
                 )}
                 {lowStock && (
                     <span
-                        className="absolute left-2 top-2 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white"
-                        style={{ backgroundColor: tokens.highlightStrong }}
+                        className="absolute left-2 top-2 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide"
+                        style={{ backgroundColor: tokens.highlightStrong, color: tokens.highlightStrongFg }}
                     >
                         Only {product.stock} left
+                    </span>
+                )}
+                {onSale && (
+                    <span
+                        className="absolute right-2 top-2 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide"
+                        style={{ backgroundColor: tokens.highlightStrong, color: tokens.highlightStrongFg }}
+                    >
+                        −{discountPct}%
                     </span>
                 )}
             </div>
@@ -77,8 +88,15 @@ export default function ProductCard({ product, onAddToCart, tokens, isDigital, b
                 <p className="line-clamp-2 text-sm font-semibold leading-snug" style={{ color: tokens.textPrimary }}>
                     {product.name}
                 </p>
-                <p className="mt-0.5 text-base font-bold" style={{ color: tokens.price }}>
-                    GHS {price.toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                <p className="mt-0.5 flex items-baseline gap-2">
+                    <span className="text-base font-bold" style={{ color: tokens.price }}>
+                        GHS {price.toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    </span>
+                    {onSale && compareAt !== null && (
+                        <span className="text-xs font-medium line-through" style={{ color: tokens.textMuted }}>
+                            GHS {compareAt.toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        </span>
+                    )}
                 </p>
             </div>
         </>

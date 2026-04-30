@@ -131,9 +131,31 @@ export default function ClassicProductDetailPage({ businessSlug, product, relate
 
                     <h1 className="text-2xl font-bold leading-snug sm:text-3xl" style={{ color: tokens.textPrimary }}>{product.name}</h1>
 
-                    <p className="text-2xl font-bold" style={{ color: tokens.price }}>
-                        GHS {price.toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </p>
+                    {(() => {
+                        const compareAt   = product.compare_at_price ? parseFloat(product.compare_at_price) : null;
+                        const onSale      = compareAt !== null && compareAt > price;
+                        const discountPct = onSale ? Math.round(((compareAt - price) / compareAt) * 100) : 0;
+                        return (
+                            <p className="flex flex-wrap items-baseline gap-3">
+                                <span className="text-2xl font-bold" style={{ color: tokens.price }}>
+                                    GHS {price.toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </span>
+                                {onSale && compareAt !== null && (
+                                    <>
+                                        <span className="text-base font-medium line-through" style={{ color: tokens.textMuted }}>
+                                            GHS {compareAt.toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        </span>
+                                        <span
+                                            className="rounded-full px-2 py-0.5 text-xs font-bold uppercase tracking-wide"
+                                            style={{ backgroundColor: tokens.highlightStrong, color: tokens.highlightStrongFg }}
+                                        >
+                                            −{discountPct}%
+                                        </span>
+                                    </>
+                                )}
+                            </p>
+                        );
+                    })()}
 
                     {/* Stock status */}
                     {!isDigital && (

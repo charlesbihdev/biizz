@@ -1,7 +1,7 @@
 import {
-    contrastRatio,
     darken,
     ensureContrast,
+    ensureContrastHsl,
     lighten,
     mix,
     pickContrastingForeground,
@@ -27,27 +27,38 @@ export interface BrandColors {
  *
  * Some roles are locked by design:
  *   - `price` is permanently `textPrimary`. Prices are never themed.
- *   - `highlightStrong` falls back to primary when contrast is too low,
- *     so badges/tags never become invisible.
+ *   - `highlightStrong` matches retail sale-chip aesthetics:
+ *       - For LIGHT highlights (luminance > 0.5: yellow, pastel pink) -> raw highlight,
+ *         near-black text. Classic "Caution"/Sephora-style bright chip with dark text.
+ *       - For MEDIUM/DARK highlights (gold, brown, blue, green, grey) -> white text on
+ *         either raw highlight (Tech blue, Minimal grey already dark enough) or an
+ *         HSL-deepened version (gold/brown/orange need a slight darken so white reads).
+ *   - `highlightStrongFg` is auto-picked via `pickContrastingForeground` -- the threshold
+ *     above guarantees the picked fg has >= 4.5 contrast against the chip bg.
  */
 export interface SemanticTokens {
-    surface:         string;
-    surfaceRaised:   string;
-    textPrimary:     string;
-    textMuted:       string;
-    border:          string;
-    ctaBg:           string;
-    ctaFg:           string;
-    ctaBgHover:      string;
-    highlightSoft:   string;
-    highlightStrong: string;
-    price:           string;
+    surface:           string;
+    surfaceRaised:     string;
+    textPrimary:       string;
+    textMuted:         string;
+    border:            string;
+    ctaBg:             string;
+    ctaFg:             string;
+    ctaBgHover:        string;
+    highlightSoft:     string;
+    highlightStrong:   string;
+    highlightStrongFg: string;
+    price:             string;
 }
 
 const HOVER_SHIFT = 0.08;
 const SURFACE_RAISED_SHIFT = 0.04;
 const TEXT_CONTRAST_TARGET = 7;
-const HIGHLIGHT_CONTRAST_TARGET = 4.5;
+// Above this luminance we treat the highlight as "light" and put near-black text on it
+// (Bold yellow, Beauty pastel pink). Below this we use white text and HSL-darken if needed.
+const LIGHT_HIGHLIGHT_LUMINANCE = 0.5;
+// White text on chip needs >= 4.5 against the chip bg (WCAG AA normal text).
+const WHITE_TEXT_CONTRAST_TARGET = 4.5;
 
 /**
  * Pure function: same brand input -> same semantic tokens, every time.
@@ -76,9 +87,13 @@ export function resolveSemanticTokens({ primary, highlight, surface }: BrandColo
         ? lighten(primary, HOVER_SHIFT)
         : darken(primary, HOVER_SHIFT);
 
-    const highlightStrong = contrastRatio(highlight, surface) >= HIGHLIGHT_CONTRAST_TARGET
+    // Light highlights stay raw and pair with near-black text (warm chip aesthetic).
+    // Medium/dark highlights take white text -- raw if already dark enough, deepened otherwise.
+    const highlightIsLight = relativeLuminance(highlight) > LIGHT_HIGHLIGHT_LUMINANCE;
+    const highlightStrong = highlightIsLight
         ? highlight
-        : primary;
+        : ensureContrastHsl(highlight, '#ffffff', WHITE_TEXT_CONTRAST_TARGET);
+    const highlightStrongFg = pickContrastingForeground(highlightStrong);
 
     return {
         surface,
@@ -91,6 +106,7 @@ export function resolveSemanticTokens({ primary, highlight, surface }: BrandColo
         ctaBgHover,
         highlightSoft: withAlpha(highlight, 0.12),
         highlightStrong,
+        highlightStrongFg,
         price: textPrimary,
     };
 }
