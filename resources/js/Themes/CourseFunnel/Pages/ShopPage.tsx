@@ -31,7 +31,7 @@ function ShopContent({
     cartActions,
 }: Props & { cartActions: CartActions }) {
     const { isAuthenticated, loginMode, customer } = useCustomerAuth();
-    const accent = (business.theme_settings.accent_color as string | undefined) || '#6366f1';
+    const accent = (business.theme_settings.highlight_color as string | undefined) || '#6366f1';
 
     return (
         <div className="min-h-screen bg-white">

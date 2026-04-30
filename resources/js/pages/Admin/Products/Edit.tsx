@@ -1,5 +1,6 @@
 import { useForm } from '@inertiajs/react';
 import ProductForm from '@/components/admin/products/ProductForm';
+import type { DeliveryMode } from '@/components/admin/products/DeliveryModeField';
 import AppSidebarLayout from '@/layouts/app/app-sidebar-layout';
 import { show } from '@/routes/businesses';
 import { edit, index, update } from '@/routes/businesses/products';
@@ -24,6 +25,8 @@ export default function EditProduct({ business, product, categories }: Props) {
         stock:            String(product.stock),
         category_id:      product.category_id ? String(product.category_id) : '',
         digital_category: product.digital_category ?? 'others',
+        delivery_mode:    (product.delivery_mode ?? '') as DeliveryMode,
+        external_url:     product.external_url ?? '',
         is_active:        product.is_active,
         images:           product.images.map((img) => ({ url: img.url, alt: img.alt ?? '' })),
         promo_video:      product.promo_video ?? '',

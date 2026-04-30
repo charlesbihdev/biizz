@@ -17,17 +17,17 @@ use Spatie\LaravelData\Data;
 class ThemeSettingsData extends Data
 {
     public function __construct(
-        // Color fields
+        // Color fields (brand input — see Themes/Shared/Tokens for role mapping)
         #[Regex('/^#[0-9A-Fa-f]{6}$/')]
         public readonly ?string $primary_color = null,
 
         #[Regex('/^#[0-9A-Fa-f]{6}$/')]
-        public readonly ?string $accent_color = null,
+        public readonly ?string $highlight_color = null,
 
         #[Regex('/^#[0-9A-Fa-f]{6}$/')]
-        public readonly ?string $bg_color = null,
+        public readonly ?string $surface_color = null,
 
-        // Color preset identifier (e.g. 'midnight', 'forest')
+        // Color preset identifier (e.g. 'luxe', 'beauty')
         #[Max(50)]
         public readonly ?string $color_scheme = null,
 

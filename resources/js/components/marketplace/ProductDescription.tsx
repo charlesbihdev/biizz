@@ -22,7 +22,8 @@ export default function ProductDescription({ description, tags }: Props) {
                     {tags.map((tag) => (
                         <Link
                             key={tag}
-                            href={index({ tag }).url}
+                            href={index({ query: { tag } }).url}
+                            prefetch
                             className="rounded-full border border-site-border px-3 py-1 text-xs font-medium text-site-muted capitalize transition hover:border-brand hover:text-brand"
                         >
                             {tag}

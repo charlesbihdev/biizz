@@ -32,11 +32,21 @@ class MarketplaceController extends Controller
             $query->where('digital_category', $request->string('category'));
         }
 
+        if ($request->filled('tag')) {
+            $tag = (string) $request->string('tag');
+
+            if (DB::getDriverName() === 'pgsql') {
+                $query->whereJsonContains('tags', $tag);
+            } else {
+                $query->where('tags', 'like', '%"'.$tag.'"%');
+            }
+        }
+
         $products = $query->latest()->paginate(20)->withQueryString();
 
         return Inertia::render('Marketplace/Index', [
             'products' => $products,
-            'activeFilters' => $request->only(['search', 'category']),
+            'activeFilters' => $request->only(['search', 'category', 'tag']),
         ]);
     }
 

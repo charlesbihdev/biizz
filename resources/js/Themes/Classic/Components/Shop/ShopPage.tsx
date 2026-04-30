@@ -3,6 +3,7 @@ import { SlidersHorizontal, X } from 'lucide-react';
 import { useState } from 'react';
 import type { Business, CartItem, PaginatedData, Product } from '@/types/business';
 import { shop } from '@/actions/App/Http/Controllers/StorefrontController';
+import { useSemanticTokens } from '@/Themes/Shared/Hooks/useSemanticTokens';
 import Pagination from '../Common/Pagination';
 import ProductCard from '../Common/ProductCard';
 import FilterPanel from './FilterPanel';
@@ -32,10 +33,8 @@ const SORT_OPTIONS = [
 ];
 
 export default function ClassicShopPage({ business, products, priceRange, filters, onAddToCart }: Props) {
-    const { theme_settings: s, slug, categories = [], business_type } = business;
-    const primary    = s.primary_color ?? '#1a1a1a';
-    const accent     = s.accent_color  ?? primary;
-    const textMuted  = primary + '80'; // 50% opacity
+    const { slug, categories = [], business_type } = business;
+    const tokens     = useSemanticTokens(business);
     const isDigital  = business_type === 'digital';
 
     const [drawerOpen, setDrawerOpen] = useState(false);
@@ -75,8 +74,8 @@ export default function ClassicShopPage({ business, products, priceRange, filter
         <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
             {/* ── Page header ── */}
             <div className="mb-6 flex items-center justify-between">
-                <h1 className="text-2xl font-bold" style={{ color: primary }}>Shop</h1>
-                <p className="text-sm" style={{ color: textMuted }}>{products.total} product{products.total !== 1 ? 's' : ''}</p>
+                <h1 className="text-2xl font-bold" style={{ color: tokens.textPrimary }}>Shop</h1>
+                <p className="text-sm" style={{ color: tokens.textMuted }}>{products.total} product{products.total !== 1 ? 's' : ''}</p>
             </div>
 
             <div className="flex gap-8">
@@ -88,8 +87,7 @@ export default function ClassicShopPage({ business, products, priceRange, filter
                         categories={categories}
                         priceRange={priceRange}
                         isDigital={isDigital}
-                        accent={accent}
-                        primary={primary}
+                        tokens={tokens}
                         onApply={() => applyFilters()}
                         onClear={clearFilters}
                     />
@@ -103,19 +101,19 @@ export default function ClassicShopPage({ business, products, priceRange, filter
                             type="button"
                             onClick={() => setDrawerOpen(true)}
                             className="flex items-center gap-2 rounded-full border border-zinc-200 px-4 py-2 text-sm font-medium transition hover:border-zinc-300 lg:hidden"
-                            style={{ color: primary }}
+                            style={{ color: tokens.textPrimary }}
                         >
                             <SlidersHorizontal className="h-4 w-4" />
                             Filters{activeFilterCount > 0 ? ` (${activeFilterCount})` : ''}
                         </button>
 
                         <div className="ml-auto flex items-center gap-2 text-sm">
-                            <span className="hidden sm:inline" style={{ color: textMuted }}>Sort by</span>
+                            <span className="hidden sm:inline" style={{ color: tokens.textMuted }}>Sort by</span>
                             <select
                                 value={draft.sort}
-                                onChange={(e) => { const s = e.target.value; setDraft((d) => ({ ...d, sort: s })); applyFilters({ sort: s }); }}
+                                onChange={(e) => { const next = e.target.value; setDraft((d) => ({ ...d, sort: next })); applyFilters({ sort: next }); }}
                                 className="rounded-lg border border-zinc-200 px-3 py-1.5 text-sm focus:outline-none"
-                                style={{ color: primary }}
+                                style={{ color: tokens.textPrimary }}
                             >
                                 {SORT_OPTIONS.map((o) => (
                                     <option key={o.value} value={o.value}>{o.label}</option>
@@ -127,12 +125,12 @@ export default function ClassicShopPage({ business, products, priceRange, filter
                     {/* Product grid */}
                     {products.data.length === 0 ? (
                         <div className="rounded-2xl border border-dashed border-zinc-200 py-20 text-center">
-                            <p className="text-sm" style={{ color: textMuted }}>No products match your filters.</p>
+                            <p className="text-sm" style={{ color: tokens.textMuted }}>No products match your filters.</p>
                             <button
                                 type="button"
                                 onClick={clearFilters}
                                 className="mt-3 text-sm font-medium underline"
-                                style={{ color: accent }}
+                                style={{ color: tokens.ctaBg }}
                             >
                                 Clear filters
                             </button>
@@ -144,8 +142,7 @@ export default function ClassicShopPage({ business, products, priceRange, filter
                                     key={product.id}
                                     product={product}
                                     onAddToCart={onAddToCart}
-                                    accentColor={accent}
-                                    primaryColor={primary}
+                                    tokens={tokens}
                                     isDigital={isDigital}
                                     businessSlug={slug}
                                 />
@@ -153,7 +150,7 @@ export default function ClassicShopPage({ business, products, priceRange, filter
                         </div>
                     )}
 
-                    <Pagination data={products} accentColor={accent} />
+                    <Pagination data={products} tokens={tokens} />
                 </div>
             </div>
 
@@ -163,12 +160,12 @@ export default function ClassicShopPage({ business, products, priceRange, filter
                     <div className="absolute inset-0 bg-black/40" onClick={() => setDrawerOpen(false)} />
                     <div className="relative ml-auto flex w-72 max-w-[85vw] flex-col bg-white shadow-xl">
                         <div className="flex items-center justify-between border-b border-zinc-100 px-5 py-4">
-                            <span className="font-semibold" style={{ color: primary }}>Filters</span>
+                            <span className="font-semibold" style={{ color: tokens.textPrimary }}>Filters</span>
                             <button
                                 type="button"
                                 onClick={() => setDrawerOpen(false)}
                                 className="flex h-8 w-8 items-center justify-center rounded-full hover:bg-zinc-100"
-                                style={{ color: primary + 'b3' }}
+                                style={{ color: tokens.textMuted }}
                             >
                                 <X className="h-4 w-4" />
                             </button>
@@ -180,8 +177,7 @@ export default function ClassicShopPage({ business, products, priceRange, filter
                                 categories={categories}
                                 priceRange={priceRange}
                                 isDigital={isDigital}
-                                accent={accent}
-                                primary={primary}
+                                tokens={tokens}
                                 onApply={() => applyFilters()}
                                 onClear={clearFilters}
                             />

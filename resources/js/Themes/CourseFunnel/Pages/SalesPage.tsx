@@ -118,7 +118,7 @@ function CatalogMode({
     cartActions: CartActions;
 }) {
     const { isAuthenticated, loginMode, customer } = useCustomerAuth();
-    const accent = (business.theme_settings.accent_color as string | undefined) || '#6366f1';
+    const accent = (business.theme_settings.highlight_color as string | undefined) || '#6366f1';
 
     return (
         <div className="min-h-screen bg-white">
@@ -190,7 +190,7 @@ function SingleProductFunnel({
 }) {
     const { isAuthenticated, loginMode, customer } = useCustomerAuth();
     const { theme_settings: s } = business;
-    const accent       = (s.accent_color as string | undefined) || '#6366f1';
+    const accent       = (s.highlight_color as string | undefined) || '#6366f1';
     const ctaLabel = (s.cta_text as string | undefined) || 'Get Instant Access';
     const promoVideo   = product?.promo_video || null;
     const salesContent = product?.description || null;

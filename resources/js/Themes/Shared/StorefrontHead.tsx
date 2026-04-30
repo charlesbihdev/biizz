@@ -25,8 +25,8 @@ export default function StorefrontHead({ business, title, description, image }: 
 
     const ogImage       = image ?? business.seo_image ?? business.logo_url ?? undefined;
     const favicon       = business.favicon_url ?? business.logo_url ?? undefined;
-    const progressColor = business.theme_settings?.accent_color
-        ?? business.theme_settings?.primary_color
+    const progressColor = (business.theme_settings?.highlight_color as string | undefined)
+        ?? (business.theme_settings?.primary_color as string | undefined)
         ?? null;
 
     return (

@@ -1,5 +1,5 @@
-import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, Settings, LayoutGrid, User } from 'lucide-react';
+import { Link } from '@inertiajs/react';
+import { BookOpen, User } from 'lucide-react';
 import { type ReactNode } from 'react';
 import BuyerSidebar from '@/components/marketplace/BuyerSidebar';
 import MarketplaceNav from '@/components/marketplace/MarketplaceNav';
@@ -8,7 +8,12 @@ import { index as libraryIndex } from '@/routes/marketplace/library';
 import { edit as accountEdit } from '@/routes/marketplace/account';
 import { cn } from '@/lib/utils';
 
-type BuyerStats = { purchase_count: number; total_spent: string };
+type BuyerStats = {
+    purchase_count: number;
+    total_spent: string;
+    member_since: string;
+    digital_assets: number;
+};
 
 type Props = {
     children: ReactNode;
@@ -17,7 +22,7 @@ type Props = {
 };
 
 const MOBILE_TABS = [
-    { key: 'library', label: 'Library', icon: LayoutGrid, href: () => libraryIndex().url },
+    { key: 'library', label: 'Library', icon: BookOpen, href: () => libraryIndex().url },
     { key: 'account', label: 'Account', icon: User, href: () => accountEdit().url },
 ] as const;
 
@@ -25,10 +30,10 @@ export default function BuyerDashboardLayout({ children, active, stats }: Props)
     return (
         <ToastProvider>
             <div className="min-h-screen bg-site-bg font-sans selection:bg-brand/10 selection:text-brand">
-                {/* Mobile: top nav */}
+                {/* Mobile: top nav + tabs */}
                 <div className="sticky top-0 z-40 lg:hidden">
                     <MarketplaceNav />
-                    <div className="flex border-b border-site-border bg-white/80 px-5 backdrop-blur-md">
+                    <div className="flex border-b border-site-border bg-white/90 px-5 backdrop-blur-md">
                         {MOBILE_TABS.map(({ key, label, icon: Icon, href }) => (
                             <Link
                                 key={key}
@@ -53,13 +58,8 @@ export default function BuyerDashboardLayout({ children, active, stats }: Props)
                         <BuyerSidebar active={active} stats={stats} />
                     </div>
 
-                    <main className="relative flex-1 overflow-y-auto bg-[#fafafa] px-6 py-8 lg:px-12 lg:py-12">
-                        {/* Subtle background glow */}
-                        <div className="pointer-events-none absolute top-0 left-0 h-full w-full overflow-hidden opacity-20">
-                            <div className="absolute -top-24 -left-24 h-96 w-96 rounded-full bg-brand/20 blur-[120px]" />
-                        </div>
-                        
-                        <div className="relative mx-auto max-w-6xl">
+                    <main className="flex-1 overflow-y-auto bg-[#f7f5f2] px-6 py-8 lg:px-12 lg:py-10">
+                        <div className="mx-auto max-w-6xl">
                             {children}
                         </div>
                     </main>

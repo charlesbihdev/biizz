@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Auth\AuthIntent;
 use App\Services\BusinessContext;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
@@ -40,6 +41,7 @@ class HandleInertiaRequests extends Middleware
             ...parent::share($request),
             'name' => config('app.name'),
             'auth' => fn () => [
+                'activeGuard' => AuthIntent::guardForRoute($request),
                 'user' => $request->user('web'),
                 'customer' => BusinessContext::isSet() ? $request->user('customer') : null,
                 'buyer' => $request->user('buyer'),

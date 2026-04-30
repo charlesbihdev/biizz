@@ -14,8 +14,6 @@ interface Props {
 
 export default function ClassicLayout({ business, products, pages }: Props) {
     const { theme_settings: s } = business;
-    const primary = s.primary_color ?? '#1a1a1a';
-    const accent  = s.accent_color  ?? primary;
     const categories = business.categories ?? [];
 
     const activeCategorySlug = new URLSearchParams(window.location.search).get('category') ?? null;
@@ -35,7 +33,7 @@ export default function ClassicLayout({ business, products, pages }: Props) {
 
     return (
         <ClassicThemeShell business={business} pages={pages}>
-            {({ addToCart, trackEvent }) => (
+            {({ addToCart, trackEvent, tokens }) => (
                 <>
                     {s.show_hero !== false && <HeroSection business={business} />}
 
@@ -43,7 +41,7 @@ export default function ClassicLayout({ business, products, pages }: Props) {
                         categories={categories}
                         activeSlug={activeCategorySlug}
                         onChange={handleCategoryChange}
-                        accentColor={accent}
+                        tokens={tokens}
                     />
 
                     <ProductGrid
@@ -52,14 +50,13 @@ export default function ClassicLayout({ business, products, pages }: Props) {
                             addToCart(item);
                             trackEvent('AddToCart', { content_name: item.name, value: item.price, currency: 'GHS' });
                         }}
-                        accentColor={accent}
-                        primaryColor={primary}
+                        tokens={tokens}
                         activeCategory={activeCategory}
                         isDigital={business.business_type === 'digital'}
                         businessSlug={business.slug}
                     />
 
-                    <Pagination data={products} accentColor={accent} />
+                    <Pagination data={products} tokens={tokens} />
                 </>
             )}
         </ClassicThemeShell>

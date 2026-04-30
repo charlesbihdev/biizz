@@ -44,13 +44,13 @@ export function SchemaField({ fieldKey, field, business, value, allSettings, onC
             {field.type === 'palette' && (
                 <PalettePicker
                     value={value as string | undefined}
-                    primary={allSettings?.primary_color as string | undefined ?? business.theme_settings?.primary_color}
-                    accent={allSettings?.accent_color as string | undefined ?? business.theme_settings?.accent_color}
-                    bg={allSettings?.bg_color as string | undefined ?? business.theme_settings?.bg_color}
-                    onChange={(primary, accent, bg, id) => {
+                    primary={allSettings?.primary_color   as string | undefined ?? business.theme_settings?.primary_color}
+                    highlight={allSettings?.highlight_color as string | undefined ?? business.theme_settings?.highlight_color}
+                    surface={allSettings?.surface_color   as string | undefined ?? business.theme_settings?.surface_color}
+                    onChange={(primary, highlight, surface, id) => {
                         onChange('primary_color', primary);
-                        onChange('accent_color', accent);
-                        onChange('bg_color', bg);
+                        onChange('highlight_color', highlight);
+                        onChange('surface_color', surface);
                         onChange(fieldKey, id ?? '');
                     }}
                 />

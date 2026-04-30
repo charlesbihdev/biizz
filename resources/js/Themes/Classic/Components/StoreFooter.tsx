@@ -2,6 +2,7 @@ import { Link } from '@inertiajs/react';
 import type { ReactNode } from 'react';
 import { Facebook, Instagram, Mail, MapPin, MessageCircle, Phone, Twitter } from 'lucide-react';
 import type { Business, Page } from '@/types/business';
+import { useSemanticTokens } from '@/Themes/Shared/Hooks/useSemanticTokens';
 
 const PAGE_LABELS: Record<string, string> = {
     privacy_policy: 'Privacy Policy',
@@ -30,11 +31,12 @@ interface Props {
 }
 
 export default function StoreFooter({ business, pages }: Props) {
-    const { name, description, address, contact_email, phone, social_links: social, slug, show_branding, theme_settings: s } = business;
-    const primary = s?.primary_color ?? '#1a1a1a';
-    const accent  = s?.accent_color  ?? primary;
-    const bg      = s?.bg_color      ?? '#ffffff';
-    const year   = new Date().getFullYear();
+    const { name, description, address, contact_email, phone, social_links: social, slug, show_branding } = business;
+    const tokens = useSemanticTokens(business);
+    const primary = tokens.textPrimary;
+    const accent  = tokens.ctaBg;
+    const bg      = tokens.surface;
+    const year    = new Date().getFullYear();
 
     const whatsapp     = social?.whatsapp;
     const whatsappHref = whatsapp ? `https://wa.me/${whatsapp.replace(/\D/g, '')}` : null;

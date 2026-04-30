@@ -1,10 +1,5 @@
-interface Category {
-    id:   number;
-    name: string;
-    slug: string;
-}
-
 import { useState } from 'react';
+import type { SemanticTokens } from '@/Themes/Shared/Tokens';
 
 interface Category {
     id:   number;
@@ -13,24 +8,23 @@ interface Category {
 }
 
 interface Props {
-    categories:   Category[];
-    activeSlug:   string | null;
-    onChange:     (slug: string | null) => void;
-    accentColor?: string;
+    categories: Category[];
+    activeSlug: string | null;
+    onChange:   (slug: string | null) => void;
+    tokens:     SemanticTokens;
 }
 
-export default function CategoryFilter({ categories, activeSlug, onChange, accentColor }: Props) {
+export default function CategoryFilter({ categories, activeSlug, onChange, tokens }: Props) {
     if (categories.length === 0) { return null; }
 
-    const accent = accentColor ?? '#1a1a1a';
     const [hoveredSlug, setHoveredSlug] = useState<string | 'all' | null>(null);
 
     const pillStyle = (slug: string | null) => {
         const key = slug ?? 'all';
         const isActive  = activeSlug === slug;
         const isHovered = hoveredSlug === key;
-        if (isActive)  { return { backgroundColor: accent, color: '#fff' }; }
-        if (isHovered) { return { backgroundColor: accent + '22', color: accent }; }
+        if (isActive)  { return { backgroundColor: tokens.ctaBg, color: tokens.ctaFg }; }
+        if (isHovered) { return { backgroundColor: tokens.highlightSoft, color: tokens.textPrimary }; }
         return { backgroundColor: '#f4f4f5', color: '#52525b' };
     };
 

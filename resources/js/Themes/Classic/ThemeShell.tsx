@@ -3,6 +3,8 @@ import type { Business, CartItem, Page } from '@/types/business';
 import { useCartStore } from '@/stores/cartStore';
 import { useMetaPixel, type PixelEvent } from '@/Themes/Shared/Hooks/useMetaPixel';
 import { useCustomerAuth } from '@/Themes/Shared/Hooks/useCustomerAuth';
+import { useSemanticTokens } from '@/Themes/Shared/Hooks/useSemanticTokens';
+import type { SemanticTokens } from '@/Themes/Shared/Tokens';
 import AuthModal from './Components/Auth/AuthModal';
 import CartDrawer from './Components/CartDrawer';
 import ToastProvider from '@/components/toast-provider';
@@ -13,6 +15,7 @@ export type CartActions = {
     addToCart:   (item: CartItem) => void;
     trackEvent:  (event: PixelEvent, data?: Record<string, unknown>) => void;
     openAuth:    () => void;
+    tokens:      SemanticTokens;
 };
 
 interface Props {
@@ -25,16 +28,11 @@ export default function ClassicThemeShell({ business, pages, children }: Props) 
     const { items, addToCart, removeFromCart, updateQuantity, total, itemCount } = useCartStore();
     const { trackEvent } = useMetaPixel(business.meta_pixel_id ?? '');
     const { isBlocked, isAuthenticated, loginMode } = useCustomerAuth();
+    const tokens = useSemanticTokens(business);
 
     const [cartOpen, setCartOpen]   = useState(false);
     const [authOpen, setAuthOpen]   = useState(false);
 
-    const { theme_settings: s } = business;
-    const primary = s.primary_color ?? '#1a1a1a';
-    const accent  = s.accent_color  ?? primary;
-    const bg      = s.bg_color      ?? '#ffffff';
-
-    // Auto-open auth modal when loginMode is 'full' and customer is not logged in
     useEffect(() => {
         if (isBlocked) {
             setAuthOpen(true);
@@ -45,11 +43,12 @@ export default function ClassicThemeShell({ business, pages, children }: Props) 
         addToCart,
         trackEvent,
         openAuth: () => setAuthOpen(true),
+        tokens,
     };
 
     return (
         <ToastProvider>
-            <div className="min-h-screen font-sans antialiased" style={{ backgroundColor: bg }}>
+            <div className="min-h-screen font-sans antialiased" style={{ backgroundColor: tokens.surface }}>
                 <StorefrontNav
                     business={business}
                     pages={pages}
@@ -73,7 +72,7 @@ export default function ClassicThemeShell({ business, pages, children }: Props) 
                     onRemove={removeFromCart}
                     onUpdateQuantity={updateQuantity}
                     businessSlug={business.slug}
-                    accentColor={accent}
+                    tokens={tokens}
                     onCheckout={() => trackEvent('InitiateCheckout', { value: total, currency: 'GHS' })}
                 />
 

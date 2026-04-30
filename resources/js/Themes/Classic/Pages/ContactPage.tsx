@@ -1,6 +1,7 @@
 import type { AnchorHTMLAttributes, ReactNode } from 'react';
 import { Mail, MapPin, MessageCircle, Phone } from 'lucide-react';
 import ClassicThemeShell from '../ThemeShell';
+import { useSemanticTokens } from '@/Themes/Shared/Hooks/useSemanticTokens';
 import type { Business, Page } from '@/types/business';
 
 interface Props {
@@ -9,11 +10,12 @@ interface Props {
 }
 
 function ContactContent({ business }: { business: Business }) {
-    const { name, contact_email, phone, address, social_links: social, theme_settings: s } = business;
-    const primary    = s.primary_color ?? '#1a1a1a';
-    const accent     = s.accent_color  ?? primary;
-    const textLabel  = primary + '73';
-    const textValue  = primary + 'cc';
+    const { name, contact_email, phone, address, social_links: social } = business;
+    const tokens     = useSemanticTokens(business);
+    const primary    = tokens.textPrimary;
+    const accent     = tokens.ctaBg;
+    const textLabel  = tokens.textMuted;
+    const textValue  = tokens.textPrimary;
 
     const whatsapp = social?.whatsapp;
     const whatsappHref = whatsapp ? `https://wa.me/${whatsapp.replace(/\D/g, '')}` : null;

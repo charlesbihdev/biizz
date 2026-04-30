@@ -4,24 +4,22 @@ import { ChevronLeft, ShoppingCart, X, ZoomIn } from 'lucide-react';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { useCartStore } from '@/stores/cartStore';
 import type { CartItem, Product } from '@/types/business';
+import type { SemanticTokens } from '@/Themes/Shared/Tokens';
 import ProductCard from './Common/ProductCard';
 
 interface Props {
-    businessSlug:  string;
-    product:       Product;
-    related:       Product[];
-    accentColor?:  string;
-    primaryColor?: string;
-    isDigital?:    boolean;
-    onAddToCart:   (item: CartItem) => void;
+    businessSlug: string;
+    product:      Product;
+    related:      Product[];
+    tokens:       SemanticTokens;
+    isDigital?:   boolean;
+    onAddToCart:  (item: CartItem) => void;
 }
 
-export default function ClassicProductDetailPage({ businessSlug, product, related, accentColor, primaryColor, isDigital, onAddToCart }: Props) {
+export default function ClassicProductDetailPage({ businessSlug, product, related, tokens, isDigital, onAddToCart }: Props) {
     const [activeImage,  setActiveImage]  = useState(0);
     const [lightboxOpen, setLightboxOpen] = useState(false);
 
-    const primary    = primaryColor ?? '#18181b';
-    const accent     = accentColor  ?? primary;
     const price      = parseFloat(product.price);
     const outOfStock = !isDigital && product.stock === 0;
     const lowStock   = !isDigital && !outOfStock && product.stock <= 5;
@@ -49,18 +47,16 @@ export default function ClassicProductDetailPage({ businessSlug, product, relate
         router.visit(`/s/${businessSlug}/checkout`);
     };
 
-    const textMuted = primary + 'b3'; // 70%
-
     return (
         <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
             {/* Breadcrumb */}
-            <nav className="mb-6 flex items-center gap-2 text-sm" style={{ color: textMuted }}>
+            <nav className="mb-6 flex items-center gap-2 text-sm" style={{ color: tokens.textMuted }}>
                 <Link
                     href={`/s/${businessSlug}`}
                     className="flex items-center gap-1 transition"
-                    style={{ color: textMuted }}
-                    onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = primary; }}
-                    onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = textMuted; }}
+                    style={{ color: tokens.textMuted }}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = tokens.textPrimary; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = tokens.textMuted; }}
                 >
                     <ChevronLeft className="h-3.5 w-3.5" />
                     Back to shop
@@ -71,16 +67,16 @@ export default function ClassicProductDetailPage({ businessSlug, product, relate
                         <Link
                             href={`/s/${businessSlug}?category=${product.category.slug}`}
                             className="transition"
-                            style={{ color: textMuted }}
-                            onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = primary; }}
-                            onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = textMuted; }}
+                            style={{ color: tokens.textMuted }}
+                            onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = tokens.textPrimary; }}
+                            onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = tokens.textMuted; }}
                         >
                             {product.category.name}
                         </Link>
                     </>
                 )}
                 <span>/</span>
-                <span style={{ color: primary }}>{product.name}</span>
+                <span style={{ color: tokens.textPrimary }}>{product.name}</span>
             </nav>
 
             {/* Product layout */}
@@ -112,7 +108,7 @@ export default function ClassicProductDetailPage({ businessSlug, product, relate
                                     type="button"
                                     onClick={() => setActiveImage(i)}
                                     className="h-16 w-16 shrink-0 overflow-hidden rounded-lg border-2 transition"
-                                    style={i === activeImage ? { borderColor: primary } : { borderColor: 'transparent' }}
+                                    style={i === activeImage ? { borderColor: tokens.ctaBg } : { borderColor: 'transparent' }}
                                 >
                                     <img src={img.url} alt={img.alt ?? product.name} className="h-full w-full object-cover" />
                                 </button>
@@ -127,17 +123,39 @@ export default function ClassicProductDetailPage({ businessSlug, product, relate
                         <Link
                             href={`/s/${businessSlug}?category=${product.category.slug}`}
                             className="text-xs font-semibold uppercase tracking-wider"
-                            style={{ color: accent }}
+                            style={{ color: tokens.textMuted }}
                         >
                             {product.category.name}
                         </Link>
                     )}
 
-                    <h1 className="text-2xl font-bold leading-snug sm:text-3xl" style={{ color: primary }}>{product.name}</h1>
+                    <h1 className="text-2xl font-bold leading-snug sm:text-3xl" style={{ color: tokens.textPrimary }}>{product.name}</h1>
 
-                    <p className="text-2xl font-bold" style={{ color: accent }}>
-                        GHS {price.toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-                    </p>
+                    {(() => {
+                        const compareAt   = product.compare_at_price ? parseFloat(product.compare_at_price) : null;
+                        const onSale      = compareAt !== null && compareAt > price;
+                        const discountPct = onSale ? Math.round(((compareAt - price) / compareAt) * 100) : 0;
+                        return (
+                            <p className="flex flex-wrap items-baseline gap-3">
+                                <span className="text-2xl font-bold" style={{ color: tokens.price }}>
+                                    GHS {price.toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                </span>
+                                {onSale && compareAt !== null && (
+                                    <>
+                                        <span className="text-base font-medium line-through" style={{ color: tokens.textMuted }}>
+                                            GHS {compareAt.toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                                        </span>
+                                        <span
+                                            className="rounded-full px-2 py-0.5 text-xs font-bold uppercase tracking-wide"
+                                            style={{ backgroundColor: tokens.highlightStrong, color: tokens.highlightStrongFg }}
+                                        >
+                                            −{discountPct}%
+                                        </span>
+                                    </>
+                                )}
+                            </p>
+                        );
+                    })()}
 
                     {/* Stock status */}
                     {!isDigital && (
@@ -154,7 +172,7 @@ export default function ClassicProductDetailPage({ businessSlug, product, relate
                     {product.description && (
                         <div
                             className="prose prose-sm max-w-none"
-                            style={{ color: primary + 'b3' }}
+                            style={{ color: tokens.textMuted }}
                             dangerouslySetInnerHTML={{ __html: product.description }}
                         />
                     )}
@@ -166,8 +184,8 @@ export default function ClassicProductDetailPage({ businessSlug, product, relate
                             type="button"
                             onClick={inCart ? handleCheckout : handleAddToCart}
                             disabled={outOfStock}
-                            className="flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-                            style={{ backgroundColor: accent }}
+                            className="flex w-full items-center justify-center gap-2 rounded-xl py-3.5 text-sm font-bold transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+                            style={{ backgroundColor: tokens.ctaBg, color: tokens.ctaFg }}
                         >
                             <ShoppingCart className="h-4 w-4" />
                             {outOfStock ? 'Out of stock' : inCart ? 'Checkout' : 'Add to Cart'}
@@ -179,7 +197,7 @@ export default function ClassicProductDetailPage({ businessSlug, product, relate
                                 type="button"
                                 onClick={handleBuyNow}
                                 className="flex w-full items-center justify-center gap-2 rounded-xl border-2 py-3.5 text-sm font-bold transition hover:opacity-80"
-                                style={{ borderColor: accent, color: accent, backgroundColor: 'transparent' }}
+                                style={{ borderColor: tokens.ctaBg, color: tokens.ctaBg, backgroundColor: 'transparent' }}
                             >
                                 Buy Now
                             </button>
@@ -191,15 +209,14 @@ export default function ClassicProductDetailPage({ businessSlug, product, relate
             {/* Related products */}
             {related.length > 0 && (
                 <section className="mt-16">
-                    <h2 className="mb-6 text-lg font-bold" style={{ color: primary }}>You might also like</h2>
+                    <h2 className="mb-6 text-lg font-bold" style={{ color: tokens.textPrimary }}>You might also like</h2>
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 sm:gap-4 lg:grid-cols-4 lg:gap-5">
                         {related.map((rel) => (
                             <ProductCard
                                 key={rel.id}
                                 product={rel}
                                 onAddToCart={onAddToCart}
-                                accentColor={accentColor}
-                                primaryColor={primaryColor}
+                                tokens={tokens}
                                 isDigital={isDigital}
                                 businessSlug={businessSlug}
                             />

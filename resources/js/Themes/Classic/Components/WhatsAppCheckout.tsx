@@ -176,7 +176,7 @@ export default function WhatsAppCheckout({ business, primary, addresses }: Props
                     <div className="space-y-4 lg:col-span-3">
                         <h2 className="text-lg font-semibold" style={{ color: primary }}>Contact the Store</h2>
                         <p className="text-sm text-zinc-500">
-                            This store doesn't have online payments set up yet. Reach out directly to place your order.
+                            Reach out directly to place your order.
                         </p>
                         <div className="rounded-xl border border-zinc-200 bg-white p-5 space-y-3">
                             {business.contact_email && (

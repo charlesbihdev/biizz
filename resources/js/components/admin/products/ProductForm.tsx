@@ -1,6 +1,10 @@
 import { LoaderCircle, Plus } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import InputError from '@/components/input-error';
+import {
+    DeliveryModeField,
+    type DeliveryMode,
+} from '@/components/admin/products/DeliveryModeField';
 import { DigitalCategoryField } from '@/components/admin/products/DigitalCategoryField';
 import {
     ImageUploader,
@@ -25,6 +29,8 @@ export interface ProductFormData {
     stock: string;
     category_id: string;
     digital_category: string;
+    delivery_mode: DeliveryMode;
+    external_url: string;
     is_active: boolean;
     images: UploadedImage[];
     promo_video: string;
@@ -308,40 +314,31 @@ export default function ProductForm({
                                 />
                             </div>
 
-                            {/* Digital File Upload */}
-                            <div className="flex flex-col gap-3 rounded-2xl border border-site-border bg-white p-4">
-                                <div className="flex flex-col gap-1">
-                                    <p className="text-xs font-semibold tracking-wide text-site-muted uppercase">
-                                        Digital File{' '}
-                                        <span className="text-red-500">*</span>
-                                    </p>
-                                    <p className="text-xs text-site-muted">
-                                        Upload the file you are selling (PDF,
-                                        ZIP, EPUB).
-                                    </p>
-                                </div>
-                                {existingFileName && !data.digital_file && (
-                                    <div className="rounded-lg bg-green-50 px-3 py-2 text-xs font-medium text-green-700">
-                                        Current file: {existingFileName}
-                                    </div>
-                                )}
-                                <Input
-                                    type="file"
-                                    accept=".pdf,.zip,.epub"
-                                    onChange={(e) =>
-                                        onChange(
-                                            'digital_file',
-                                            e.target.files?.[0] || null,
-                                        )
+                            <DeliveryModeField
+                                mode={data.delivery_mode}
+                                externalUrl={data.external_url}
+                                digitalFile={data.digital_file ?? null}
+                                existingFileName={existingFileName}
+                                errors={{
+                                    delivery_mode: errors.delivery_mode,
+                                    external_url: errors.external_url,
+                                    digital_file: errors.digital_file,
+                                }}
+                                onModeChange={(next) => {
+                                    onChange('delivery_mode', next);
+                                    if (next === 'external_link') {
+                                        onChange('digital_file', null);
+                                    } else {
+                                        onChange('external_url', '');
                                     }
-                                    className="cursor-pointer border-site-border text-sm file:mr-4 file:rounded-full file:border-0 file:bg-brand/10 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-brand hover:file:bg-brand/20 focus-visible:ring-brand/30"
-                                />
-                                {errors.digital_file && (
-                                    <InputError
-                                        message={errors.digital_file as string}
-                                    />
-                                )}
-                            </div>
+                                }}
+                                onExternalUrlChange={(url) =>
+                                    onChange('external_url', url)
+                                }
+                                onFileChange={(file) =>
+                                    onChange('digital_file', file)
+                                }
+                            />
 
                             {visibilityCard}
                             {pricingCard}

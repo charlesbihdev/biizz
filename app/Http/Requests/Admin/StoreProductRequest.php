@@ -30,6 +30,12 @@ class StoreProductRequest extends FormRequest
             'digital_category' => $isDigital
                 ? ['required', 'string', Rule::in(['ebooks', 'courses', 'templates', 'coaching', 'playbooks', 'webinars', 'community', 'services', 'others'])]
                 : ['nullable', 'string'],
+            'delivery_mode' => $isDigital
+                ? ['required', 'string', Rule::in(['reader', 'download', 'external_link'])]
+                : ['nullable'],
+            'external_url' => $isDigital
+                ? ['required_if:delivery_mode,external_link', 'nullable', 'url', 'max:2048']
+                : ['nullable'],
             'name' => ['required', 'string', 'max:255'],
             'slug' => [
                 'nullable', 'string', 'max:255', 'regex:/^[a-z0-9\-]+$/',
@@ -50,7 +56,7 @@ class StoreProductRequest extends FormRequest
             'images.*.alt' => ['nullable', 'string', 'max:255'],
             'images.*.url' => ['nullable', 'string', 'max:2048'],
             'digital_file' => $isDigital
-                ? ['required', 'file', 'max:51200', 'mimes:pdf,zip,epub']
+                ? ['required_if:delivery_mode,reader,download', 'nullable', 'file', 'max:51200', 'mimes:pdf,zip,epub']
                 : ['nullable', 'file', 'max:51200', 'mimes:pdf,zip,epub'],
             'metadata' => ['nullable', 'array'],
         ];

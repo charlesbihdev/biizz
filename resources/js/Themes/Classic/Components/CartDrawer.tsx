@@ -2,6 +2,7 @@ import { router } from '@inertiajs/react';
 import StorefrontController from '@/actions/App/Http/Controllers/StorefrontController';
 import { X, Minus, Plus, ShoppingCart } from 'lucide-react';
 import type { CartItem } from '@/types/business';
+import type { SemanticTokens } from '@/Themes/Shared/Tokens';
 
 interface Props {
     isOpen:           boolean;
@@ -12,13 +13,13 @@ interface Props {
     onRemove:         (id: number) => void;
     onUpdateQuantity: (id: number, quantity: number) => void;
     businessSlug:     string;
-    accentColor?:     string;
+    tokens:           SemanticTokens;
     onCheckout:       () => void;
 }
 
 export default function CartDrawer({
     isOpen, onClose, items, total, itemCount,
-    onRemove, onUpdateQuantity, businessSlug, accentColor, onCheckout,
+    onRemove, onUpdateQuantity, businessSlug, tokens, onCheckout,
 }: Props) {
     if (!isOpen) { return null; }
 
@@ -104,8 +105,8 @@ export default function CartDrawer({
                             </div>
                             <button
                                 onClick={handleCheckout}
-                                className="w-full rounded-xl py-3.5 text-sm font-bold text-white transition hover:opacity-90 active:scale-[0.98]"
-                                style={{ backgroundColor: accentColor ?? '#1a1a1a' }}
+                                className="w-full rounded-xl py-3.5 text-sm font-bold transition hover:opacity-90 active:scale-[0.98]"
+                                style={{ backgroundColor: tokens.ctaBg, color: tokens.ctaFg }}
                             >
                                 Checkout
                             </button>

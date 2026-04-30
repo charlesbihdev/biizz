@@ -18,6 +18,11 @@ type Props = {
 export default function Dashboard({ businesses }: Props) {
     const { auth } = usePage<{ auth: Auth }>().props;
     const [createOpen, setCreateOpen] = useState(false);
+
+    if (!auth.user) {
+        return null;
+    }
+
     const firstName = auth.user.name.split(' ')[0];
 
     const totalProducts = businesses.reduce((sum, b) => sum + b.products_count, 0);

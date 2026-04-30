@@ -3,6 +3,7 @@ import { Link } from '@inertiajs/react';
 import { CheckCircle, ShoppingBag } from 'lucide-react';
 import ClassicThemeShell from '../ThemeShell';
 import { useCartStore } from '@/stores/cartStore';
+import { useSemanticTokens } from '@/Themes/Shared/Hooks/useSemanticTokens';
 import type { Business, Order, Page } from '@/types/business';
 
 interface Props {
@@ -14,9 +15,9 @@ interface Props {
 function SuccessContent({ business, order }: { business: Business; order: Order | null }) {
     const clearCart = useCartStore((s) => s.clearCart);
 
-    const { theme_settings: s } = business;
-    const primary = s.primary_color ?? '#1a1a1a';
-    const accent  = s.accent_color  ?? primary;
+    const tokens  = useSemanticTokens(business);
+    const primary = tokens.textPrimary;
+    const accent  = tokens.highlightStrong;
 
     useEffect(() => {
         if (order?.status === 'paid') {
@@ -83,8 +84,8 @@ function SuccessContent({ business, order }: { business: Business; order: Order 
             <div className="text-center">
                 <Link
                     href={`/s/${business.slug}`}
-                    className="inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold text-white transition hover:opacity-90"
-                    style={{ backgroundColor: accent }}
+                    className="inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold transition hover:opacity-90"
+                    style={{ backgroundColor: tokens.ctaBg, color: tokens.ctaFg }}
                 >
                     Continue Shopping
                 </Link>

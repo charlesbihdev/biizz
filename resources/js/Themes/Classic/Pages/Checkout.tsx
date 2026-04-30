@@ -6,6 +6,7 @@ import WhatsAppCheckout from '../Components/WhatsAppCheckout';
 import PaymentCheckout from '../Components/PaymentCheckout';
 import { useCartStore } from '@/stores/cartStore';
 import { useCustomerAuth } from '@/Themes/Shared/Hooks/useCustomerAuth';
+import { useSemanticTokens } from '@/Themes/Shared/Hooks/useSemanticTokens';
 import type { Business, Page, CustomerAddress } from '@/types/business';
 
 interface Props {
@@ -35,9 +36,9 @@ function CheckoutContent({
         }
     }, [requiresLoginForCheckout]);
 
-    const { theme_settings: s } = business;
-    const primary = s.primary_color ?? '#1a1a1a';
-    const accent  = s.accent_color  ?? primary;
+    const tokens  = useSemanticTokens(business);
+    const primary = tokens.textPrimary;
+    const accent  = tokens.ctaBg;
 
     // Auth wall — modal is open above this placeholder
     if (requiresLoginForCheckout) {
@@ -59,8 +60,8 @@ function CheckoutContent({
                 <p className="mb-8 text-sm text-zinc-500">Add some products before checking out.</p>
                 <Link
                     href={`/s/${business.slug}`}
-                    className="inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold text-white transition hover:opacity-90"
-                    style={{ backgroundColor: accent }}
+                    className="inline-flex items-center gap-2 rounded-xl px-6 py-3 text-sm font-semibold transition hover:opacity-90"
+                    style={{ backgroundColor: tokens.ctaBg, color: tokens.ctaFg }}
                 >
                     <ChevronLeft className="h-4 w-4" />
                     Continue Shopping

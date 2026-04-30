@@ -60,7 +60,7 @@ function CheckoutContent({
     const { flash } = usePage<{ flash?: { error?: string } }>().props;
 
     const { theme_settings: s } = business;
-    const accent = (s.accent_color as string | undefined) || '#6366f1';
+    const accent = (s.highlight_color as string | undefined) || '#6366f1';
     const ctaLabel = (s.cta_text as string | undefined) || 'Pay Now';
     const enableWa   = s.enable_whatsapp_cta !== false;
     const enablePay  = s.enable_payment_cta === true;

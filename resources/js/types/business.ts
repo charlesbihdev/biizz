@@ -6,8 +6,8 @@ export type { ThemeId };
 export interface ThemeSettings {
     // Classic / shared fields
     primary_color?:     string;
-    accent_color?:      string;
-    bg_color?:          string;
+    highlight_color?:   string;
+    surface_color?:     string;
     color_scheme?:      string;
     show_featured?:     boolean;
     show_testimonials?: boolean;
@@ -128,12 +128,16 @@ export interface ProductFile {
     mime_type: string | null;
 }
 
+export type DeliveryMode = 'reader' | 'download' | 'external_link';
+
 export interface Product {
     id:               number;
     business_id:      number;
     category_id:      number | null;
     category:         { id: number; name: string; slug: string } | null;
     digital_category: string | null;
+    delivery_mode:    DeliveryMode | null;
+    external_url:     string | null;
     name:             string;
     slug:             string;
     description:      string | null;

@@ -1,38 +1,52 @@
-import { ChevronDown, ChevronUp } from 'lucide-react';
+import { RotateCcw, SlidersHorizontal } from 'lucide-react';
 import { useRef, useState } from 'react';
-import { PALETTES } from '@/Themes/Shared/palettes';
+import { DEFAULT_PALETTE, PALETTES } from '@/Themes/Shared/palettes';
 
 interface Props {
-    value?:    string; // palette id, or undefined if custom
-    primary?:  string;
-    accent?:   string;
-    bg?:       string;
-    onChange:  (primary: string, accent: string, bg: string, id: string | null) => void;
+    value?:     string; // palette id, or undefined when custom
+    primary?:   string;
+    highlight?: string;
+    surface?:   string;
+    onChange:   (primary: string, highlight: string, surface: string, id: string | null) => void;
 }
 
-export function PalettePicker({ value, primary: primaryProp, accent: accentProp, bg: bgProp, onChange }: Props) {
-    const [customOpen, setCustomOpen] = useState(false);
+export function PalettePicker({ value, primary: primaryProp, highlight: highlightProp, surface: surfaceProp, onChange }: Props) {
+    const activePalette   = PALETTES.find((p) => p.id === value);
+    const currentPrimary   = primaryProp   ?? activePalette?.primary   ?? DEFAULT_PALETTE.primary;
+    const currentHighlight = highlightProp ?? activePalette?.highlight ?? DEFAULT_PALETTE.highlight;
+    const currentSurface   = surfaceProp   ?? activePalette?.surface   ?? DEFAULT_PALETTE.surface;
 
-    // Resolve current values from selected palette or explicit props
-    const activePalette = PALETTES.find((p) => p.id === value);
-    const currentPrimary = primaryProp ?? activePalette?.primary ?? '#111111';
-    const currentAccent  = accentProp  ?? activePalette?.accent  ?? '#f59e0b';
-    const currentBg      = bgProp      ?? activePalette?.bg      ?? '#ffffff';
+    // "Modified" = a preset is selected but at least one color diverges from its defaults.
+    const isModified = !!activePalette && (
+        activePalette.primary.toLowerCase()   !== currentPrimary.toLowerCase()
+        || activePalette.highlight.toLowerCase() !== currentHighlight.toLowerCase()
+        || activePalette.surface.toLowerCase()   !== currentSurface.toLowerCase()
+    );
+
+    // Auto-expand the customize panel if the user has already diverged from a preset.
+    const [customOpen, setCustomOpen] = useState(() => isModified);
 
     const handlePaletteClick = (id: string) => {
         const p = PALETTES.find((pal) => pal.id === id)!;
-        onChange(p.primary, p.accent, p.bg, id);
+        onChange(p.primary, p.highlight, p.surface, id);
         setCustomOpen(false);
     };
 
-    const handleCustomChange = (slot: 'primary' | 'accent' | 'bg', hex: string) => {
+    const handleCustomChange = (slot: 'primary' | 'highlight' | 'surface', hex: string) => {
         const next = {
-            primary: currentPrimary,
-            accent:  currentAccent,
-            bg:      currentBg,
-            [slot]:  hex,
+            primary:   currentPrimary,
+            highlight: currentHighlight,
+            surface:   currentSurface,
+            [slot]:    hex,
         };
-        onChange(next.primary, next.accent, next.bg, null); // null = custom, no palette selected
+        // Keep the preset id so we can show "Luxe (modified)" and offer Reset.
+        // Switch to null only if the user has no preset selected to begin with.
+        onChange(next.primary, next.highlight, next.surface, value ?? null);
+    };
+
+    const handleReset = () => {
+        if (!activePalette) { return; }
+        onChange(activePalette.primary, activePalette.highlight, activePalette.surface, activePalette.id);
     };
 
     return (
@@ -45,11 +59,10 @@ export function PalettePicker({ value, primary: primaryProp, accent: accentProp,
                         <button
                             key={palette.id}
                             type="button"
-                            title={palette.name}
+                            title={`${palette.name} — like ${palette.reference}`}
                             onClick={() => handlePaletteClick(palette.id)}
                             className={`group flex flex-col items-center gap-1.5 ${isSelected ? 'opacity-100' : 'opacity-60 hover:opacity-100'}`}
                         >
-                            {/* Three-stripe swatch: primary | accent | bg */}
                             <span
                                 className={`block h-9 w-9 overflow-hidden rounded-full border-2 transition ${
                                     isSelected
@@ -57,10 +70,13 @@ export function PalettePicker({ value, primary: primaryProp, accent: accentProp,
                                         : 'border-zinc-200 group-hover:border-zinc-400'
                                 }`}
                                 style={{
-                                    background: `linear-gradient(135deg, ${palette.primary} 40%, ${palette.accent} 40% 70%, ${palette.bg} 70%)`,
+                                    background: `linear-gradient(135deg, ${palette.primary} 40%, ${palette.highlight} 40% 70%, ${palette.surface} 70%)`,
                                 }}
                             />
-                            <span className="text-[10px] font-medium text-site-muted">{palette.name}</span>
+                            <span className="text-[10px] font-medium text-site-muted">
+                                {palette.name}
+                                {isSelected && isModified && <span className="text-site-muted/70"> (modified)</span>}
+                            </span>
                         </button>
                     );
                 })}
@@ -69,9 +85,9 @@ export function PalettePicker({ value, primary: primaryProp, accent: accentProp,
             {/* ── Active 3-swatch preview ── */}
             <div className="flex gap-2">
                 {[
-                    { label: 'Primary', color: currentPrimary },
-                    { label: 'Accent',  color: currentAccent  },
-                    { label: 'BG',      color: currentBg      },
+                    { label: 'Primary',   color: currentPrimary   },
+                    { label: 'Highlight', color: currentHighlight },
+                    { label: 'Surface',   color: currentSurface   },
                 ].map(({ label, color }) => (
                     <div key={label} className="flex flex-1 flex-col items-center gap-1">
                         <span
@@ -83,36 +99,48 @@ export function PalettePicker({ value, primary: primaryProp, accent: accentProp,
                 ))}
             </div>
 
-            {/* ── Customize toggle ── */}
-            <div>
+            {/* ── Reset / Customize controls ── */}
+            <div className="flex items-center justify-between gap-3">
                 <button
                     type="button"
                     onClick={() => setCustomOpen((o) => !o)}
-                    className="flex items-center gap-1.5 text-xs font-medium text-site-muted hover:text-site-fg"
+                    aria-expanded={customOpen}
+                    className="inline-flex items-center gap-2 rounded-lg border border-site-border bg-white px-3 py-1.5 text-sm font-medium text-site-fg transition hover:border-zinc-400 hover:bg-zinc-50"
                 >
-                    {customOpen ? <ChevronUp className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
-                    Customize colors
+                    <SlidersHorizontal className="h-4 w-4" />
+                    {customOpen ? 'Hide custom colors' : 'Customize colors'}
                 </button>
 
-                {customOpen && (
-                    <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-3">
-                        {(
-                            [
-                                { slot: 'primary' as const, label: 'Primary', value: currentPrimary },
-                                { slot: 'accent'  as const, label: 'Accent',  value: currentAccent  },
-                                { slot: 'bg'      as const, label: 'BG',      value: currentBg      },
-                            ]
-                        ).map(({ slot, label, value: hex }) => (
-                            <CustomColorSlot
-                                key={slot}
-                                label={label}
-                                value={hex}
-                                onChange={(v) => handleCustomChange(slot, v)}
-                            />
-                        ))}
-                    </div>
+                {isModified && activePalette && (
+                    <button
+                        type="button"
+                        onClick={handleReset}
+                        className="flex items-center gap-1.5 text-xs font-medium text-site-muted transition hover:text-site-fg"
+                    >
+                        <RotateCcw className="h-3 w-3" />
+                        Reset to {activePalette.name}
+                    </button>
                 )}
             </div>
+
+            {customOpen && (
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                    {(
+                        [
+                            { slot: 'primary'   as const, label: 'Primary',   value: currentPrimary   },
+                            { slot: 'highlight' as const, label: 'Highlight', value: currentHighlight },
+                            { slot: 'surface'   as const, label: 'Surface',   value: currentSurface   },
+                        ]
+                    ).map(({ slot, label, value: hex }) => (
+                        <CustomColorSlot
+                            key={slot}
+                            label={label}
+                            value={hex}
+                            onChange={(v) => handleCustomChange(slot, v)}
+                        />
+                    ))}
+                </div>
+            )}
         </div>
     );
 }

@@ -170,7 +170,8 @@ class StorefrontController extends Controller
             $business->theme_settings ?? [],
             [
                 'primary_color',
-                'accent_color',
+                'highlight_color',
+                'surface_color',
                 'color_scheme',
                 'hero_image',
                 'logo_url',

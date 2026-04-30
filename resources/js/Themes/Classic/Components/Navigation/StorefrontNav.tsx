@@ -12,6 +12,7 @@ import {
 import type { Business, CustomerLoginMode, Page } from '@/types/business';
 import { useCustomerAuth } from '@/Themes/Shared/Hooks/useCustomerAuth';
 import { useSearch } from '@/Themes/Shared/Hooks/useSearch';
+import { useSemanticTokens } from '@/Themes/Shared/Hooks/useSemanticTokens';
 import StorefrontController from '@/actions/App/Http/Controllers/StorefrontController';
 
 // Child components
@@ -54,6 +55,7 @@ export default function StorefrontNav({
     const { customer } = useCustomerAuth();
     const [scrolled, setScrolled] = useState(false);
     const [drawerOpen, setDrawerOpen] = useState(false);
+    const tokens = useSemanticTokens(business);
 
     const {
         theme_settings: s,
@@ -62,8 +64,6 @@ export default function StorefrontNav({
         slug,
         social_links: social,
     } = business;
-    const primary = s.primary_color ?? '#1a1a1a';
-    const accent = s.accent_color ?? primary;
     const categories = business.categories ?? [];
     const whatsapp = social?.whatsapp;
     const whatsappHref = whatsapp
@@ -141,7 +141,7 @@ export default function StorefrontNav({
                 {hasTier1 && (
                     <div
                         className="hidden border-b border-white/10 px-4 py-1.5 sm:block"
-                        style={{ backgroundColor: primary }}
+                        style={{ backgroundColor: tokens.ctaBg }}
                     >
                         <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 sm:px-6 lg:px-8">
                             <div className="flex items-center gap-3">
@@ -205,7 +205,7 @@ export default function StorefrontNav({
                                 ) : (
                                     <span
                                         className="text-xl font-bold lg:text-2xl"
-                                        style={{ color: accent }}
+                                        style={{ color: tokens.textPrimary }}
                                     >
                                         {name}
                                     </span>
@@ -232,7 +232,7 @@ export default function StorefrontNav({
                                 <button
                                     type="submit"
                                     className="mr-1.5 rounded-full px-5 py-2 text-sm font-semibold text-white transition hover:opacity-90"
-                                    style={{ backgroundColor: accent }}
+                                    style={{ backgroundColor: tokens.ctaBg, color: tokens.ctaFg }}
                                 >
                                     Search
                                 </button>
@@ -246,7 +246,7 @@ export default function StorefrontNav({
                                 <AccountDropdown
                                     customer={customer}
                                     isAuthenticated={isAuthenticated}
-                                    accent={accent}
+                                    accent={tokens.ctaBg}
                                     businessSlug={slug}
                                     onAuthOpen={onAuthOpen}
                                 />
@@ -260,8 +260,8 @@ export default function StorefrontNav({
                                 <ShoppingCart className="h-6 w-6" />
                                 {itemCount > 0 && (
                                     <span
-                                        className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full text-[10px] leading-none font-bold text-white"
-                                        style={{ backgroundColor: accent }}
+                                        className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full text-[10px] leading-none font-bold"
+                                        style={{ backgroundColor: tokens.highlightStrong, color: tokens.highlightStrongFg }}
                                     >
                                         {itemCount > 9 ? '9+' : itemCount}
                                     </span>
@@ -272,10 +272,10 @@ export default function StorefrontNav({
                 </div>
 
                 {/* ── Tier 3: Category nav ────────────────────────────────── */}
-                <CategoryNav 
+                <CategoryNav
                     slug={slug}
-                    primary={primary}
-                    accent={accent}
+                    primary={tokens.textPrimary}
+                    accent={tokens.ctaBg}
                     categories={categories}
                     activeCategorySlug={activeCategorySlug}
                     pages={pages}
@@ -292,7 +292,7 @@ export default function StorefrontNav({
                 setSearchQuery={setSearchQuery}
                 handleSearch={handleSearch}
                 slug={slug}
-                accent={accent}
+                accent={tokens.ctaBg}
                 categories={categories}
                 activeCategorySlug={activeCategorySlug}
                 pages={pages}

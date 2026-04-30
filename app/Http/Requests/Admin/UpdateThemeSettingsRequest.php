@@ -24,7 +24,8 @@ class UpdateThemeSettingsRequest extends FormRequest
 
         return [
             'primary_color' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
-            'accent_color' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'highlight_color' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'surface_color' => ['nullable', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'color_scheme' => ['nullable', 'string', 'max:50'],
             'show_featured' => ['boolean'],
             'show_testimonials' => ['boolean'],
