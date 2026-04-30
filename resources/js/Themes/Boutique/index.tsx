@@ -53,7 +53,7 @@ function BoutiqueProduct({ business, product, related, pages }: {
                     businessSlug={business.slug}
                     product={product}
                     related={related}
-                    accentColor={s.accent_color}
+                    accentColor={s.highlight_color as string | undefined}
                     isDigital={business.business_type === 'digital'}
                     onAddToCart={(item: CartItem) => {
                         addToCart(item);

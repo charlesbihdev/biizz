@@ -5,7 +5,7 @@ interface Props {
 }
 
 type BoutiqueHeroSettings = {
-    accent_color?: string;
+    highlight_color?: string;
     hero_image?: string;
     store_tagline?: string;
 };
@@ -13,7 +13,7 @@ type BoutiqueHeroSettings = {
 export default function HeroBanner({ business }: Props) {
     const { name } = business;
     const s = business.theme_settings as BoutiqueHeroSettings;
-    const accent = s.accent_color ?? '#1a1a1a';
+    const accent = s.highlight_color ?? '#1a1a1a';
 
     return (
         <section className="relative flex min-h-screen items-end overflow-hidden bg-zinc-950">

@@ -6,14 +6,15 @@ import { AddressesSection } from '../Components/Account/AddressesSection';
 import { ProfileSection } from '../Components/Account/ProfileSection';
 import { OrderView } from '../Components/Account/OrderView';
 import { PaymentView } from '../Components/Account/PaymentView';
+import { useSemanticTokens } from '@/Themes/Shared/Hooks/useSemanticTokens';
 import type { AccountProps } from '../Components/Account/types';
 
 export default function Account(props: AccountProps) {
     const { business, pages, section, orders, payments, addresses, filters } =
         props;
-    const { theme_settings: s } = business;
-    const primary = s.primary_color ?? '#1a1a1a';
-    const accent = s.accent_color ?? primary;
+    const tokens  = useSemanticTokens(business);
+    const primary = tokens.textPrimary;
+    const accent  = tokens.ctaBg;
 
     return (
         <ClassicThemeShell business={business} pages={pages}>

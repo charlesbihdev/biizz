@@ -1,15 +1,14 @@
 import { router } from '@inertiajs/react';
 import type { PaginatedData } from '@/types/business';
+import type { SemanticTokens } from '@/Themes/Shared/Tokens';
 
 interface Props {
-    data: PaginatedData<unknown>;
-    accentColor?: string;
+    data:   PaginatedData<unknown>;
+    tokens: SemanticTokens;
 }
 
-export default function Pagination({ data, accentColor }: Props) {
+export default function Pagination({ data, tokens }: Props) {
     if (data.last_page <= 1) { return null; }
-
-    const accent = accentColor ?? '#1a1a1a';
 
     const go = (url: string | null) => {
         if (url) { router.visit(url, { preserveScroll: false }); }
@@ -34,8 +33,8 @@ export default function Pagination({ data, accentColor }: Props) {
                 type="button"
                 disabled={!data.next_page_url}
                 onClick={() => go(data.next_page_url)}
-                className="rounded-full px-5 py-2 text-sm font-medium text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
-                style={{ backgroundColor: accent }}
+                className="rounded-full px-5 py-2 text-sm font-medium transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-40"
+                style={{ backgroundColor: tokens.ctaBg, color: tokens.ctaFg }}
             >
                 Next →
             </button>

@@ -10,19 +10,14 @@ interface Props {
 }
 
 export default function ProductPage({ business, product, related, pages }: Props) {
-    const { theme_settings: s } = business;
-    const primary = s.primary_color ?? '#1a1a1a';
-    const accent  = s.accent_color  ?? primary;
-
     return (
         <ClassicThemeShell business={business} pages={pages}>
-            {({ addToCart, trackEvent }) => (
+            {({ addToCart, trackEvent, tokens }) => (
                 <ClassicProductDetailPage
                     businessSlug={business.slug}
                     product={product}
                     related={related}
-                    primaryColor={primary}
-                    accentColor={accent}
+                    tokens={tokens}
                     isDigital={business.business_type === 'digital'}
                     onAddToCart={(item) => {
                         addToCart(item);

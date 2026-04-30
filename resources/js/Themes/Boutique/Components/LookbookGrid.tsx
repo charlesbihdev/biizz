@@ -10,7 +10,7 @@ interface Props {
 }
 
 export default function LookbookGrid({ products, onAddToCart, settings }: Props) {
-    const accent = settings.accent_color;
+    const accent = settings.highlight_color as string | undefined;
 
     if (products.length === 0) {
         return (

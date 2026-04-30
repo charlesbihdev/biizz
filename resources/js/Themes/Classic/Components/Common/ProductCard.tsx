@@ -3,26 +3,21 @@ import { Link } from '@inertiajs/react';
 import { ArrowRight, Download, ShoppingCart } from 'lucide-react';
 import StorefrontController from '@/actions/App/Http/Controllers/StorefrontController';
 import type { CartItem, Product } from '@/types/business';
+import type { SemanticTokens } from '@/Themes/Shared/Tokens';
 
 interface Props {
     product:       Product;
     onAddToCart:   (item: CartItem) => void;
-    accentColor?:  string;
-    primaryColor?: string;
+    tokens:        SemanticTokens;
     isDigital?:    boolean;
     businessSlug?: string;
 }
 
-export default function ProductCard({ product, onAddToCart, accentColor, primaryColor, isDigital, businessSlug }: Props) {
+export default function ProductCard({ product, onAddToCart, tokens, isDigital, businessSlug }: Props) {
     const image    = product.images[0]?.url;
     const price    = parseFloat(product.price);
     const outStock = !isDigital && product.stock === 0;
     const lowStock = !isDigital && !outStock && product.stock <= 5;
-
-    const primary    = primaryColor ?? '#18181b';
-    const accent     = accentColor  ?? primary;
-    const textMuted  = primary + 'b3'; // 70% opacity
-    const textSubtle = primary + '73'; // 45% opacity
 
     const [added, setAdded] = useState(false);
 
@@ -63,7 +58,10 @@ export default function ProductCard({ product, onAddToCart, accentColor, primary
                     </span>
                 )}
                 {lowStock && (
-                    <span className="absolute left-2 top-2 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white" style={{ backgroundColor: accent }}>
+                    <span
+                        className="absolute left-2 top-2 rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white"
+                        style={{ backgroundColor: tokens.highlightStrong }}
+                    >
                         Only {product.stock} left
                     </span>
                 )}
@@ -72,14 +70,14 @@ export default function ProductCard({ product, onAddToCart, accentColor, primary
             {/* ── Info ── */}
             <div className="flex flex-col gap-1.5 p-3.5 pb-2">
                 {product.category && (
-                    <p className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: textSubtle }}>
+                    <p className="text-[10px] font-semibold uppercase tracking-widest" style={{ color: tokens.textMuted }}>
                         {product.category.name}
                     </p>
                 )}
-                <p className="line-clamp-2 text-sm font-semibold leading-snug" style={{ color: primary }}>
+                <p className="line-clamp-2 text-sm font-semibold leading-snug" style={{ color: tokens.textPrimary }}>
                     {product.name}
                 </p>
-                <p className="mt-0.5 text-base font-bold" style={{ color: accent }}>
+                <p className="mt-0.5 text-base font-bold" style={{ color: tokens.price }}>
                     GHS {price.toLocaleString('en-GH', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </p>
             </div>
@@ -101,14 +99,14 @@ export default function ProductCard({ product, onAddToCart, accentColor, primary
             {/* ── Button (outside link to avoid nesting) ── */}
             <div className="mt-auto px-3.5 pb-3.5">
                 {outStock ? (
-                    <div className="rounded-xl border border-zinc-200 py-2 text-center text-xs font-medium" style={{ color: textMuted }}>
+                    <div className="rounded-xl border border-zinc-200 py-2 text-center text-xs font-medium" style={{ color: tokens.textMuted }}>
                         Unavailable
                     </div>
                 ) : added && businessSlug ? (
                     <Link
                         href={StorefrontController.checkout.url(businessSlug)}
                         className="flex w-full items-center justify-center gap-1.5 rounded-xl border-2 py-2 text-xs font-bold transition hover:opacity-80 active:scale-[0.98]"
-                        style={{ borderColor: accent, color: accent }}
+                        style={{ borderColor: tokens.ctaBg, color: tokens.ctaBg }}
                     >
                         <ArrowRight className="h-3.5 w-3.5" />
                         Checkout
@@ -116,8 +114,8 @@ export default function ProductCard({ product, onAddToCart, accentColor, primary
                 ) : (
                     <button
                         onClick={handleAdd}
-                        className="flex w-full items-center justify-center gap-1.5 rounded-xl py-2.5 text-xs font-bold text-white transition hover:opacity-90 active:scale-[0.98]"
-                        style={{ backgroundColor: accent }}
+                        className="flex w-full items-center justify-center gap-1.5 rounded-xl py-2.5 text-xs font-bold transition hover:opacity-90 active:scale-[0.98]"
+                        style={{ backgroundColor: tokens.ctaBg, color: tokens.ctaFg }}
                     >
                         <ShoppingCart className="h-3.5 w-3.5" />
                         {isDigital ? 'Get Now' : 'Add to Cart'}

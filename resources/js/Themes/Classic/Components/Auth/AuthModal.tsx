@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { X } from 'lucide-react';
 import type { Business } from '@/types/business';
+import { useSemanticTokens } from '@/Themes/Shared/Hooks/useSemanticTokens';
 import GoogleAuthButton from './GoogleAuthButton';
 import LoginForm from './LoginForm';
 import RegisterForm from './RegisterForm';
@@ -17,7 +18,7 @@ interface Props {
 
 export default function AuthModal({ isOpen, onClose, business, required = false }: Props) {
     const [tab, setTab] = useState<Tab>('login');
-    const accent = business.theme_settings.accent_color ?? business.theme_settings.primary_color ?? '#1a1a1a';
+    const tokens = useSemanticTokens(business);
 
     useEffect(() => {
         if (isOpen) setTab('login');
@@ -63,7 +64,7 @@ export default function AuthModal({ isOpen, onClose, business, required = false 
                                 type="button"
                                 onClick={() => setTab(t)}
                                 className="flex-1 rounded-md py-1.5 text-sm font-medium transition"
-                                style={tab === t ? { backgroundColor: accent, color: '#fff' } : { color: '#71717a' }}
+                                style={tab === t ? { backgroundColor: tokens.ctaBg, color: tokens.ctaFg } : { color: tokens.textMuted }}
                             >
                                 {t === 'login' ? 'Sign in' : 'Register'}
                             </button>
@@ -79,9 +80,9 @@ export default function AuthModal({ isOpen, onClose, business, required = false 
                     </div>
 
                     {tab === 'login' ? (
-                        <LoginForm business={business} accent={accent} onSuccess={onClose} />
+                        <LoginForm business={business} accent={tokens.ctaBg} onSuccess={onClose} />
                     ) : (
-                        <RegisterForm business={business} accent={accent} onSuccess={onClose} />
+                        <RegisterForm business={business} accent={tokens.ctaBg} onSuccess={onClose} />
                     )}
                 </div>
 
@@ -90,14 +91,14 @@ export default function AuthModal({ isOpen, onClose, business, required = false 
                     {tab === 'login' ? (
                         <>
                             Don&apos;t have an account?{' '}
-                            <button type="button" onClick={() => setTab('register')} className="font-semibold" style={{ color: accent }}>
+                            <button type="button" onClick={() => setTab('register')} className="font-semibold" style={{ color: tokens.ctaBg }}>
                                 Register
                             </button>
                         </>
                     ) : (
                         <>
                             Already have an account?{' '}
-                            <button type="button" onClick={() => setTab('login')} className="font-semibold" style={{ color: accent }}>
+                            <button type="button" onClick={() => setTab('login')} className="font-semibold" style={{ color: tokens.ctaBg }}>
                                 Sign in
                             </button>
                         </>

@@ -32,7 +32,7 @@ function ProductFunnelContent({
 }: Props & { cartActions: CartActions }) {
     const { isAuthenticated, loginMode, customer } = useCustomerAuth();
     const { theme_settings: s } = business;
-    const accent      = (s.accent_color as string | undefined) || '#6366f1';
+    const accent      = (s.highlight_color as string | undefined) || '#6366f1';
     const ctaLabel    = (s.cta_text as string | undefined) || 'Buy Now';
     const catalogMode = s.catalog_mode === true;
     const enableWa    = s.enable_whatsapp_cta !== false;

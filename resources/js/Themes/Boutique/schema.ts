@@ -12,7 +12,7 @@ export const BoutiqueSchema: ThemeSchema = {
         label:      'Main Banner',
         dimensions: '1920x1080',
     },
-    accent_color: {
+    highlight_color: {
         type:    'color',
         label:   'Primary Brand Color',
         default: '#000000',

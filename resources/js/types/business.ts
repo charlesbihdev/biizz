@@ -6,8 +6,8 @@ export type { ThemeId };
 export interface ThemeSettings {
     // Classic / shared fields
     primary_color?:     string;
-    accent_color?:      string;
-    bg_color?:          string;
+    highlight_color?:   string;
+    surface_color?:     string;
     color_scheme?:      string;
     show_featured?:     boolean;
     show_testimonials?: boolean;

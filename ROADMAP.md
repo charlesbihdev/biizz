@@ -76,7 +76,16 @@ Domain: `biizz.app`. Subdomain routing planned: `{slug}.biizz.app`.
 - Run `vendor/bin/pint --dirty --format agent` after PHP edits.
 - Every change ships with a Pest test. Run `php artisan test --compact --filter=Name`.
 
-### 3.6 Style hard rules
+### 3.6 Theme color tokens
+- Three brand inputs live in `theme_settings`: `primary_color`, `highlight_color`, `surface_color`. Plus an optional `color_scheme` preset id.
+- Components NEVER consume these raw. They pass through `resolveSemanticTokens()` in `resources/js/Themes/Shared/Tokens/` which returns ~10 role-named tokens (`ctaBg`, `ctaFg`, `price`, `textPrimary`, `textMuted`, `border`, `highlightSoft`, `highlightStrong`, `surface`, `surfaceRaised`).
+- Theme components consume role tokens via the `useSemanticTokens(business)` hook. Leaf utility components receive a `tokens: SemanticTokens` prop instead of individual color props.
+- The resolver is a pure function and the hook memoizes on hex inputs. Same colors render identically for every visitor.
+- `tokens.price` is locked to `textPrimary` (never themed). `tokens.highlightStrong` falls back to `ctaBg` when contrast vs surface < 4.5 (WCAG AA), so badges/tags never become invisible on monochrome schemes.
+- The 9 presets in `Themes/Shared/palettes.ts` are industry-anchored (Luxe, Beauty, Fresh, Bold, Tech, Wellness, Cafe, Royal, Minimal). Each has a `reference` field for picker tooltips.
+- See `project_theme_*` memories for the full architectural contract.
+
+### 3.7 Style hard rules
 - NO em-dashes anywhere (code, comments, copy, docs). Use hyphens, colons, parentheses, or two sentences.
 - UI must look professional, not AI-generated. No purple gradients, no random emoji, no generic landing-page tropes.
 - Use descriptive identifiers: `isRegisteredForDiscounts`, not `discount()`.
@@ -84,7 +93,7 @@ Domain: `biizz.app`. Subdomain routing planned: `{slug}.biizz.app`.
 
 ---
 
-## 4. CURRENT STATE (verified 2026-04-27)
+## 4. CURRENT STATE (verified 2026-04-30)
 
 ### Built
 - Migrations: users, businesses, business_users, categories, products, product_images, product_files, customers, customer_addresses, orders, order_items, payments, pages, buyers, marketplace_purchases, marketplace_payments
@@ -100,6 +109,10 @@ Domain: `biizz.app`. Subdomain routing planned: `{slug}.biizz.app`.
 - Auth: Fortify + Socialite Google done
 - Themes registry: lazy Proxy with prefetch cache, `productFields` extension hook
 - Themes scaffolded: Classic (Layout, ThemeShell, Components, Pages), Boutique (basic, inactive), CourseFunnel (Pages + Components, active)
+- Theme color casting director: `resources/js/Themes/Shared/Tokens/{contrast,resolveSemanticTokens,index}.ts` + `useSemanticTokens` hook in `Shared/Hooks/`
+- 9 industry-anchored presets in `Themes/Shared/palettes.ts` (Luxe, Beauty, Fresh, Bold, Tech, Wellness, Cafe, Royal, Minimal)
+- PalettePicker with "(modified)" indicator + Reset-to-preset button + brand-reference tooltips
+- Classic theme fully refactored to consume semantic tokens via the hook
 - Storefront pages: Main, Shop, Product, Checkout, CheckoutSuccess, Contact, Page, Account, CreatorCatalog
 - Admin pages: Businesses, Categories, Customers, Orders, Pages, Payment, Products, Theme
 - Tests: feature scaffolding under `tests/Feature/{Admin, Auth, Settings, Storefront}`
@@ -109,7 +122,8 @@ Domain: `biizz.app`. Subdomain routing planned: `{slug}.biizz.app`.
 - Meta Pixel pipeline (Pillar IV): `useMetaPixel` hook + auto-fire on ViewContent / AddToCart / InitiateCheckout / Purchase
 - Live Preview iframe in admin Theme settings page
 - Subdomain routing in production (`{slug}.biizz.app`); current routing likely path-based
-- Boutique theme: incomplete, marked `active: false`. Needs Pages + full Components before flipping
+- Boutique theme: incomplete, marked `active: false`. Got only a key-rename patch (accent_color -> highlight_color); needs Pages + full Components + casting-director refactor before flipping
+- CourseFunnel: got only a key-rename patch; still uses raw `s.highlight_color` directly. Needs full casting-director refactor when active focus shifts here
 - Empty/blank: `payment_implementation_plan.md` (was a placeholder, now superseded by this file)
 
 ---
@@ -160,6 +174,7 @@ Order matters. Do not jump ahead.
 - **CourseFunnel uses `productFields`** in the registry to extend the product form. Boutique/Classic don't use it yet but the mechanism is there.
 - **`payment_implementation_plan.md` is empty.** Superseded by `app/Services/Payments/*` actual code and this roadmap.
 - **Order vs OrderItem:** orders point to order_items table (chosen the relational way, not the jsonb-line-items way).
+- **Brand colors flow through a casting director.** Three jsonb keys (`primary_color`, `highlight_color`, `surface_color`) are NEVER consumed directly by components. They pass through `resolveSemanticTokens()` in `Themes/Shared/Tokens/` which produces ~10 role-named tokens. See `project_theme_token_architecture` memory.
 
 ---
 
@@ -187,4 +202,4 @@ Order matters. Do not jump ahead.
 
 ---
 
-*Last updated: 2026-04-27. Update this file when phase boundaries shift or new pillars land.*
+*Last updated: 2026-04-30. Update this file when phase boundaries shift or new pillars land.*

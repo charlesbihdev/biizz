@@ -49,7 +49,7 @@ export default function BoutiqueThemeShell({ business, pages, children }: Props)
                 onRemove={removeFromCart}
                 onUpdateQuantity={updateQuantity}
                 businessSlug={business.slug}
-                accentColor={s.accent_color}
+                accentColor={s.highlight_color as string | undefined}
                 onCheckout={() => trackEvent('InitiateCheckout', { value: total, currency: 'GHS' })}
             />
             </div>

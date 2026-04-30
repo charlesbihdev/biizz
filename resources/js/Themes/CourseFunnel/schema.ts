@@ -1,7 +1,7 @@
 import type { ThemeSchema } from '@/types/business';
 
 export const CourseFunnelSchema: ThemeSchema = {
-    accent_color: {
+    highlight_color: {
         type:    'color',
         label:   'Brand Accent Color',
         default: '#6366f1',
