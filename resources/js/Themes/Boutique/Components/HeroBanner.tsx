@@ -4,8 +4,15 @@ interface Props {
     business: Business;
 }
 
+type BoutiqueHeroSettings = {
+    accent_color?: string;
+    hero_image?: string;
+    store_tagline?: string;
+};
+
 export default function HeroBanner({ business }: Props) {
-    const { theme_settings: s, name } = business;
+    const { name } = business;
+    const s = business.theme_settings as BoutiqueHeroSettings;
     const accent = s.accent_color ?? '#1a1a1a';
 
     return (

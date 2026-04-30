@@ -19,9 +19,9 @@ export default function MarketplaceFooter() {
                     <div className="flex flex-wrap gap-8 text-xs text-site-muted">
                         <div className="flex flex-col gap-2">
                             <span className="font-semibold uppercase tracking-wide text-site-fg">Discover</span>
-                            <Link href={index().url} className="transition hover:text-site-fg">Browse all</Link>
-                            <Link href={index({ tag: 'ebook' }).url} className="transition hover:text-site-fg">Ebooks</Link>
-                            <Link href={index({ tag: 'course' }).url} className="transition hover:text-site-fg">Courses</Link>
+                            <Link href={index().url} prefetch className="transition hover:text-site-fg">Browse all</Link>
+                            <Link href={index({ query: { category: 'ebooks' } }).url} prefetch className="transition hover:text-site-fg">Ebooks</Link>
+                            <Link href={index({ query: { category: 'courses' } }).url} prefetch className="transition hover:text-site-fg">Courses</Link>
                         </div>
                         <div className="flex flex-col gap-2">
                             <span className="font-semibold uppercase tracking-wide text-site-fg">Sellers</span>

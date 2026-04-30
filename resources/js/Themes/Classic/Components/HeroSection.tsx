@@ -4,8 +4,16 @@ interface Props {
     business: Business;
 }
 
+type ClassicHeroSettings = {
+    primary_color?: string;
+    accent_color?: string;
+    hero_image?: string;
+    store_tagline?: string;
+};
+
 export default function HeroSection({ business }: Props) {
-    const { theme_settings: s, name } = business;
+    const { name } = business;
+    const s = business.theme_settings as ClassicHeroSettings;
     const primary = s.primary_color ?? '#18181b';
     const accent  = s.accent_color  ?? primary;
 

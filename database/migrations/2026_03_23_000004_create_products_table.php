@@ -11,8 +11,10 @@ return new class extends Migration
         Schema::create('products', function (Blueprint $table): void {
             $table->id();
             $table->foreignId('business_id')->constrained()->cascadeOnDelete();
-            $table->foreignId('category_id')->constrained()->restrictOnDelete();
+            $table->foreignId('category_id')->nullable()->constrained()->restrictOnDelete();
             $table->string('digital_category')->nullable()->default('Others');
+            $table->string('delivery_mode', 20)->nullable();
+            $table->string('external_url', 2048)->nullable();
             $table->string('name');
             $table->string('slug');
             $table->text('description')->nullable();

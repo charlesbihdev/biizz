@@ -198,3 +198,12 @@ Use Wayfinder to generate TypeScript functions for Laravel routes. Import from `
 - IMPORTANT: Activate `inertia-react-development` when working with Inertia React client-side patterns.
 
 </laravel-boost-guidelines>
+
+# Project Rules (kept outside boost guidelines so `boost:update` does not overwrite)
+
+## Wayfinder regeneration
+
+- The Vite plugin in `vite.config.ts` is configured with `formVariants: true`, so `npm run dev` and `npm run build` regenerate Wayfinder routes correctly.
+- If you must regenerate manually, run `composer wayfinder` (defined in `composer.json`). It wraps `php artisan wayfinder:generate --with-form`.
+- Do NOT run plain `php artisan wayfinder:generate` — it omits the `Form` helpers and silently breaks any code that uses `<Form {...Controller.action.form()}>` (delete-user, two-factor flows, etc).
+

@@ -22,14 +22,14 @@ export default function CreateProduct({ business, categories }: Props) {
         stock:            '0',
         category_id:      '',
         digital_category: 'others',
+        delivery_mode:    '',
+        external_url:     '',
         is_active:        true,
         images:           [],
         promo_video:      '',
         tags:             [],
         digital_file:     null as File | null,
     });
-
-    console.log(errors);
 
     const handleSubmit = () => {
         post(store(b).url, {
