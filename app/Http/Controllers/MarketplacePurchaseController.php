@@ -13,6 +13,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -130,18 +131,20 @@ class MarketplacePurchaseController extends Controller
             return to_route('marketplace.index')->with('error', 'Invalid payment callback.');
         }
 
-        $purchase = MarketplacePurchase::with('product.business', 'payment')
-            ->where('payment_ref', $reference)
-            ->first();
+        ['status' => $status, 'purchase' => $purchase] = $this->confirmPaid($reference);
 
-        if (! $purchase) {
+        if ($status === 'not_found') {
             return to_route('marketplace.index')->with('error', 'Purchase record not found.');
         }
 
-        // Idempotent — already confirmed
-        if ($purchase->status === 'paid') {
+        if ($status === 'already_paid') {
             return to_route('marketplace.library.index')
                 ->with('info', 'You already own this product.');
+        }
+
+        if ($status === 'paid') {
+            return to_route('marketplace.library.index')
+                ->with('success', 'Payment confirmed! Your product is now in your library.');
         }
 
         $productRoute = [
@@ -149,40 +152,10 @@ class MarketplacePurchaseController extends Controller
             'product' => $purchase->product->slug,
         ];
 
-        try {
-            $gateway = new PaystackGateway((string) config('services.paystack.secret'));
-            $result = $gateway->verify($reference, $purchase->product->business);
-        } catch (\Throwable $e) {
-            Log::error('Marketplace payment verification failed', [
-                'reference' => $reference,
-                'error' => $e->getMessage(),
-            ]);
-
+        if ($status === 'error') {
             return to_route('marketplace.product', $productRoute)
                 ->with('error', 'Payment verification failed. Please contact support.');
         }
-
-        $expectedMinorUnit = (int) ($purchase->amount_paid * 100);
-
-        if ($result->successful && $result->amountInMinorUnit === $expectedMinorUnit) {
-            $now = now();
-
-            $purchase->update(['status' => 'paid', 'paid_at' => $now]);
-
-            $purchase->payment?->update([
-                'status' => 'success',
-                'transaction_id' => $result->transactionId,
-                'metadata' => $result->metadata,
-                'paid_at' => $now,
-            ]);
-
-            $purchase->buyer->notify(new MarketplacePurchaseNotification($purchase->load('product.images')));
-
-            return to_route('marketplace.library.index')
-                ->with('success', 'Payment confirmed! Your product is now in your library.');
-        }
-
-        $purchase->payment?->update(['status' => 'failed', 'metadata' => $result->metadata]);
 
         return to_route('marketplace.product', $productRoute)
             ->with('error', 'Payment was not successful. Please try again.');
@@ -208,42 +181,80 @@ class MarketplacePurchaseController extends Controller
             return response()->json(['status' => 'no reference'], 200);
         }
 
-        $purchase = MarketplacePurchase::with('product.business', 'payment', 'buyer')
-            ->where('payment_ref', $reference)
-            ->first();
-
-        if (! $purchase || $purchase->status === 'paid') {
-            return response()->json(['status' => 'ok'], 200);
-        }
-
-        try {
-            $gateway = new PaystackGateway($secret);
-            $result = $gateway->verify($reference, $purchase->product->business);
-            $expectedMinorUnit = (int) ($purchase->amount_paid * 100);
-
-            if ($result->successful && $result->amountInMinorUnit === $expectedMinorUnit) {
-                $now = now();
-
-                $purchase->update(['status' => 'paid', 'paid_at' => $now]);
-
-                $purchase->payment?->update([
-                    'status' => 'success',
-                    'transaction_id' => $result->transactionId,
-                    'metadata' => $result->metadata,
-                    'paid_at' => $now,
-                ]);
-
-                $purchase->buyer->notify(new MarketplacePurchaseNotification($purchase->load('product.images')));
-            } else {
-                $purchase->payment?->update(['status' => 'failed', 'metadata' => $result->metadata]);
-            }
-        } catch (\Throwable $e) {
-            Log::error('Marketplace webhook verification failed', [
-                'reference' => $reference,
-                'error' => $e->getMessage(),
-            ]);
-        }
+        $this->confirmPaid($reference);
 
         return response()->json(['status' => 'ok'], 200);
+    }
+
+    /**
+     * Verify a marketplace payment and flip the purchase to paid.
+     *
+     * Two-layer idempotency:
+     *  1. Cheap pre-check (no lock) — if already paid, return early without
+     *     opening a transaction or calling Paystack. Handles webhook retries
+     *     and the typical "browser arrives 2s after webhook" case.
+     *  2. Locked re-check inside DB::transaction + lockForUpdate — catches the
+     *     millisecond race where two callers both pass step 1.
+     *
+     * @return array{status: 'not_found'|'already_paid'|'paid'|'failed'|'error', purchase: ?MarketplacePurchase}
+     */
+    private function confirmPaid(string $reference): array
+    {
+        $cached = MarketplacePurchase::where('payment_ref', $reference)
+            ->first(['id', 'status']);
+
+        if ($cached && $cached->status === 'paid') {
+            return ['status' => 'already_paid', 'purchase' => $cached];
+        }
+
+        return DB::transaction(function () use ($reference) {
+            $purchase = MarketplacePurchase::with('product.business', 'payment', 'buyer')
+                ->where('payment_ref', $reference)
+                ->lockForUpdate()
+                ->first();
+
+            if (! $purchase) {
+                return ['status' => 'not_found', 'purchase' => null];
+            }
+
+            if ($purchase->status === 'paid') {
+                return ['status' => 'already_paid', 'purchase' => $purchase];
+            }
+
+            try {
+                $gateway = new PaystackGateway((string) config('services.paystack.secret'));
+                $result = $gateway->verify($reference, $purchase->product->business);
+            } catch (\Throwable $e) {
+                Log::error('Marketplace payment verification failed', [
+                    'reference' => $reference,
+                    'error' => $e->getMessage(),
+                ]);
+
+                return ['status' => 'error', 'purchase' => $purchase];
+            }
+
+            $expectedMinorUnit = (int) ($purchase->amount_paid * 100);
+
+            if (! $result->successful || $result->amountInMinorUnit !== $expectedMinorUnit) {
+                $purchase->payment?->update(['status' => 'failed', 'metadata' => $result->metadata]);
+
+                return ['status' => 'failed', 'purchase' => $purchase];
+            }
+
+            $now = now();
+
+            $purchase->update(['status' => 'paid', 'paid_at' => $now]);
+
+            $purchase->payment?->update([
+                'status' => 'success',
+                'transaction_id' => $result->transactionId,
+                'metadata' => $result->metadata,
+                'paid_at' => $now,
+            ]);
+
+            $purchase->buyer->notify(new MarketplacePurchaseNotification($purchase->load('product.images')));
+
+            return ['status' => 'paid', 'purchase' => $purchase];
+        });
     }
 }

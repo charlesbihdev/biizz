@@ -332,3 +332,26 @@ export interface PaymentStats {
     pending:        number;
     failed:         number;
 }
+
+// Physical: revenue_total, paid, fulfilled, cancelled.
+// Digital:  revenue_total, paid, free, pending.
+export interface OrderStats {
+    revenue_total: string;
+    paid?:         number;
+    fulfilled?:    number;
+    cancelled?:    number;
+    free?:         number;
+    pending?:      number;
+}
+
+// Physical: active, hidden, out_of_stock, low_stock, oversold.
+// Digital:  active, hidden, free, paid.
+export interface ProductStats {
+    active:        number;
+    hidden:        number;
+    out_of_stock?: number;
+    low_stock?:    number;
+    oversold?:     number;
+    free?:         number;
+    paid?:         number;
+}

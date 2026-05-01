@@ -6,12 +6,43 @@ import { edit } from '@/routes/businesses/products';
 import { product as marketplaceProduct } from '@/routes/marketplace';
 import type { Business, Product } from '@/types';
 
+// Mirrors ProductController::LOW_STOCK_MAX (PHP-side source of truth).
+const LOW_STOCK_THRESHOLD = 5;
+
 type Props = {
     business: Business;
     product: Product;
     rowNumber: number;
     onView: (product: Product) => void;
 };
+
+function StockCell({ stock }: { stock: number }) {
+    if (stock < 0) {
+        return (
+            <span className="inline-flex rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">
+                {stock} oversold
+            </span>
+        );
+    }
+
+    if (stock === 0) {
+        return (
+            <span className="inline-flex rounded-full bg-red-100 px-2 py-0.5 text-xs font-semibold text-red-700">
+                Out of stock
+            </span>
+        );
+    }
+
+    if (stock <= LOW_STOCK_THRESHOLD) {
+        return (
+            <span className="inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">
+                {stock} left
+            </span>
+        );
+    }
+
+    return <span className="text-sm text-site-muted">{stock}</span>;
+}
 
 export function ProductRow({ business, product, rowNumber, onView }: Props) {
     const [deleteOpen, setDeleteOpen] = useState(false);
@@ -45,8 +76,12 @@ export function ProductRow({ business, product, rowNumber, onView }: Props) {
                 <td className="px-3 py-3 text-sm text-site-fg">
                     GHS {Number(product.price).toFixed(2)}
                 </td>
-                <td className="px-3 py-3 text-sm text-site-muted">
-                    {business.business_type === 'digital' ? 'Unlimited' : product.stock}
+                <td className="px-3 py-3">
+                    {business.business_type === 'digital' ? (
+                        <span className="text-sm text-site-muted">Unlimited</span>
+                    ) : (
+                        <StockCell stock={product.stock} />
+                    )}
                 </td>
                 <td className="px-3 py-3">
                     <span className={`inline-flex rounded-full px-2 py-0.5 text-xs font-semibold ${

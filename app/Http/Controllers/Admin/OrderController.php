@@ -50,6 +50,7 @@ class OrderController extends Controller
                 'date_from' => request('date_from', ''),
                 'date_to' => request('date_to', ''),
             ],
+            'stats' => Inertia::defer(fn () => $this->buildStats($business)),
         ]);
     }
 
@@ -83,7 +84,69 @@ class OrderController extends Controller
                 'date_from' => request('date_from', ''),
                 'date_to' => request('date_to', ''),
             ],
+            'stats' => Inertia::defer(fn () => $this->buildDigitalStats($business)),
         ]);
+    }
+
+    private function buildStats(Business $business): array
+    {
+        $base = fn () => $this->applyStatsFilters(
+            Order::query()->where('business_id', $business->id),
+            isDigital: false,
+        );
+
+        return [
+            'revenue_total' => (string) $base()->whereIn('status', [OrderStatus::Paid, OrderStatus::Fulfilled])->sum('total'),
+            'paid' => $base()->where('status', OrderStatus::Paid)->count(),
+            'fulfilled' => $base()->where('status', OrderStatus::Fulfilled)->count(),
+            'cancelled' => $base()->whereIn('status', [OrderStatus::Cancelled, OrderStatus::Refunded])->count(),
+        ];
+    }
+
+    private function buildDigitalStats(Business $business): array
+    {
+        $base = fn () => $this->applyStatsFilters(
+            MarketplacePurchase::query(),
+            isDigital: true,
+        );
+
+        return [
+            'revenue_total' => (string) $base()->where('status', 'paid')->sum('amount_paid'),
+            'paid' => $base()->where('status', 'paid')->count(),
+            'free' => $base()->where('status', 'free')->count(),
+            'pending' => $base()->where('status', 'pending')->count(),
+        ];
+    }
+
+    /**
+     * Apply search and date filters to a stats query. Status is intentionally
+     * excluded — the four tiles are the status breakdown, so filtering the breakdown
+     * by one of its own slices would zero out the others.
+     */
+    private function applyStatsFilters(Builder $q, bool $isDigital): Builder
+    {
+        if ($term = request('search')) {
+            $q->where(function ($q) use ($term, $isDigital) {
+                if ($isDigital) {
+                    $q->whereHas('buyer', fn ($q) => $q
+                        ->where('name', 'like', "%{$term}%")
+                        ->orWhere('email', 'like', "%{$term}%"))
+                        ->orWhereHas('product', fn ($q) => $q
+                            ->withoutGlobalScopes()
+                            ->where('name', 'like', "%{$term}%"));
+                } else {
+                    $q->where('customer_name', 'like', "%{$term}%")
+                        ->orWhere('customer_email', 'like', "%{$term}%")
+                        ->orWhere('order_id', 'like', "%{$term}%");
+                }
+            });
+        }
+
+        if (request('date') && request('date') !== 'all') {
+            $this->applyDateFilter($q, request('date'));
+        }
+
+        return $q;
     }
 
     private function applyDateFilter(Builder $q, string $preset): Builder
