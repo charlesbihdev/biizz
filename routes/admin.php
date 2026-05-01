@@ -9,7 +9,6 @@ use App\Http\Controllers\Admin\PageController;
 use App\Http\Controllers\Admin\PaymentController;
 use App\Http\Controllers\Admin\ProductController;
 use App\Http\Controllers\Admin\ThemeSettingsController;
-use App\Models\Business;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -33,9 +32,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/', 'store')->name('store');
     });
 
-    // Business-scoped routes — 'business' middleware resolves + checks ownership
+    // Business-scoped routes — 'business' resolves the URL, 'business.owner' enforces ownership
     Route::prefix('dashboard/b/{business:slug}')
-        ->middleware('business')
+        ->middleware(['business', 'business.owner'])
         ->name('businesses.')
         ->group(function () {
 
@@ -62,12 +61,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::patch('/switch/{themeId}', 'switchTheme')->name('switch');
             });
 
-            // Payments (connect/disconnect/default actions; the GET redirects to settings)
-            Route::prefix('payments')->name('payments.')->group(function () {
-                Route::get('/', fn (Business $business) => redirect()->route('businesses.settings.edit', $business))->name('edit');
-                Route::post('/', [PaymentController::class, 'store'])->name('store');
-                Route::patch('/default', [PaymentController::class, 'setDefault'])->name('setDefault');
-                Route::delete('/{provider}', [PaymentController::class, 'destroy'])->name('destroy');
+            // Payments — ledger (index/show) + provider config (store/setDefault/destroy)
+            Route::prefix('payments')->name('payments.')->controller(PaymentController::class)->group(function () {
+                Route::get('/', 'index')->name('index');
+                // Business has no `payment()` relation Laravel can derive for scoped binding;
+                // ownership is enforced by BusinessScope on the MarketplacePayment model.
+                Route::get('/marketplace/{payment:reference}', 'showMarketplace')->withoutScopedBindings()->name('marketplace.show');
+                Route::get('/{payment:reference}', 'show')->name('show');
+                Route::post('/', 'store')->name('store');
+                Route::patch('/default', 'setDefault')->name('setDefault');
+                Route::delete('/{provider}', 'destroy')->name('destroy');
             });
 
             // Categories

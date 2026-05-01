@@ -4,8 +4,10 @@ namespace App\Models;
 
 use App\Enums\PaymentStatus;
 use App\Models\Scopes\BusinessScope;
+use Database\Factories\PaymentFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\ScopedBy;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -25,6 +27,21 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 ])]
 class Payment extends Model
 {
+    /** @use HasFactory<PaymentFactory> */
+    use HasFactory;
+
+    /**
+     * Fields hidden from array/JSON serialization (Inertia, API responses).
+     * Internal Eloquent access via $payment->metadata still works for services.
+     */
+    protected $hidden = [
+        'business_id',
+        'order_id',
+        'customer_id',
+        'metadata',
+        'updated_at',
+    ];
+
     protected function casts(): array
     {
         return [
@@ -33,6 +50,11 @@ class Payment extends Model
             'paid_at' => 'datetime',
             'metadata' => 'array',
         ];
+    }
+
+    public function getRouteKeyName(): string
+    {
+        return 'reference';
     }
 
     // -------------------------------------------------------------------------

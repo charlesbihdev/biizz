@@ -11,9 +11,9 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * Resolves the active Business from the URL and sets it on BusinessContext.
  *
- * This middleware is the gate to all business-scoped routes.
- * If the business cannot be resolved, the request is hard-rejected with 403.
- * No fallback. No default business. No silent failure.
+ * This middleware is the gate to all business-scoped routes (admin, storefront,
+ * webhooks). It only checks that the business exists; ownership enforcement for
+ * admin routes lives in EnsureBusinessOwner, applied on top of this one.
  *
  * Apply with: Route::middleware('business')
  */

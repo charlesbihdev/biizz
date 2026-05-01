@@ -55,11 +55,7 @@ class OrderController extends Controller
 
     private function digitalIndex(Business $business): Response
     {
-        // Include all products regardless of active/archived status
-        $productIds = $business->products()->withoutGlobalScopes()->pluck('id');
-
         $purchases = MarketplacePurchase::with(['buyer:id,name,email', 'product:id,name,slug'])
-            ->whereIn('product_id', $productIds)
             ->when(request('status') && request('status') !== 'all', fn ($q) => $q->where('status', request('status')))
             ->when(request('search'), function ($q, $term) {
                 $q->where(function ($q) use ($term) {
@@ -112,7 +108,7 @@ class OrderController extends Controller
         abort_unless($business->isOwnedBy(auth()->user()), 403);
 
         return Inertia::render('Admin/Orders/Show', [
-            'order' => $order->load('items'),
+            'order' => $order->load(['items', 'items.product:id,slug']),
             'business' => $business,
             'statuses' => collect(OrderStatus::cases())->map(fn (OrderStatus $s) => ['name' => $s->label(), 'value' => $s->value])->all(),
         ]);
