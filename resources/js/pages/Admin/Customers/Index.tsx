@@ -3,6 +3,7 @@ import { Users } from 'lucide-react';
 import { useState } from 'react';
 import { CustomerFilters } from '@/components/admin/customers/CustomerFilters';
 import type { CustomerFiltersState } from '@/components/admin/customers/CustomerFilters';
+import { CustomerStatsRow } from '@/components/admin/customers/CustomerStatsRow';
 import {
     AlertDialog,
     AlertDialogAction,
@@ -16,7 +17,7 @@ import {
 import AppSidebarLayout from '@/layouts/app/app-sidebar-layout';
 import { show as businessShow } from '@/routes/businesses';
 import { block, index, show } from '@/routes/businesses/customers';
-import type { Business, Customer, PaginatedData } from '@/types';
+import type { Business, Customer, CustomerStats, PaginatedData } from '@/types';
 
 type CustomerRow = Customer & {
     orders_count: number;
@@ -27,9 +28,10 @@ type Props = {
     business: Business;
     customers: PaginatedData<CustomerRow>;
     filters: CustomerFiltersState;
+    stats?: CustomerStats;
 };
 
-export default function CustomersIndex({ business, customers, filters }: Props) {
+export default function CustomersIndex({ business, customers, filters, stats }: Props) {
     const b = { business: business.slug };
     const [blocking, setBlocking] = useState<CustomerRow | null>(null);
     const [processing, setProcessing] = useState(false);
@@ -57,6 +59,8 @@ export default function CustomersIndex({ business, customers, filters }: Props) 
                     <h1 className="text-xl font-bold text-site-fg">Customers</h1>
                     <p className="mt-0.5 text-sm text-site-muted">{customers.total} total</p>
                 </div>
+
+                <CustomerStatsRow stats={stats} filters={filters} />
 
                 <CustomerFilters indexUrl={index(b).url} filters={filters} />
 

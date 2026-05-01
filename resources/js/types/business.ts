@@ -355,3 +355,10 @@ export interface ProductStats {
     free?:         number;
     paid?:         number;
 }
+
+export interface CustomerStats {
+    total:         number;
+    active:        number;
+    blocked:       number;
+    repeat_buyers: number;
+}
