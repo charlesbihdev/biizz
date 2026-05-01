@@ -2,6 +2,7 @@ import { Link } from '@inertiajs/react';
 import {
     BotMessageSquare,
     ChartNoAxesColumn,
+    CreditCard,
     FileText,
     FolderOpen,
     Globe,
@@ -25,6 +26,7 @@ import { index as categoriesIndex } from '@/routes/businesses/categories';
 import { index as customersIndex } from '@/routes/businesses/customers';
 import { index as ordersIndex } from '@/routes/businesses/orders';
 import { index as pagesIndex } from '@/routes/businesses/pages';
+import { index as paymentsIndex } from '@/routes/businesses/payments';
 import { index as productsIndex } from '@/routes/businesses/products';
 import { edit as settingsEdit } from '@/routes/businesses/settings';
 import { edit as themeEdit } from '@/routes/businesses/theme';
@@ -98,6 +100,7 @@ export function NavBusiness({ business }: { business: Business }) {
     const sellItems: NavEntry[] = [
         { title: 'Overview', href: show(b).url,          icon: LayoutDashboard, exact: true },
         { title: 'Orders',   href: ordersIndex(b).url,   icon: ShoppingBag },
+        { title: 'Payments', href: paymentsIndex(b).url, icon: CreditCard },
         ...(!isDigital ? [
             { title: 'Customers',  href: customersIndex(b).url,  icon: Users },
         ] : []),

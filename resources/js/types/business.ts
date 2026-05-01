@@ -250,6 +250,7 @@ export interface OrderItem {
     unit_price:   string;
     quantity:     number;
     subtotal:     string;
+    product?:     { id: number; slug: string } | null;
 }
 
 export interface Order {
@@ -285,4 +286,49 @@ export interface CartItem {
     price:    number;
     quantity: number;
     image?:   string;
+}
+
+// ─── Payment ─────────────────────────────────────────────────────────────────
+
+export type PaymentStatus = 'pending' | 'success' | 'failed';
+export type PaymentGateway = 'paystack' | 'junipay';
+
+export interface Payment {
+    id:               number;
+    gateway:          PaymentGateway;
+    reference:        string;
+    transaction_id:   string | null;
+    amount:           string;
+    currency:         string;
+    status:           PaymentStatus;
+    paid_at:          string | null;
+    created_at:       string;
+    order?:           Pick<Order, 'id' | 'order_id' | 'customer_name' | 'customer_email'> & { items?: OrderItem[]; total?: string; currency?: string };
+    customer?:        Pick<Customer, 'id' | 'name' | 'email' | 'phone'> | null;
+}
+
+export interface MarketplacePayment {
+    id:               number;
+    gateway:          PaymentGateway;
+    reference:        string;
+    transaction_id:   string | null;
+    amount:           string;
+    currency:         string;
+    status:           PaymentStatus;
+    paid_at:          string | null;
+    created_at:       string;
+    purchase?: {
+        id:           number;
+        amount_paid:  string;
+        status:       MarketplacePurchaseStatus;
+        buyer:        { id: number; name: string; email: string } | null;
+        product:      { id: number; name: string; slug: string } | null;
+    } | null;
+}
+
+export interface PaymentStats {
+    received_total: string;
+    success:        number;
+    pending:        number;
+    failed:         number;
 }

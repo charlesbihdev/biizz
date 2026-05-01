@@ -4,7 +4,9 @@ import { OrderFilters } from '@/components/admin/orders/OrderFilters';
 import type { OrderFiltersState } from '@/components/admin/orders/OrderFilters';
 import AppSidebarLayout from '@/layouts/app/app-sidebar-layout';
 import { show } from '@/routes/businesses';
+import { show as customerShow } from '@/routes/businesses/customers';
 import { index, show as orderShow } from '@/routes/businesses/orders';
+import { edit as productEdit } from '@/routes/businesses/products';
 import type { Business, Order, OrderStatus } from '@/types';
 
 // ─── Physical orders ────────────────────────────────────────────────────────
@@ -117,10 +119,12 @@ function Pagination({
 
 function DigitalTable({
     purchases,
+    business,
     perPage,
     currentPage,
 }: {
     purchases: PaginatedPurchases;
+    business: Business;
     perPage: number;
     currentPage: number;
 }) {
@@ -173,11 +177,21 @@ function DigitalTable({
                                 {(currentPage - 1) * perPage + i + 1}
                             </td>
                             <td className="px-3 py-3 text-sm font-medium text-site-fg">
-                                {p.product?.name ?? '—'}
+                                {p.product?.slug ? (
+                                    <Link
+                                        href={productEdit({ business: business.slug, product: p.product.slug }).url}
+                                        prefetch
+                                        className="text-brand hover:underline"
+                                    >
+                                        {p.product.name}
+                                    </Link>
+                                ) : (
+                                    p.product?.name ?? '-'
+                                )}
                             </td>
                             <td className="px-3 py-3">
                                 <p className="text-sm font-medium text-site-fg">
-                                    {p.buyer?.name ?? '—'}
+                                    {p.buyer?.name ?? '-'}
                                 </p>
                                 <p className="text-xs text-site-muted">
                                     {p.buyer?.email ?? ''}
@@ -275,12 +289,29 @@ function PhysicalTable({
                                 {order.order_id ?? '—'}
                             </td>
                             <td className="px-3 py-3">
-                                <p className="text-sm font-medium text-site-fg">
-                                    {order.customer_name ?? '—'}
-                                </p>
-                                <p className="text-xs text-site-muted">
-                                    {order.customer_email ?? ''}
-                                </p>
+                                {order.customer_id ? (
+                                    <Link
+                                        href={customerShow({ business: business.slug, customer: order.customer_id }).url}
+                                        prefetch
+                                        className="block hover:underline"
+                                    >
+                                        <p className="text-sm font-medium text-site-fg">
+                                            {order.customer_name ?? '-'}
+                                        </p>
+                                        <p className="text-xs text-site-muted">
+                                            {order.customer_email ?? ''}
+                                        </p>
+                                    </Link>
+                                ) : (
+                                    <>
+                                        <p className="text-sm font-medium text-site-fg">
+                                            {order.customer_name ?? '-'}
+                                        </p>
+                                        <p className="text-xs text-site-muted">
+                                            {order.customer_email ?? ''}
+                                        </p>
+                                    </>
+                                )}
                             </td>
                             <td className="px-3 py-3 text-sm font-semibold text-site-fg">
                                 {order.currency} {order.total}
@@ -406,6 +437,7 @@ export default function OrdersIndex(props: Props) {
                 {isDigital ? (
                     <DigitalTable
                         purchases={props.purchases}
+                        business={business}
                         perPage={props.purchases.per_page}
                         currentPage={props.purchases.current_page}
                     />

@@ -52,6 +52,7 @@ class MarketplacePurchaseController extends Controller
         // Free product — skip payment
         if ($price <= 0) {
             $purchase = MarketplacePurchase::create([
+                'business_id' => $business->id,
                 'buyer_id' => $user->id,
                 'product_id' => $product->id,
                 'amount_paid' => 0,
@@ -74,6 +75,7 @@ class MarketplacePurchaseController extends Controller
         $reference = Str::random(24);
 
         $purchase = MarketplacePurchase::create([
+            'business_id' => $business->id,
             'buyer_id' => $user->id,
             'product_id' => $product->id,
             'amount_paid' => $price,
@@ -82,6 +84,7 @@ class MarketplacePurchaseController extends Controller
         ]);
 
         MarketplacePayment::create([
+            'business_id' => $business->id,
             'marketplace_purchase_id' => $purchase->id,
             'gateway' => 'paystack',
             'reference' => $reference,
