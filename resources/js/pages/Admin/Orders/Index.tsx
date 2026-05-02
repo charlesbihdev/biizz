@@ -431,8 +431,8 @@ export default function OrdersIndex(props: Props) {
                             preserveScroll
                             only={
                                 isDigital
-                                    ? ['purchases', 'filters', 'stats']
-                                    : ['orders', 'filters', 'stats']
+                                    ? ['purchases', 'filters']
+                                    : ['orders', 'filters']
                             }
                             className={`shrink-0 rounded-t px-4 py-2 text-sm font-medium capitalize transition ${
                                 filters.status === tab

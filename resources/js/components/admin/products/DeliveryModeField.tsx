@@ -1,8 +1,11 @@
-import { BookOpen, Download, ExternalLink } from 'lucide-react';
+import { BookOpen, Download, ExternalLink, Sparkles } from 'lucide-react';
+import type { ChangeEvent } from 'react';
 import InputError from '@/components/input-error';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { cn } from '@/lib/utils';
+import { useDigitalStorage } from '@/hooks/use-digital-storage';
+import { cn, formatBytes } from '@/lib/utils';
+import { useUpgradeModal } from '@/stores/upgrade-modal-store';
 
 export type DeliveryMode = 'reader' | 'download' | 'external_link' | '';
 
@@ -133,11 +136,7 @@ export function DeliveryModeField({
             {(mode === 'reader' || mode === 'download') && (
                 <FileUploadSlot
                     accept={mode === 'reader' ? '.pdf' : '.pdf,.zip,.epub'}
-                    hint={
-                        mode === 'reader'
-                            ? 'PDF only. Up to 50 MB.'
-                            : 'PDF, ZIP, or EPUB. Up to 50 MB.'
-                    }
+                    fileTypeLabel={mode === 'reader' ? 'PDF only.' : 'PDF, ZIP, or EPUB.'}
                     file={digitalFile}
                     existingFileName={existingFileName}
                     error={errors.digital_file}
@@ -173,7 +172,7 @@ export function DeliveryModeField({
 
 interface FileUploadSlotProps {
     accept: string;
-    hint: string;
+    fileTypeLabel: string;
     file: File | null;
     existingFileName?: string;
     error?: string;
@@ -182,12 +181,47 @@ interface FileUploadSlotProps {
 
 function FileUploadSlot({
     accept,
-    hint,
+    fileTypeLabel,
     file,
     existingFileName,
     error,
     onChange,
 }: FileUploadSlotProps) {
+    const { canFit, perFileMaxBytes, quotaBytes, usedBytes, remainingBytes } = useDigitalStorage();
+    const showUpgrade = useUpgradeModal((s) => s.show);
+
+    const handleSelect = (event: ChangeEvent<HTMLInputElement>) => {
+        const picked = event.target.files?.[0] ?? null;
+
+        if (picked === null) {
+            onChange(null);
+            return;
+        }
+
+        const fit = canFit(picked);
+
+        if (!fit.ok) {
+            // Reset the input so the user can re-pick the same name later
+            // and so the form state doesn't hold a file we'll reject server-
+            // side anyway.
+            event.target.value = '';
+            onChange(null);
+
+            showUpgrade({
+                feature: fit.reason === 'over_per_file'
+                    ? 'storage.larger_digital_files'
+                    : 'storage.more_digital_storage',
+            });
+            return;
+        }
+
+        onChange(picked);
+    };
+
+    const sizeHint = perFileMaxBytes !== null
+        ? `Up to ${formatBytes(perFileMaxBytes)} per file.`
+        : 'No per-file size limit on your plan.';
+
     return (
         <div className="flex flex-col gap-2 rounded-xl border border-dashed border-site-border bg-site-surface/40 p-3">
             {existingFileName && !file && (
@@ -198,11 +232,67 @@ function FileUploadSlot({
             <Input
                 type="file"
                 accept={accept}
-                onChange={(e) => onChange(e.target.files?.[0] || null)}
+                onChange={handleSelect}
                 className="cursor-pointer border-site-border bg-white text-sm file:mr-4 file:rounded-full file:border-0 file:bg-brand/10 file:px-4 file:py-2 file:text-xs file:font-semibold file:text-brand hover:file:bg-brand/20 focus-visible:ring-brand/30"
             />
-            <p className="text-xs text-site-muted">{hint}</p>
+            <p className="text-xs text-site-muted">
+                {fileTypeLabel} {sizeHint}
+            </p>
+
+            {quotaBytes !== null && (
+                <StorageMeter
+                    usedBytes={usedBytes}
+                    quotaBytes={quotaBytes}
+                    remainingBytes={remainingBytes}
+                    onUpgrade={() => showUpgrade({ feature: 'storage.more_digital_storage' })}
+                />
+            )}
+
             <InputError message={error} />
+        </div>
+    );
+}
+
+interface StorageMeterProps {
+    usedBytes: number;
+    quotaBytes: number;
+    remainingBytes: number | null;
+    onUpgrade: () => void;
+}
+
+function StorageMeter({ usedBytes, quotaBytes, remainingBytes, onUpgrade }: StorageMeterProps) {
+    const percent = quotaBytes > 0 ? Math.min(100, Math.round((usedBytes / quotaBytes) * 100)) : 0;
+    const nearLimit = percent >= 80;
+
+    return (
+        <div className="flex flex-col gap-1.5 rounded-lg border border-site-border bg-white px-3 py-2">
+            <div className="flex items-center justify-between text-[11px]">
+                <span className="font-semibold text-site-fg">
+                    {formatBytes(usedBytes)} of {formatBytes(quotaBytes)} used
+                </span>
+                <span className={cn('font-medium', nearLimit ? 'text-amber-600' : 'text-site-muted')}>
+                    {remainingBytes !== null ? `${formatBytes(remainingBytes)} left` : ''}
+                </span>
+            </div>
+            <div className="h-1.5 w-full overflow-hidden rounded-full bg-site-surface">
+                <div
+                    className={cn(
+                        'h-full rounded-full transition-all',
+                        nearLimit ? 'bg-amber-500' : 'bg-brand',
+                    )}
+                    style={{ width: `${percent}%` }}
+                />
+            </div>
+            {nearLimit && (
+                <button
+                    type="button"
+                    onClick={onUpgrade}
+                    className="mt-0.5 inline-flex items-center gap-1 self-start text-[11px] font-bold text-brand transition hover:underline"
+                >
+                    <Sparkles className="h-3 w-3" strokeWidth={2.5} />
+                    Upgrade for more storage
+                </button>
+            )}
         </div>
     );
 }

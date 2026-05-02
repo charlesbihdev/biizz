@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\BillingController;
 use App\Http\Controllers\Admin\BusinessController;
 use App\Http\Controllers\Admin\CategoryController;
 use App\Http\Controllers\Admin\CustomerController;
@@ -43,6 +44,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::patch('/toggle', [BusinessController::class, 'toggle'])->name('toggle');
             Route::get('/settings', [BusinessController::class, 'editSettings'])->name('settings.edit');
             Route::patch('/settings', [BusinessController::class, 'updateSettings'])->name('settings.update');
+
+            // Billing — Paystack subscription billing for paid plans.
+            Route::prefix('billing')->name('billing.')->controller(BillingController::class)->group(function () {
+                Route::get('/', 'show')->name('show');
+                Route::post('/checkout', 'checkout')->name('checkout');
+                Route::get('/callback', 'callback')->name('callback');
+                Route::post('/cancel', 'cancel')->name('cancel');
+                Route::post('/resume', 'resume')->name('resume');
+            });
 
             // Products
             Route::prefix('products')->name('products.')->controller(ProductController::class)->group(function () {

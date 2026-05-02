@@ -33,6 +33,10 @@ class ProductController extends Controller
         return Inertia::render('Admin/Products/Index', [
             'business' => $business,
             'products' => $products,
+            // Unfiltered product count, used by the frontend to gate the
+            // "Add product" CTA against the tier's max_products limit.
+            // `products.total` is filtered and not safe for that comparison.
+            'products_count' => $business->products()->count(),
             'categories' => $business->categories()->get(['id', 'name']),
             'filters' => [
                 'search' => request('search', ''),

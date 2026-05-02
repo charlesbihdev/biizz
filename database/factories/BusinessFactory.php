@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\SubscriptionTier;
 use App\Models\Business;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -25,6 +26,7 @@ class BusinessFactory extends Factory
             'meta_pixel_id' => null,
             'ai_enabled' => false,
             'is_active' => false,
+            'subscription_tier' => SubscriptionTier::Free->value,
         ];
     }
 
@@ -41,5 +43,15 @@ class BusinessFactory extends Factory
     public function withTheme(string $themeId): static
     {
         return $this->state(['theme_id' => $themeId]);
+    }
+
+    public function pro(): static
+    {
+        return $this->state(['subscription_tier' => SubscriptionTier::Pro->value]);
+    }
+
+    public function proMax(): static
+    {
+        return $this->state(['subscription_tier' => SubscriptionTier::ProMax->value]);
     }
 }

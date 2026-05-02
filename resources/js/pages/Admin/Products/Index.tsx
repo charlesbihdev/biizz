@@ -1,6 +1,7 @@
 import { Link } from '@inertiajs/react';
-import { Plus, Package } from 'lucide-react';
+import { Package, Plus } from 'lucide-react';
 import { useState } from 'react';
+import { AddProductCta } from '@/components/admin/products/AddProductCta';
 import { ProductDetailModal } from '@/components/admin/products/ProductDetailModal';
 import { ProductFilters } from '@/components/admin/products/ProductFilters';
 import type { ProductFiltersState } from '@/components/admin/products/ProductFilters';
@@ -27,12 +28,14 @@ type PaginatedProducts = {
 type Props = {
     business: Business;
     products: PaginatedProducts;
+    /** Unfiltered count, used for tier-limit comparisons. */
+    products_count: number;
     categories: Category[];
     filters: ProductFiltersState;
     stats?: ProductStats;
 };
 
-export default function ProductsIndex({ business, products, categories, filters, stats }: Props) {
+export default function ProductsIndex({ business, products, products_count, categories, filters, stats }: Props) {
     const [viewingProduct, setViewingProduct] = useState<Product | null>(null);
     const b = { business: business.slug };
     const isDigital = business.business_type === 'digital';
@@ -53,13 +56,7 @@ export default function ProductsIndex({ business, products, categories, filters,
                         <h1 className="text-xl font-bold text-site-fg">Products</h1>
                         <p className="mt-0.5 text-sm text-site-muted">{products.total} total</p>
                     </div>
-                    <Link
-                        href={create(b).url}
-                        className="inline-flex items-center gap-2 rounded-full bg-brand px-5 py-2 text-sm font-bold text-white transition hover:bg-brand-hover"
-                    >
-                        <Plus className="h-4 w-4" />
-                        Add product
-                    </Link>
+                    <AddProductCta createUrl={create(b).url} productsCount={products_count} />
                 </div>
 
                 {!isDigital && <ProductOversoldBanner stats={stats} />}

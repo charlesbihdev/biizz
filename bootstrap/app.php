@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Middleware\EnsureBusinessOwner;
+use App\Http\Middleware\EnsureFeatureAccess;
 use App\Http\Middleware\HandleAppearance;
 use App\Http\Middleware\HandleInertiaRequests;
 use App\Http\Middleware\ResolveBusiness;
@@ -32,6 +33,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'business' => ResolveBusiness::class,
             'business.owner' => EnsureBusinessOwner::class,
+            'feature' => EnsureFeatureAccess::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

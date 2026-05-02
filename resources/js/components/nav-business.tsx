@@ -12,6 +12,7 @@ import {
     Settings,
     ShoppingBag,
     Users,
+    Wallet,
 } from 'lucide-react';
 import {
     SidebarGroup,
@@ -22,6 +23,7 @@ import {
 } from '@/components/ui/sidebar';
 import { useCurrentUrl } from '@/hooks/use-current-url';
 import { show } from '@/routes/businesses';
+import { show as billingShow } from '@/routes/businesses/billing';
 import { index as categoriesIndex } from '@/routes/businesses/categories';
 import { index as customersIndex } from '@/routes/businesses/customers';
 import { index as ordersIndex } from '@/routes/businesses/orders';
@@ -123,6 +125,7 @@ export function NavBusiness({ business }: { business: Business }) {
 
     const settingsItems: NavEntry[] = [
         { title: 'Settings', href: settingsEdit(b).url, icon: Settings },
+        { title: 'Billing',  href: billingShow(b).url,  icon: Wallet },
     ];
 
     const isActive = (item: NavEntry): boolean => {

@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Auth\AuthIntent;
 use App\Services\BusinessContext;
+use App\Services\Subscription\DigitalStorageService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -70,11 +71,60 @@ class HandleInertiaRequests extends Middleware
                     'id' => $b->id,
                     'name' => $b->name,
                     'slug' => $b->slug,
+                    'business_type' => $b->business_type,
                     'theme_id' => $b->theme_id,
                     'theme_settings' => $b->theme_settings,
                     'meta_pixel_id' => $b->meta_pixel_id,
                     'ai_enabled' => $b->ai_enabled,
                     'customer_login_mode' => $b->customer_login_mode,
+                ];
+            },
+            // Subscription tier snapshot for the active business. Drives the
+            // <TierLock> component, useTier() hook, and upgrade modal on
+            // the frontend. See ANALYTICS_TIERS.md sections 1.1, 1.3, 7.3.
+            //
+            // The `tiers` map carries every tier's limits + flags so upsell
+            // copy ("Upgrade to Pro for up to 8 photos") can stay config-
+            // driven instead of hardcoded in components.
+            'tier' => function () {
+                if (! BusinessContext::isSet()) {
+                    return null;
+                }
+
+                $b = BusinessContext::current();
+                $tier = $b->subscription_tier;
+
+                return [
+                    'current' => $tier->value,
+                    'rank' => $tier->rank(),
+                    'label' => $tier->label(),
+                    'features' => config('biizz.features'),
+                    'limits' => $tier->limits(),
+                    'flags' => $tier->flags(),
+                    'tiers' => config('biizz.tiers'),
+                    'currency' => config('biizz.currency'),
+                    'expires_at' => $b->subscription_expires_at?->toIso8601String(),
+                    'trial_ends_at' => $b->trial_ends_at?->toIso8601String(),
+                    'subscription_status' => $b->subscription_status,
+                    'current_period_end' => $b->current_period_end?->toIso8601String(),
+                    'cancel_at_period_end' => $b->isCancelAtPeriodEnd(),
+                ];
+            },
+            // Live snapshot of digital file storage usage. Drives the
+            // pre-upload quota check in product file pickers and the usage
+            // bar on admin pages. Sums ProductFile.file_size only, so the
+            // query stays O(1) per request.
+            'digitalStorage' => function () {
+                if (! BusinessContext::isSet()) {
+                    return null;
+                }
+
+                $b = BusinessContext::current();
+
+                return [
+                    'used_bytes' => DigitalStorageService::usedBytes($b),
+                    'quota_bytes' => DigitalStorageService::quotaBytes($b),
+                    'per_file_max_bytes' => DigitalStorageService::perFileMaxBytes($b),
                 ];
             },
         ];

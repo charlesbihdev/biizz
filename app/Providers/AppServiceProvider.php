@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Auth\AuthIntent;
 use App\Auth\CustomerUserProvider;
 use App\Services\BusinessContext;
+use App\Services\Payments\PaystackGateway;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Auth\Middleware\RedirectIfAuthenticated;
@@ -24,7 +25,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Default PaystackGateway uses the platform secret. Storefront and
+        // marketplace flows that need a per-business merchant secret build
+        // their own instance via PaymentGatewayFactory.
+        $this->app->bind(PaystackGateway::class, fn () => new PaystackGateway(
+            (string) config('services.paystack.secret', ''),
+        ));
     }
 
     /**

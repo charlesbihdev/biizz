@@ -1,7 +1,14 @@
+import { Link, usePage } from '@inertiajs/react';
 import { useEffect, useState } from 'react';
-import { Link } from '@inertiajs/react';
+
+const NAV_ITEMS: { label: string; href: string }[] = [
+    { label: 'Features', href: '/features' },
+    { label: 'Pricing', href: '/pricing' },
+    { label: 'Marketplace', href: '/marketplace' },
+];
 
 export default function LandingNav() {
+    const { url } = usePage();
     const [stuck, setStuck] = useState(false);
 
     useEffect(() => {
@@ -9,6 +16,14 @@ export default function LandingNav() {
         window.addEventListener('scroll', handler, { passive: true });
         return () => window.removeEventListener('scroll', handler);
     }, []);
+
+    // Inertia's `url` is the path + query (e.g. "/pricing?ref=foo"). We
+    // match the pathname only so query strings don't break highlighting,
+    // and use `startsWith` so nested routes (e.g. /marketplace/foo) keep
+    // the parent link active.
+    const pathname = url.split('?')[0] ?? '/';
+    const isActive = (href: string) =>
+        href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(`${href}/`);
 
     return (
         <header
@@ -20,22 +35,33 @@ export default function LandingNav() {
             ].join(' ')}
         >
             <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-6">
-                <span className="text-lg font-bold tracking-tight text-site-fg">
+                <Link href="/" className="text-lg font-bold tracking-tight text-site-fg">
                     biizz<span className="text-brand">.</span>app
-                </span>
+                </Link>
 
                 <nav className="hidden items-center gap-8 md:flex">
-                    {['Features', 'Pricing', 'Docs', 'Marketplace'].map(
-                        (item) => (
+                    {NAV_ITEMS.map(({ label, href }) => {
+                        const active = isActive(href);
+                        return (
                             <Link
-                                key={item}
-                                href={`${item.toLowerCase()}`}
-                                className="text-sm text-site-muted transition hover:text-site-fg"
+                                key={label}
+                                href={href}
+                                className={`relative text-sm transition ${
+                                    active
+                                        ? 'font-semibold text-site-fg'
+                                        : 'text-site-muted hover:text-site-fg'
+                                }`}
                             >
-                                {item}
+                                {label}
+                                {active && (
+                                    <span
+                                        aria-hidden="true"
+                                        className="absolute -bottom-1 left-0 right-0 mx-auto h-0.5 w-6 rounded-full bg-brand"
+                                    />
+                                )}
                             </Link>
-                        ),
-                    )}
+                        );
+                    })}
                 </nav>
 
                 <div className="flex items-center gap-3">

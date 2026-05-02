@@ -17,6 +17,7 @@ import { QuickAddCategoryDialog } from '@/components/admin/products/QuickAddCate
 import { VideoEmbedField } from '@/components/admin/theme/VideoEmbedField';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { useTier } from '@/hooks/use-tier';
 import { getProductFields } from '@/Themes/registry';
 import type { Business, Category } from '@/types';
 
@@ -75,6 +76,8 @@ export default function ProductForm({
 }: Props) {
     const isDigital = business.business_type === 'digital';
     const themeFields = getProductFields(business.theme_id);
+    const { limit } = useTier();
+    const imageMax = limit('max_product_images') ?? 8;
 
     const [slugManuallyEdited, setSlugManuallyEdited] = useState(!!data.slug);
     const [quickAddOpen, setQuickAddOpen] = useState(false);
@@ -189,7 +192,11 @@ export default function ProductForm({
                                 setSlugManuallyEdited(true);
                                 onChange('slug', e.target.value);
                             }}
-                            placeholder="e.g. the-100-day-formula"
+                            placeholder={
+                                isDigital
+                                    ? 'e.g. the-100-day-formula'
+                                    : 'e.g. white-linen-dress'
+                            }
                             className="border-site-border font-mono text-sm focus-visible:ring-brand/30"
                         />
                         <InputError message={errors.slug} />
@@ -216,8 +223,8 @@ export default function ProductForm({
                                     }
                                 />
                                 <p className="text-xs text-site-muted">
-                                    First photo is the main image. Max 8 photos,
-                                    6 MB each.
+                                    First photo is the main image. Max {imageMax}{' '}
+                                    {imageMax === 1 ? 'photo' : 'photos'}, 6 MB each.
                                 </p>
                                 <InputError message={errors.images as string} />
                             </div>
