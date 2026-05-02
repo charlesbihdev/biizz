@@ -2,12 +2,13 @@ import { Link } from '@inertiajs/react';
 import { ShoppingBag } from 'lucide-react';
 import { OrderFilters } from '@/components/admin/orders/OrderFilters';
 import type { OrderFiltersState } from '@/components/admin/orders/OrderFilters';
+import { OrderStatsRow } from '@/components/admin/orders/OrderStatsRow';
 import AppSidebarLayout from '@/layouts/app/app-sidebar-layout';
 import { show } from '@/routes/businesses';
 import { show as customerShow } from '@/routes/businesses/customers';
 import { index, show as orderShow } from '@/routes/businesses/orders';
 import { edit as productEdit } from '@/routes/businesses/products';
-import type { Business, Order, OrderStatus } from '@/types';
+import type { Business, Order, OrderStats, OrderStatus } from '@/types';
 
 // ─── Physical orders ────────────────────────────────────────────────────────
 
@@ -49,12 +50,14 @@ type Props =
           isDigital: false;
           business: Business;
           orders: PaginatedOrders;
+          stats?: OrderStats;
           filters: OrderFiltersState;
       }
     | {
           isDigital: true;
           business: Business;
           purchases: PaginatedPurchases;
+          stats?: OrderStats;
           filters: OrderFiltersState;
       };
 
@@ -369,12 +372,13 @@ const PHYSICAL_TABS = [
 const DIGITAL_TABS = ['all', 'paid', 'free', 'pending'] as const;
 
 export default function OrdersIndex(props: Props) {
-    const { business, filters, isDigital } = props;
+    const { business, filters, isDigital, stats } = props;
     const b = { business: business.slug };
 
     const tabs = isDigital ? DIGITAL_TABS : PHYSICAL_TABS;
     const total = isDigital ? props.purchases.total : props.orders.total;
     const paginated = isDigital ? props.purchases : props.orders;
+    const currency = !isDigital ? (props.orders.data[0]?.currency ?? 'GHS') : 'GHS';
 
     const tabHref = (tab: string) => {
         const params: Record<string, string> = {};
@@ -406,6 +410,13 @@ export default function OrdersIndex(props: Props) {
                     </p>
                 </div>
 
+                <OrderStatsRow
+                    stats={stats}
+                    currency={currency}
+                    filters={filters}
+                    isDigital={isDigital}
+                />
+
                 <OrderFilters
                     indexUrl={index(b).url}
                     filters={filters}
@@ -420,8 +431,8 @@ export default function OrdersIndex(props: Props) {
                             preserveScroll
                             only={
                                 isDigital
-                                    ? ['purchases', 'filters']
-                                    : ['orders', 'filters']
+                                    ? ['purchases', 'filters', 'stats']
+                                    : ['orders', 'filters', 'stats']
                             }
                             className={`shrink-0 rounded-t px-4 py-2 text-sm font-medium capitalize transition ${
                                 filters.status === tab

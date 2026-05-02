@@ -27,7 +27,7 @@ export function CustomerFilters({ indexUrl, filters }: Props) {
         router.get(indexUrl, params, {
             preserveState: true,
             preserveScroll: true,
-            only: ['customers', 'filters'],
+            only: ['customers', 'filters', 'stats'],
         });
     };
 

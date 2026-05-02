@@ -29,7 +29,7 @@ export function ProductFilters({ indexUrl, filters, categories }: Props) {
         router.get(indexUrl, params, {
             preserveState: true,
             preserveScroll: true,
-            only: ['products', 'filters'],
+            only: ['products', 'filters', 'stats'],
         });
     };
 

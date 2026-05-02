@@ -7,6 +7,7 @@ use App\Http\Requests\Admin\StoreProductRequest;
 use App\Http\Requests\Admin\UpdateProductRequest;
 use App\Models\Business;
 use App\Models\Product;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
@@ -14,6 +15,8 @@ use Inertia\Response;
 
 class ProductController extends Controller
 {
+    private const LOW_STOCK_MAX = 5;
+
     public function index(Business $business): Response
     {
         abort_unless($business->isOwnedBy(auth()->user()), 403);
@@ -36,7 +39,52 @@ class ProductController extends Controller
                 'status' => request('status', 'all'),
                 'category' => request('category', ''),
             ],
+            'stats' => Inertia::defer(fn () => $this->buildStats($business)),
         ]);
+    }
+
+    private function buildStats(Business $business): array
+    {
+        $base = fn () => $this->applyStatsFilters(
+            Product::query()->where('business_id', $business->id),
+        );
+
+        $isDigital = $business->business_type === 'digital';
+
+        $common = [
+            'active' => $base()->where('is_active', true)->count(),
+            'hidden' => $base()->where('is_active', false)->count(),
+        ];
+
+        if ($isDigital) {
+            return $common + [
+                'free' => $base()->where('is_active', true)->where('price', 0)->count(),
+                'paid' => $base()->where('is_active', true)->where('price', '>', 0)->count(),
+            ];
+        }
+
+        return $common + [
+            'out_of_stock' => $base()->where('is_active', true)->where('stock', 0)->count(),
+            'low_stock' => $base()->where('is_active', true)->whereBetween('stock', [1, self::LOW_STOCK_MAX])->count(),
+            'oversold' => $base()->where('is_active', true)->where('stock', '<', 0)->count(),
+        ];
+    }
+
+    /**
+     * Apply search and category filters to a stats query. Status (active/hidden)
+     * is intentionally excluded — those tiles ARE the status breakdown.
+     */
+    private function applyStatsFilters(Builder $q): Builder
+    {
+        if ($term = request('search')) {
+            $q->where('name', 'like', "%{$term}%");
+        }
+
+        if ($category = request('category')) {
+            $q->where('category_id', $category);
+        }
+
+        return $q;
     }
 
     public function create(Business $business): Response

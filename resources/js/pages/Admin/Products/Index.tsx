@@ -4,11 +4,13 @@ import { useState } from 'react';
 import { ProductDetailModal } from '@/components/admin/products/ProductDetailModal';
 import { ProductFilters } from '@/components/admin/products/ProductFilters';
 import type { ProductFiltersState } from '@/components/admin/products/ProductFilters';
+import { ProductOversoldBanner } from '@/components/admin/products/ProductOversoldBanner';
 import { ProductRow } from '@/components/admin/products/ProductRow';
+import { ProductStatsRow } from '@/components/admin/products/ProductStatsRow';
 import AppSidebarLayout from '@/layouts/app/app-sidebar-layout';
 import { show } from '@/routes/businesses';
 import { create, index } from '@/routes/businesses/products';
-import type { Business, Product } from '@/types';
+import type { Business, Product, ProductStats } from '@/types';
 
 type Category = { id: number; name: string };
 
@@ -27,11 +29,16 @@ type Props = {
     products: PaginatedProducts;
     categories: Category[];
     filters: ProductFiltersState;
+    stats?: ProductStats;
 };
 
-export default function ProductsIndex({ business, products, categories, filters }: Props) {
+export default function ProductsIndex({ business, products, categories, filters, stats }: Props) {
     const [viewingProduct, setViewingProduct] = useState<Product | null>(null);
     const b = { business: business.slug };
+    const isDigital = business.business_type === 'digital';
+    const categoryName = filters.category
+        ? categories.find((c) => String(c.id) === String(filters.category))?.name
+        : undefined;
 
     return (
         <AppSidebarLayout
@@ -54,6 +61,15 @@ export default function ProductsIndex({ business, products, categories, filters 
                         Add product
                     </Link>
                 </div>
+
+                {!isDigital && <ProductOversoldBanner stats={stats} />}
+
+                <ProductStatsRow
+                    stats={stats}
+                    filters={filters}
+                    isDigital={isDigital}
+                    categoryName={categoryName}
+                />
 
                 <ProductFilters indexUrl={index(b).url} filters={filters} categories={categories} />
 

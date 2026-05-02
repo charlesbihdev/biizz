@@ -13,6 +13,12 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+// Marketplace webhook — no business slug, uses platform Paystack key.
+// Must be registered BEFORE the {business:slug} routes below, otherwise
+// "marketplace" gets matched as a business slug and 404s on model binding.
+Route::post('/webhooks/paystack/marketplace', [MarketplacePurchaseController::class, 'webhook'])
+    ->name('webhooks.paystack.marketplace');
+
 Route::prefix('webhooks')->middleware('business')->group(function () {
     Route::post('/paystack/{business:slug}', [CheckoutController::class, 'webhook'])
         ->name('webhooks.paystack');
@@ -20,7 +26,3 @@ Route::prefix('webhooks')->middleware('business')->group(function () {
     Route::post('/junipay/{business:slug}', [CheckoutController::class, 'webhook'])
         ->name('webhooks.junipay');
 });
-
-// Marketplace webhook — no business slug, uses platform Paystack key
-Route::post('/webhooks/paystack/marketplace', [MarketplacePurchaseController::class, 'webhook'])
-    ->name('webhooks.paystack.marketplace');
