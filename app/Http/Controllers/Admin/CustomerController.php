@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Business;
 use App\Models\Customer;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -26,8 +25,8 @@ class CustomerController extends Controller
                         ->orWhere('phone', 'like', "%{$term}%");
                 });
             })
-            ->when(request('status') === 'blocked', fn($q) => $q->where('is_blocked', true))
-            ->when(request('status') === 'active', fn($q) => $q->where('is_blocked', false))
+            ->when(request('status') === 'blocked', fn ($q) => $q->where('is_blocked', true))
+            ->when(request('status') === 'active', fn ($q) => $q->where('is_blocked', false))
             ->latest()
             ->paginate(20)
             ->withQueryString();
@@ -39,46 +38,7 @@ class CustomerController extends Controller
                 'search' => request('search', ''),
                 'status' => request('status', 'all'),
             ],
-            'stats' => Inertia::defer(fn() => $this->buildStats($business)),
         ]);
-    }
-
-    private function buildStats(Business $business): array
-    {
-        $base = fn() => $this->applyStatsFilters(
-            Customer::query()->where('business_id', $business->id),
-        );
-
-        return [
-            'total' => $base()->count(),
-            'active' => $base()->where('is_blocked', false)->count(),
-            'blocked' => $base()->where('is_blocked', true)->count(),
-            'repeat_buyers' => $base()->has('orders', '>=', 2)->count(),
-        ];
-    }
-
-    /**
-     * Apply active customer filters to a stats query.
-     */
-    private function applyStatsFilters(Builder $q): Builder
-    {
-        if ($term = request('search')) {
-            $q->where(function ($q) use ($term) {
-                $q->where('name', 'like', "%{$term}%")
-                    ->orWhere('email', 'like', "%{$term}%")
-                    ->orWhere('phone', 'like', "%{$term}%");
-            });
-        }
-
-        if (request('status') === 'blocked') {
-            $q->where('is_blocked', true);
-        }
-
-        if (request('status') === 'active') {
-            $q->where('is_blocked', false);
-        }
-
-        return $q;
     }
 
     public function show(Business $business, Customer $customer): Response

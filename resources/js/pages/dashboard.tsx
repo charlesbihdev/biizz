@@ -3,12 +3,14 @@ import { Package, ShoppingBag, Store, TrendingUp } from 'lucide-react';
 import { useState } from 'react';
 import { CreateBusinessModal } from '@/components/admin/businesses/CreateBusinessModal';
 import { BusinessCard } from '@/components/admin/businesses/BusinessCard';
+import { DashboardPastDueBanner } from '@/components/admin/billing/PastDueBanner';
 import AppSidebarLayout from '@/layouts/app/app-sidebar-layout';
-import type { Auth, Business } from '@/types';
+import type { Auth, Business, SubscriptionStatus } from '@/types';
 
 type BusinessWithCounts = Business & {
     products_count: number;
     orders_count: number;
+    subscription_status: SubscriptionStatus;
 };
 
 type Props = {
@@ -27,6 +29,9 @@ export default function Dashboard({ businesses }: Props) {
 
     const totalProducts = businesses.reduce((sum, b) => sum + b.products_count, 0);
     const totalOrders = businesses.reduce((sum, b) => sum + b.orders_count, 0);
+    const pastDueBusinesses = businesses
+        .filter((b) => b.subscription_status === 'past_due')
+        .map(({ id, name, slug }) => ({ id, name, slug }));
 
     const stats = [
         { label: 'Businesses', value: String(businesses.length), icon: Store },
@@ -38,6 +43,8 @@ export default function Dashboard({ businesses }: Props) {
     return (
         <AppSidebarLayout breadcrumbs={[{ title: 'Dashboard', href: '/dashboard' }]}>
             <div className="p-6 lg:p-8">
+
+                <DashboardPastDueBanner businesses={pastDueBusinesses} />
 
                 {/* Page heading */}
                 <div className="mb-8 flex items-start justify-between gap-4">

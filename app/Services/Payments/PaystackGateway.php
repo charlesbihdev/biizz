@@ -32,6 +32,10 @@ class PaystackGateway implements PaymentGateway
     /**
      * Initialize a marketplace purchase payment.
      * Used directly by MarketplacePurchaseController.
+     *
+     * Pass `$plan` (a Paystack plan code) when initializing a subscription
+     * billing cycle. Paystack will then auto-create the subscription on
+     * successful charge and bill recurring invoices on its own schedule.
      */
     public function initializeForPurchase(
         string $email,
@@ -40,16 +44,23 @@ class PaystackGateway implements PaymentGateway
         string $callbackUrl,
         string $currency = 'GHS',
         array $metadata = [],
+        ?string $plan = null,
     ): InitializeResult {
+        $payload = [
+            'email' => $email,
+            'amount' => $amountInPesewas,
+            'currency' => $currency,
+            'reference' => $reference,
+            'callback_url' => $callbackUrl,
+            'metadata' => $metadata,
+        ];
+
+        if ($plan !== null) {
+            $payload['plan'] = $plan;
+        }
+
         $response = Http::withToken($this->secretKey)
-            ->post($this->baseUrl().'/transaction/initialize', [
-                'email' => $email,
-                'amount' => $amountInPesewas,
-                'currency' => $currency,
-                'reference' => $reference,
-                'callback_url' => $callbackUrl,
-                'metadata' => $metadata,
-            ]);
+            ->post($this->baseUrl().'/transaction/initialize', $payload);
 
         $response->throw();
         $data = $response->json('data');
@@ -59,6 +70,56 @@ class PaystackGateway implements PaymentGateway
             reference: $data['reference'],
             accessCode: $data['access_code'] ?? '',
         );
+    }
+
+    /**
+     * Disable a Paystack subscription so it stops auto-renewing. The
+     * customer keeps access until the current period ends; the merchant is
+     * responsible for downgrading the local tier when that date passes.
+     */
+    public function disableSubscription(string $subscriptionCode, string $emailToken): bool
+    {
+        $response = Http::withToken($this->secretKey)
+            ->post($this->baseUrl().'/subscription/disable', [
+                'code' => $subscriptionCode,
+                'token' => $emailToken,
+            ]);
+
+        return $response->successful() && ($response->json('status') === true);
+    }
+
+    /**
+     * Re-enable a previously-disabled Paystack subscription. Used when the
+     * customer changes their mind before the period ends.
+     */
+    public function enableSubscription(string $subscriptionCode, string $emailToken): bool
+    {
+        $response = Http::withToken($this->secretKey)
+            ->post($this->baseUrl().'/subscription/enable', [
+                'code' => $subscriptionCode,
+                'token' => $emailToken,
+            ]);
+
+        return $response->successful() && ($response->json('status') === true);
+    }
+
+    /**
+     * Fetch Paystack's hosted self-service URL for the given subscription.
+     * The customer can update their card or cancel from the resulting page.
+     * Returns null if Paystack rejects the request or omits the link.
+     */
+    public function manageSubscriptionLink(string $subscriptionCode): ?string
+    {
+        $response = Http::withToken($this->secretKey)
+            ->get($this->baseUrl().'/subscription/'.rawurlencode($subscriptionCode).'/manage/link');
+
+        if (! $response->successful()) {
+            return null;
+        }
+
+        $link = $response->json('data.link');
+
+        return is_string($link) && $link !== '' ? $link : null;
     }
 
     public function verify(string $reference, Business $business, ?string $providerTransactionId = null): VerificationResult
@@ -80,6 +141,7 @@ class PaystackGateway implements PaymentGateway
                 'customer' => [
                     'id' => $data['customer']['id'] ?? null,
                     'email' => $data['customer']['email'] ?? null,
+                    'customer_code' => $data['customer']['customer_code'] ?? null,
                 ],
                 'metadata' => $data['metadata'] ?? [],
                 'ip' => $data['ip_address'] ?? null,

@@ -2,8 +2,10 @@ import { AppContent } from '@/components/app-content';
 import { AppShell } from '@/components/app-shell';
 import { AppSidebar } from '@/components/app-sidebar';
 import { AppSidebarHeader } from '@/components/app-sidebar-header';
+import { TierUpgradeModal } from '@/components/common/TierUpgradeModal';
 import ToastProvider from '@/components/toast-provider';
 import type { AppLayoutProps } from '@/types';
+
 export default function AppSidebarLayout({
     children,
     breadcrumbs = [],
@@ -17,6 +19,10 @@ export default function AppSidebarLayout({
                     {children}
                 </AppContent>
             </AppShell>
+
+            {/* Mounted once at the layout — any Pro pill in the tree opens it
+                via the useUpgradeModal store, no prop drilling. */}
+            <TierUpgradeModal />
         </ToastProvider>
     );
 }

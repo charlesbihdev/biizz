@@ -2,13 +2,39 @@
 
 namespace App\Http\Requests\Admin;
 
+use App\Models\Business;
+use App\Services\Subscription\FeatureAccess;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 
 class UpdateBusinessSettingsRequest extends FormRequest
 {
     public function authorize(): bool
     {
         return true;
+    }
+
+    /**
+     * Tier-aware field forcing — the backend half of the visible-but-grayed
+     * pattern documented in ANALYTICS_TIERS.md section 1.2.
+     *
+     * On Free, `show_branding` is locked ON regardless of what the form
+     * submitted. The toggle on the frontend is rendered disabled (visible-
+     * but-grayed) but a determined user could bypass that with curl, so the
+     * authoritative enforcement lives here.
+     */
+    protected function prepareForValidation(): void
+    {
+        /** @var Business $business */
+        $business = $this->route('business');
+
+        if ($this->filled('slug')) {
+            $this->merge(['slug' => Str::lower((string) $this->input('slug'))]);
+        }
+
+        if (! FeatureAccess::check($business, 'storefront.no_branding')) {
+            $this->merge(['show_branding' => true]);
+        }
     }
 
     /** @return array<string, array<int, string>> */

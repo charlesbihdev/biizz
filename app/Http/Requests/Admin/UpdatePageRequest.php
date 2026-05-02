@@ -4,6 +4,7 @@ namespace App\Http\Requests\Admin;
 
 use App\Models\Business;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class UpdatePageRequest extends FormRequest
@@ -16,6 +17,17 @@ class UpdatePageRequest extends FormRequest
         return $business->isOwnedBy($this->user());
     }
 
+    /**
+     * Normalise the slug to lowercase before validation so the regex rule
+     * never trips on accidental capitals.
+     */
+    protected function prepareForValidation(): void
+    {
+        if ($this->filled('slug')) {
+            $this->merge(['slug' => Str::lower((string) $this->input('slug'))]);
+        }
+    }
+
     /** @return array<string, mixed> */
     public function rules(): array
     {
@@ -25,7 +37,12 @@ class UpdatePageRequest extends FormRequest
         return [
             'title' => ['sometimes', 'required', 'string', 'max:255'],
             'slug' => [
-                'sometimes', 'nullable', 'string', 'max:255', 'regex:/^[a-z0-9\-]+$/',
+                'sometimes',
+
+                'nullable',
+                'string',
+                'max:255',
+                'regex:/^[a-z0-9\-]+$/',
                 Rule::unique('pages')->where('business_id', $business->id)->ignore($this->route('page')),
             ],
             'content' => ['nullable', 'string'],

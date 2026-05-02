@@ -47,7 +47,7 @@ export function OrderFilters({ indexUrl, filters, isDigital = false }: Props) {
         router.get(indexUrl, params, {
             preserveState: true,
             preserveScroll: true,
-            only: [isDigital ? 'purchases' : 'orders', 'filters', 'stats'],
+            only: [isDigital ? 'purchases' : 'orders', 'filters'],
         });
     };
 

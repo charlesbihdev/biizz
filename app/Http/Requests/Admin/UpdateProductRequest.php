@@ -3,7 +3,10 @@
 namespace App\Http\Requests\Admin;
 
 use App\Models\Business;
+use App\Services\Subscription\DigitalStorageService;
+use App\Services\Subscription\FeatureAccess;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 
 class UpdateProductRequest extends FormRequest
@@ -16,6 +19,33 @@ class UpdateProductRequest extends FormRequest
         return $business->isOwnedBy($this->user());
     }
 
+    /**
+     * Normalise the slug to lowercase before validation so a manually
+     * edited slug like "My-Product" passes the lowercase-only regex rule.
+     */
+    protected function prepareForValidation(): void
+    {
+        if ($this->filled('slug')) {
+            $this->merge(['slug' => Str::lower((string) $this->input('slug'))]);
+        }
+
+        /** @var Business $business */
+        $business = $this->route('business');
+        $incoming = $this->file('digital_file');
+
+        if ($incoming !== null) {
+            $quota = DigitalStorageService::quotaBytes($business);
+
+            if ($quota !== null) {
+                $used = DigitalStorageService::usedBytes($business);
+
+                if ($used + $incoming->getSize() > $quota) {
+                    abort(402, 'Storage quota exceeded: upgrade to upload more files.');
+                }
+            }
+        }
+    }
+
     /** @return array<string, mixed> */
     public function rules(): array
     {
@@ -26,6 +56,12 @@ class UpdateProductRequest extends FormRequest
         $hasFile = $product ? $product->files()->exists() : false;
         $effectiveMode = $this->input('delivery_mode', $product?->delivery_mode);
         $needsFile = in_array($effectiveMode, ['reader', 'download'], true);
+        $imageMax = FeatureAccess::limit($business, 'max_product_images') ?? 8;
+
+        $fileMaxBytes = DigitalStorageService::perFileMaxBytes($business);
+        $fileMaxKilobytes = $fileMaxBytes !== null
+            ? (int) ceil($fileMaxBytes / 1024)
+            : 5 * 1024 * 1024;
 
         return [
             'category_id' => $isDigital
@@ -42,7 +78,11 @@ class UpdateProductRequest extends FormRequest
                 : ['nullable'],
             'name' => ['sometimes', 'required', 'string', 'max:255'],
             'slug' => [
-                'sometimes', 'nullable', 'string', 'max:255', 'regex:/^[a-z0-9\-]+$/',
+                'sometimes',
+                'nullable',
+                'string',
+                'max:255',
+                'regex:/^[a-z0-9\-]+$/',
                 Rule::unique('products')->where('business_id', $this->route('business')->id)->ignore($this->route('product')),
             ],
             'description' => ['nullable', 'string', 'max:50000'],
@@ -54,14 +94,14 @@ class UpdateProductRequest extends FormRequest
             'tags' => ['nullable', 'array'],
             'tags.*' => ['string', 'max:50'],
             'images' => $isDigital
-                ? ['sometimes', 'required', 'array', 'min:1', 'max:8']
-                : ['nullable', 'array', 'max:8'],
+                ? ['sometimes', 'required', 'array', 'min:1', "max:{$imageMax}"]
+                : ['nullable', 'array', "max:{$imageMax}"],
             'images.*.file' => ['nullable', 'file', 'image', 'mimes:jpeg,png,jpg,gif,webp', 'max:6144'],
             'images.*.alt' => ['nullable', 'string', 'max:255'],
             'images.*.url' => ['nullable', 'string', 'max:2048'],
             'digital_file' => ($isDigital && $needsFile && ! $hasFile)
-                ? ['required', 'file', 'max:51200', 'mimes:pdf,zip,epub']
-                : ['nullable', 'file', 'max:51200', 'mimes:pdf,zip,epub'],
+                ? ['required', 'file', "max:{$fileMaxKilobytes}", 'mimes:pdf,zip,epub']
+                : ['nullable', 'file', "max:{$fileMaxKilobytes}", 'mimes:pdf,zip,epub'],
             'metadata' => ['nullable', 'array'],
         ];
     }

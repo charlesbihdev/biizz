@@ -33,7 +33,7 @@ export function useMetaPixel(pixelId: string): UseMetaPixelReturn {
             if (typeof window === 'undefined') return;
             if (typeof (window as Window & { fbq?: Function }).fbq !== 'function') return;
 
-            (window as Window & { fbq: Function }).fbq('track', event, data);
+            (window as unknown as Window & { fbq: Function }).fbq('track', event, data);
         },
         [pixelId],
     );

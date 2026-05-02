@@ -3,6 +3,7 @@ import { LayoutDashboard } from 'lucide-react';
 import AppLogo from '@/components/app-logo';
 import { NavBusiness } from '@/components/nav-business';
 import { NavMain } from '@/components/nav-main';
+import { SidebarTierBadge } from '@/components/sidebar-tier-badge';
 import { UserAvatarMenu } from '@/components/user-avatar-menu';
 import {
     Sidebar,
@@ -45,6 +46,7 @@ export function AppSidebar() {
             </SidebarContent>
 
             <SidebarFooter>
+                <SidebarTierBadge />
                 <UserAvatarMenu />
             </SidebarFooter>
         </Sidebar>

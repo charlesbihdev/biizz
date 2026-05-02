@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\SubscriptionTier;
 use App\Support\DefaultPages;
 use Database\Factories\BusinessFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
@@ -10,6 +11,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 /**
@@ -44,6 +46,14 @@ use Illuminate\Support\Str;
     'show_branding',
     'default_payment_provider',
     'customer_login_mode',
+    'subscription_tier',
+    'trial_ends_at',
+    'subscription_gateway',
+    'subscription_customer_id',
+    'subscription_id',
+    'paystack_email_token',
+    'subscription_status',
+    'current_period_end',
 ])]
 class Business extends Model
 {
@@ -84,8 +94,21 @@ class Business extends Model
             'theme_settings' => 'array',
             'social_links' => 'array',
             'ai_enabled' => 'boolean',
+            'subscription_tier' => SubscriptionTier::class,
+            'trial_ends_at' => 'datetime',
+            'current_period_end' => 'datetime',
         ];
     }
+
+    public const SUBSCRIPTION_STATUS_INACTIVE = 'inactive';
+
+    public const SUBSCRIPTION_STATUS_ACTIVE = 'active';
+
+    public const SUBSCRIPTION_STATUS_PAST_DUE = 'past_due';
+
+    public const SUBSCRIPTION_STATUS_CANCELED = 'canceled';
+
+    public const SUBSCRIPTION_STATUS_CANCEL_AT_PERIOD_END = 'cancel_at_period_end';
 
     // -------------------------------------------------------------------------
     // Relationships
@@ -161,5 +184,54 @@ class Business extends Model
     public function isOwnedBy(User $user): bool
     {
         return $this->owner_id === $user->id;
+    }
+
+    /**
+     * Switch the subscription tier and record the change in the audit log.
+     * Wrap both writes in a transaction so the trail is always consistent.
+     */
+    public function setTier(SubscriptionTier $tier, ?User $by = null, ?string $reason = null): void
+    {
+        DB::transaction(function () use ($tier, $by, $reason): void {
+            $from = $this->subscription_tier;
+
+            if ($from === $tier) {
+                return;
+            }
+
+            $this->update(['subscription_tier' => $tier]);
+
+            $this->subscriptionChanges()->create([
+                'from_tier' => $from->value,
+                'to_tier' => $tier->value,
+                'changed_by' => $by?->id,
+                'reason' => $reason,
+            ]);
+        });
+    }
+
+    /** @return HasMany<SubscriptionChange, $this> */
+    public function subscriptionChanges(): HasMany
+    {
+        return $this->hasMany(SubscriptionChange::class);
+    }
+
+    /** @return HasMany<SubscriptionInvoice, $this> */
+    public function subscriptionInvoices(): HasMany
+    {
+        return $this->hasMany(SubscriptionInvoice::class);
+    }
+
+    public function hasActiveSubscription(): bool
+    {
+        return in_array($this->subscription_status, [
+            self::SUBSCRIPTION_STATUS_ACTIVE,
+            self::SUBSCRIPTION_STATUS_CANCEL_AT_PERIOD_END,
+        ], true);
+    }
+
+    public function isCancelAtPeriodEnd(): bool
+    {
+        return $this->subscription_status === self::SUBSCRIPTION_STATUS_CANCEL_AT_PERIOD_END;
     }
 }

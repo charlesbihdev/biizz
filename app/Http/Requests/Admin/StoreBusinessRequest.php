@@ -3,12 +3,25 @@
 namespace App\Http\Requests\Admin;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Str;
 
 class StoreBusinessRequest extends FormRequest
 {
     public function authorize(): bool
     {
         return $this->user() !== null;
+    }
+
+    /**
+     * Lowercase the submitted slug so /dashboard/b/{slug} URLs and
+     * unique-index lookups stay case-consistent. `alpha_dash` accepts
+     * mixed case but mixed-case slugs cause confusing 404s downstream.
+     */
+    protected function prepareForValidation(): void
+    {
+        if ($this->filled('slug')) {
+            $this->merge(['slug' => Str::lower((string) $this->input('slug'))]);
+        }
     }
 
     /** @return array<string, mixed> */
