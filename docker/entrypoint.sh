@@ -33,4 +33,7 @@ fi
 
 php artisan storage:link 2>/dev/null || true
 
+# Tell any running workers to drain so supervisord brings up fresh ones on new code.
+php artisan queue:restart
+
 exec /usr/bin/supervisord -c /etc/supervisor/conf.d/supervisord.conf
