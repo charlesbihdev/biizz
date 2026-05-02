@@ -33,6 +33,10 @@ class StartSubscriptionCheckoutRequest extends FormRequest
 
         return [
             'target' => ['required', 'string', Rule::in($billable)],
+            // 'auto' sends Paystack a `plan` (card auto-renew). 'manual'
+            // omits the plan, so the hosted page exposes momo/bank/card
+            // and no recurring subscription is created.
+            'mode' => ['required', 'string', Rule::in(['auto', 'manual'])],
         ];
     }
 
@@ -42,7 +46,16 @@ class StartSubscriptionCheckoutRequest extends FormRequest
         $business = $this->route('business');
         $target = SubscriptionTier::from((string) $this->validated('target'));
 
-        if ($business->subscription_tier === $target) {
+        // Allow same-tier manual checkout whenever no card auto-renew is
+        // doing the job. Covers past_due restores and active manual users
+        // topping up before period_end.
+        $isManualReentry = $this->mode() === 'manual'
+            && (
+                $business->subscription_status === Business::SUBSCRIPTION_STATUS_PAST_DUE
+                || $business->subscription_id === null
+            );
+
+        if ($business->subscription_tier === $target && ! $isManualReentry) {
             throw ValidationException::withMessages([
                 'target' => "You're already on {$target->label()}.",
             ]);
@@ -52,5 +65,10 @@ class StartSubscriptionCheckoutRequest extends FormRequest
     public function targetTier(): SubscriptionTier
     {
         return SubscriptionTier::from((string) $this->validated('target'));
+    }
+
+    public function mode(): string
+    {
+        return (string) $this->validated('mode');
     }
 }

@@ -20,7 +20,7 @@ test('billing page renders for the business owner', function () {
             fn (AssertableInertia $page) => $page
                 ->component('Admin/Billing/Index')
                 ->where('business.id', $this->business->id)
-                ->where('currency', config('biizz.currency'))
+                ->has('invoices')
         );
 });
 

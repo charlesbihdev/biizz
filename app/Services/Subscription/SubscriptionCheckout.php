@@ -23,15 +23,24 @@ final class SubscriptionCheckout
         private readonly PaystackGateway $gateway,
     ) {}
 
-    public function start(Business $business, SubscriptionTier $target, User $actor): InitializeResult
+    public const MODE_AUTO = 'auto';
+
+    public const MODE_MANUAL = 'manual';
+
+    public function start(Business $business, SubscriptionTier $target, User $actor, string $mode = self::MODE_AUTO): InitializeResult
     {
         PlanCatalog::assertBillable($target);
 
-        $planCode = PlanCatalog::paystackPlanCodeFor($target);
-        if ($planCode === null) {
-            throw new RuntimeException(
-                "No Paystack plan code configured for {$target->value}. Run `php artisan paystack:sync-plans`."
-            );
+        $isManual = $mode === self::MODE_MANUAL;
+
+        $planCode = null;
+        if (! $isManual) {
+            $planCode = PlanCatalog::paystackPlanCodeFor($target);
+            if ($planCode === null) {
+                throw new RuntimeException(
+                    "No Paystack plan code configured for {$target->value}. Run `php artisan paystack:sync-plans`."
+                );
+            }
         }
 
         $price = PlanCatalog::priceFor($target);
@@ -47,6 +56,7 @@ final class SubscriptionCheckout
             'metadata' => [
                 'actor_id' => $actor->id,
                 'actor_email' => $actor->email,
+                'mode' => $mode,
             ],
         ]);
 
@@ -61,6 +71,7 @@ final class SubscriptionCheckout
                 'business_id' => $business->id,
                 'business_slug' => $business->slug,
                 'target_tier' => $target->value,
+                'mode' => $mode,
             ],
             plan: $planCode,
         );

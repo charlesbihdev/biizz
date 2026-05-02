@@ -47,7 +47,6 @@ use Illuminate\Support\Str;
     'default_payment_provider',
     'customer_login_mode',
     'subscription_tier',
-    'subscription_expires_at',
     'trial_ends_at',
     'subscription_gateway',
     'subscription_customer_id',
@@ -96,7 +95,6 @@ class Business extends Model
             'social_links' => 'array',
             'ai_enabled' => 'boolean',
             'subscription_tier' => SubscriptionTier::class,
-            'subscription_expires_at' => 'datetime',
             'trial_ends_at' => 'datetime',
             'current_period_end' => 'datetime',
         ];

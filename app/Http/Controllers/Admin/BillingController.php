@@ -48,7 +48,6 @@ class BillingController extends Controller
 
         return Inertia::render('Admin/Billing/Index', [
             'business' => $business,
-            'currency' => config('biizz.currency'),
             'invoices' => $invoices,
         ]);
     }
@@ -59,7 +58,7 @@ class BillingController extends Controller
         SubscriptionCheckout $checkout,
     ): HttpResponse|RedirectResponse {
         try {
-            $result = $checkout->start($business, $request->targetTier(), $request->user());
+            $result = $checkout->start($business, $request->targetTier(), $request->user(), $request->mode());
         } catch (Throwable $e) {
             Log::error('Subscription checkout init failed', [
                 'business_id' => $business->id,
@@ -163,5 +162,40 @@ class BillingController extends Controller
 
         return to_route('businesses.billing.show', $business)
             ->with('success', 'Your plan will keep renewing.');
+    }
+
+    /**
+     * Send the owner to Paystack's hosted self-service portal for the
+     * current subscription (update card, etc). Owner-only.
+     */
+    public function manage(Business $business, PaystackGateway $gateway): HttpResponse|RedirectResponse
+    {
+        abort_unless($business->isOwnedBy(auth()->user()), 403);
+
+        $subscriptionCode = $business->subscription_id;
+
+        if (! is_string($subscriptionCode) || $subscriptionCode === '') {
+            return to_route('businesses.billing.show', $business)
+                ->with('error', "There's no card subscription to manage on this plan.");
+        }
+
+        try {
+            $url = $gateway->manageSubscriptionLink($subscriptionCode);
+        } catch (Throwable $e) {
+            Log::error('Paystack manage link failed', [
+                'business_id' => $business->id,
+                'error' => $e->getMessage(),
+            ]);
+
+            return to_route('businesses.billing.show', $business)
+                ->with('error', "We couldn't open the portal. Please try again.");
+        }
+
+        if ($url === null) {
+            return to_route('businesses.billing.show', $business)
+                ->with('error', "We couldn't open the portal. Please try again.");
+        }
+
+        return Inertia::location($url);
     }
 }

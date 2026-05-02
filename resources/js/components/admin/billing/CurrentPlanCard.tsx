@@ -1,122 +1,177 @@
+import { router, usePage } from '@inertiajs/react';
 import { Sparkles } from 'lucide-react';
-import { cn, formatPrice, formatShortDate } from '@/lib/utils';
+import { useState } from 'react';
+import { checkout as checkoutRoute } from '@/routes/businesses/billing';
+import { formatShortDate } from '@/lib/utils';
 import type { SubscriptionStatus, SubscriptionTier, TierMeta } from '@/types';
 import { UpgradeButton } from './UpgradeButton';
-import { CancelPlanDialog } from './CancelPlanDialog';
+
+const REMINDER_WINDOW_MS = 3 * 24 * 60 * 60 * 1000;
 
 interface Props {
     current: SubscriptionTier;
     label: string;
     meta: TierMeta | null;
-    currency: string;
     status: SubscriptionStatus;
     currentPeriodEnd: string | null;
     cancelAtPeriodEnd: boolean;
+    autoRenew: boolean;
 }
 
-export function CurrentPlanCard({
-    current,
-    label,
-    meta,
-    currency,
-    status,
-    currentPeriodEnd,
-    cancelAtPeriodEnd,
-}: Props) {
+export function CurrentPlanCard({ current, label, status, currentPeriodEnd, cancelAtPeriodEnd, autoRenew }: Props) {
     const isFree = current === 'free';
-    const price = meta?.price ?? 0;
-    const tagline = meta?.tagline ?? '';
 
     return (
-        <section className="mb-6 overflow-hidden rounded-3xl border border-site-border bg-white">
-            <div
-                className={cn(
-                    'px-6 py-5 sm:px-8',
-                    isFree
-                        ? 'border-b border-site-border bg-site-surface'
-                        : 'border-b border-brand/20 bg-linear-to-br from-brand to-brand/80 text-white',
-                )}
-            >
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                    <div>
-                        <p
-                            className={cn(
-                                'text-[10px] font-bold uppercase tracking-widest',
-                                isFree ? 'text-site-muted' : 'text-white/85',
-                            )}
-                        >
-                            Current plan
-                        </p>
-                        <div className="mt-1 flex items-center gap-2">
-                            {!isFree && <Sparkles className="h-5 w-5 text-white" />}
-                            <h2 className={cn('text-2xl font-bold', isFree ? 'text-site-fg' : 'text-white')}>
-                                {label}
-                            </h2>
-                        </div>
-                        <p className={cn('mt-1 text-sm', isFree ? 'text-site-muted' : 'text-white/85')}>{tagline}</p>
-                    </div>
-
-                    <div className="text-right">
-                        <p className={cn('text-2xl font-bold', isFree ? 'text-site-fg' : 'text-white')}>
-                            {formatPrice(price, currency)}
-                        </p>
-                        {!isFree && <p className="text-xs text-white/85">/ month</p>}
-                    </div>
+        <section className="flex flex-wrap items-start justify-between gap-4 border-b border-site-border pb-8">
+            <div className="flex items-start gap-4">
+                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-site-surface">
+                    <Sparkles className="h-5 w-5 text-site-muted" />
+                </div>
+                <div>
+                    <h2 className="text-base font-bold text-site-fg">{label} plan</h2>
+                    {!isFree && <p className="mt-0.5 text-sm text-site-muted">Monthly</p>}
+                    <PlanStatus
+                        isFree={isFree}
+                        status={status}
+                        renewsOn={currentPeriodEnd}
+                        cancelAtPeriodEnd={cancelAtPeriodEnd}
+                        autoRenew={autoRenew}
+                        target={current}
+                    />
                 </div>
             </div>
 
-            <div className="px-6 py-5 sm:px-8">
-                {isFree ? <FreeBody /> : <PaidBody status={status} renewsOn={currentPeriodEnd} cancelAtPeriodEnd={cancelAtPeriodEnd} />}
-            </div>
+            {isFree && <UpgradeButton target="pro" label="Upgrade to Pro" />}
         </section>
     );
 }
 
-function FreeBody() {
-    return (
-        <div className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
-            <div>
-                <p className="text-sm font-medium text-site-fg">You&rsquo;re on the Free plan</p>
-                <p className="mt-1 text-xs text-site-muted">
-                    Upgrade to unlock unlimited products, deeper analytics, and remove biizz branding.
-                </p>
-            </div>
-            <UpgradeButton target="pro" label="Upgrade to Pro" />
-        </div>
-    );
-}
-
-function PaidBody({
+function PlanStatus({
+    isFree,
     status,
     renewsOn,
     cancelAtPeriodEnd,
+    autoRenew,
+    target,
 }: {
+    isFree: boolean;
     status: SubscriptionStatus;
     renewsOn: string | null;
     cancelAtPeriodEnd: boolean;
+    autoRenew: boolean;
+    target: SubscriptionTier;
 }) {
-    const statusLabel =
-        status === 'past_due'
-            ? { text: 'Past due', tone: 'text-red-600' }
-            : cancelAtPeriodEnd
-              ? { text: 'Cancels at period end', tone: 'text-amber-600' }
-              : { text: 'Active', tone: 'text-emerald-600' };
+    if (isFree) {
+        return (
+            <p className="mt-1 max-w-md text-sm text-site-muted">
+                Upgrade to unlock unlimited products, deeper analytics, and remove biizz branding from your storefront.
+            </p>
+        );
+    }
+
+    // 1. past_due — keep the body clean, the PastDueBanner above carries the urgency.
+    if (status === 'past_due') {
+        return (
+            <p className="mt-1 text-sm font-semibold text-red-600">
+                Past due
+            </p>
+        );
+    }
+
+    // 2 + 3. cancel_at_period_end — same amber pill before and during grace.
+    if (cancelAtPeriodEnd) {
+        const periodPassed = renewsOn ? new Date(renewsOn).getTime() < Date.now() : false;
+        return (
+            <p className="mt-1 text-sm text-amber-600">
+                {periodPassed
+                    ? `Ended on ${formatShortDate(renewsOn)}`
+                    : `Ends on ${formatShortDate(renewsOn)}`}
+            </p>
+        );
+    }
+
+    // 4. auto-renew (card subscription, healthy)
+    if (autoRenew) {
+        return (
+            <p className="mt-1 text-sm text-site-muted">
+                Renews on {formatShortDate(renewsOn)}.
+            </p>
+        );
+    }
+
+    // 5 + 6. manual lane (no Paystack subscription).
+    const msUntilExpiry = renewsOn ? new Date(renewsOn).getTime() - Date.now() : null;
+    const expired = msUntilExpiry !== null && msUntilExpiry <= 0;
+    const closeToExpiry = msUntilExpiry !== null && msUntilExpiry > 0 && msUntilExpiry <= REMINDER_WINDOW_MS;
+
+    if (expired) {
+        return (
+            <div className="mt-1 flex flex-wrap items-center gap-3">
+                <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide text-amber-700">
+                    Expired
+                </span>
+                <ManualCheckoutButton target={target} label="Renew now" />
+            </div>
+        );
+    }
+
+    if (closeToExpiry) {
+        return (
+            <div className="mt-1 flex flex-wrap items-center gap-3">
+                <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-xs font-bold uppercase tracking-wide text-amber-700">
+                    Expires soon
+                </span>
+                <ManualCheckoutButton target={target} label="Renew now" />
+            </div>
+        );
+    }
 
     return (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-site-muted">Status</p>
-                <p className={cn('mt-1 text-sm font-semibold', statusLabel.tone)}>{statusLabel.text}</p>
-            </div>
-            <div>
-                <p className="text-[10px] font-bold uppercase tracking-widest text-site-muted">
-                    {cancelAtPeriodEnd ? 'Plan ends on' : 'Renews on'}
-                </p>
-                <p className="mt-1 text-sm font-semibold text-site-fg">{formatShortDate(renewsOn)}</p>
-            </div>
-            <div className="flex items-end justify-end">
-                {cancelAtPeriodEnd ? null : <CancelPlanDialog />}
-            </div>
-        </div>
+        <p className="mt-1 text-sm text-site-muted">
+            Expires on {formatShortDate(renewsOn)}. <ManualCheckoutButton target={target} label="Extend" inline />
+        </p>
+    );
+}
+
+function ManualCheckoutButton({
+    target,
+    label,
+    inline = false,
+}: {
+    target: SubscriptionTier;
+    label: string;
+    inline?: boolean;
+}) {
+    const business = usePage().props.business;
+    const [pending, setPending] = useState(false);
+
+    if (!business) return null;
+
+    const handleClick = (): void => {
+        setPending(true);
+        router.post(
+            checkoutRoute({ business: business.slug }).url,
+            { target, mode: 'manual' },
+            {
+                preserveScroll: true,
+                onError: () => setPending(false),
+                onFinish: () => setPending(false),
+            },
+        );
+    };
+
+    return (
+        <button
+            type="button"
+            onClick={handleClick}
+            disabled={pending}
+            className={
+                inline
+                    ? 'font-semibold text-brand hover:underline disabled:opacity-60'
+                    : 'inline-flex items-center justify-center rounded-full bg-brand px-4 py-1.5 text-sm font-bold text-white transition hover:bg-brand-hover disabled:opacity-60'
+            }
+        >
+            {pending ? 'Redirecting' : label}
+        </button>
     );
 }

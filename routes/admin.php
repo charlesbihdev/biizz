@@ -52,6 +52,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
                 Route::get('/callback', 'callback')->name('callback');
                 Route::post('/cancel', 'cancel')->name('cancel');
                 Route::post('/resume', 'resume')->name('resume');
+                Route::post('/manage', 'manage')->name('manage');
             });
 
             // Products

@@ -71,6 +71,8 @@ class SyncPaystackPlansCommand extends Command
             'interval' => $interval,
             'currency' => PlanCatalog::currency(),
             'description' => 'biizz '.$tier->label().' subscription',
+            'send_invoices' => true,
+            'send_sms' => false,
         ]);
 
         if (! $response->successful()) {
@@ -89,6 +91,8 @@ class SyncPaystackPlansCommand extends Command
             'amount' => $price * 100,
             'interval' => $interval,
             'currency' => PlanCatalog::currency(),
+            'send_invoices' => true,
+            'send_sms' => false,
         ]);
 
         if (! $response->successful()) {

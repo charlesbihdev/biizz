@@ -3,6 +3,7 @@
 namespace App\Http\Middleware;
 
 use App\Auth\AuthIntent;
+use App\Models\Business;
 use App\Services\BusinessContext;
 use App\Services\Subscription\DigitalStorageService;
 use Illuminate\Http\Request;
@@ -103,11 +104,12 @@ class HandleInertiaRequests extends Middleware
                     'flags' => $tier->flags(),
                     'tiers' => config('biizz.tiers'),
                     'currency' => config('biizz.currency'),
-                    'expires_at' => $b->subscription_expires_at?->toIso8601String(),
                     'trial_ends_at' => $b->trial_ends_at?->toIso8601String(),
                     'subscription_status' => $b->subscription_status,
                     'current_period_end' => $b->current_period_end?->toIso8601String(),
                     'cancel_at_period_end' => $b->isCancelAtPeriodEnd(),
+                    'auto_renew' => $b->subscription_id !== null
+                        && $b->subscription_status === Business::SUBSCRIPTION_STATUS_ACTIVE,
                 ];
             },
             // Live snapshot of digital file storage usage. Drives the

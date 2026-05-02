@@ -1,6 +1,6 @@
-import { ArrowRight, Loader2 } from 'lucide-react';
-import { useSubscriptionCheckout } from '@/hooks/use-subscription-checkout';
+import { ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useUpgradeModal } from '@/stores/upgrade-modal-store';
 import type { SubscriptionTier } from '@/types';
 
 interface Props {
@@ -13,22 +13,19 @@ interface Props {
 }
 
 /**
- * The single "buy this plan" button. Used by the upgrade modal, the
- * billing page hero, and the pricing-page CTAs so they share spinner state
- * and post target. Variants keep the visual rhythm consistent across
- * surfaces without each call site re-spinning button styling.
+ * "Buy a plan" trigger. Opens the shared TierUpgradeModal so the user
+ * picks card-vs-momo on the second step instead of being shoved into
+ * checkout immediately. The `target` prop only seeds copy (the modal
+ * still shows the full ladder); the user picks tier + method there.
  */
 export function UpgradeButton({
-    target,
     label,
     variant = 'primary',
     fullWidth = false,
     showArrow = true,
     className,
 }: Props) {
-    const { start, pending, isReady } = useSubscriptionCheckout();
-    const isLoading = pending === target;
-    const disabled = !isReady || pending !== null;
+    const show = useUpgradeModal((s) => s.show);
 
     const styles =
         variant === 'primary'
@@ -40,8 +37,7 @@ export function UpgradeButton({
     return (
         <button
             type="button"
-            onClick={() => start(target)}
-            disabled={disabled}
+            onClick={() => show()}
             className={cn(
                 'group inline-flex items-center justify-center gap-1.5 rounded-full px-4 py-2 text-xs font-bold transition disabled:cursor-not-allowed disabled:opacity-60',
                 styles,
@@ -49,17 +45,8 @@ export function UpgradeButton({
                 className,
             )}
         >
-            {isLoading ? (
-                <>
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    Redirecting
-                </>
-            ) : (
-                <>
-                    {label ?? 'Upgrade'}
-                    {showArrow && <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />}
-                </>
-            )}
+            {label ?? 'Upgrade'}
+            {showArrow && <ArrowRight className="h-3.5 w-3.5 transition group-hover:translate-x-0.5" />}
         </button>
     );
 }

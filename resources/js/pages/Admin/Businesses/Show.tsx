@@ -11,6 +11,7 @@ import {
     AlertDialogHeader,
     AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
+import { OverviewBillingBanner } from '@/components/admin/billing/OverviewBillingBanner';
 import AppSidebarLayout from '@/layouts/app/app-sidebar-layout';
 import { destroy, show, toggle } from '@/routes/businesses';
 import type { Business } from '@/types';
@@ -58,6 +59,8 @@ export default function ShowBusiness({ business }: { business: BusinessWithCount
             ]}
         >
             <div className="p-6 lg:p-8">
+
+                <OverviewBillingBanner />
 
                 {/* ── Storefront status banner ── */}
                 <div className={`mb-8 flex items-center justify-between gap-4 rounded-2xl border px-5 py-4 ${

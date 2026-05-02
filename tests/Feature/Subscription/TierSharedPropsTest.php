@@ -38,6 +38,10 @@ test('tier shared prop reflects the active business on business-scoped routes', 
                 ->where('tier.subscription_status', 'inactive')
                 ->where('tier.current_period_end', null)
                 ->where('tier.cancel_at_period_end', false)
+                // auto_renew is true only when Paystack drives renewal —
+                // i.e. an active card subscription. Free / inactive / manual
+                // / past_due users all see false.
+                ->where('tier.auto_renew', false)
                 // `tiers` carries every tier's snapshot for upsell copy and
                 // is keyed by tier value (free / pro / pro_max).
                 ->where('tier.tiers.free.label', 'Free')
@@ -77,6 +81,28 @@ test('tier shared prop reflects the active business on business-scoped routes', 
                     return true;
                 })
         );
+});
+
+test('auto_renew is true when the business has an active Paystack subscription', function () {
+    $this->business->update([
+        'subscription_id' => 'SUB_live',
+        'subscription_status' => Business::SUBSCRIPTION_STATUS_ACTIVE,
+    ]);
+
+    $this->get(route('businesses.show', $this->business))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page->where('tier.auto_renew', true));
+});
+
+test('auto_renew is false for past_due even with a subscription_id present', function () {
+    $this->business->update([
+        'subscription_id' => 'SUB_live',
+        'subscription_status' => Business::SUBSCRIPTION_STATUS_PAST_DUE,
+    ]);
+
+    $this->get(route('businesses.show', $this->business))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page->where('tier.auto_renew', false));
 });
 
 test('tier shared prop updates when the business is upgraded', function () {

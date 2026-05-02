@@ -272,7 +272,7 @@ additive.
 | Column | On table | Notes |
 |---|---|---|
 | `subscription_tier` | `businesses` | enum `free` \| `pro` \| `pro_max`, default `free`, indexed |
-| `subscription_expires_at` | `businesses` | timestamp nullable |
+| `current_period_end` | `businesses` | timestamp nullable; end of the current paid period (Paystack `next_payment_date` for card subs, manual `+1 month` for momo/bank) |
 | `trial_ends_at` | `businesses` | timestamp nullable |
 | `subscription_changes` | new audit table | `business_id`, `from_tier`, `to_tier`, `changed_by`, `reason`, `created_at` |
 
@@ -304,10 +304,10 @@ additive.
 'tier' => fn () => $business ? [
     'current'    => $business->subscription_tier->value,
     'rank'       => $business->subscription_tier->rank(),
-    'features'   => config('biizz.features'),
-    'limits'     => $business->subscription_tier->limits(),
-    'flags'      => $business->subscription_tier->flags(),
-    'expires_at' => $business->subscription_expires_at?->toIso8601String(),
+    'features'           => config('biizz.features'),
+    'limits'             => $business->subscription_tier->limits(),
+    'flags'              => $business->subscription_tier->flags(),
+    'current_period_end' => $business->current_period_end?->toIso8601String(),
 ] : null,
 ```
 

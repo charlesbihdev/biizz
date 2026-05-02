@@ -1,5 +1,6 @@
 import { router, usePage } from '@inertiajs/react';
-import { ArrowRight, Check, Loader2, Sparkles, X } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Check, CreditCard, Loader2, Sparkles, Wallet, X } from 'lucide-react';
+import { useState } from 'react';
 import { useSubscriptionCheckout } from '@/hooks/use-subscription-checkout';
 import { useTier } from '@/hooks/use-tier';
 import { formatBytes } from '@/lib/utils';
@@ -107,6 +108,7 @@ export function TierUpgradeModal() {
     const { tier, current, label, requiredTier } = useTier();
     const business = usePage().props.business;
     const { start, pending } = useSubscriptionCheckout();
+    const [methodStep, setMethodStep] = useState<SubscriptionTier | null>(null);
 
     if (!open || !current || !tier || !business) return null;
 
@@ -118,12 +120,30 @@ export function TierUpgradeModal() {
         ?? DEFAULT_HEADLINE;
 
     const handleChoose = (target: SubscriptionTier) => {
-        // Free is always the user's starting point and is non-billable, so
-        // never invoked via the modal. Both other tiers go through the
-        // shared checkout hook so spinner state stays per-tier.
         if (target === 'free') return;
-        start(target);
+        setMethodStep(target);
     };
+
+    const handleClose = () => {
+        setMethodStep(null);
+        close();
+    };
+
+    const handleBack = () => setMethodStep(null);
+
+    if (methodStep) {
+        return (
+            <PaymentMethodStep
+                target={methodStep}
+                tierLabel={tier.tiers[methodStep]?.label ?? methodStep}
+                price={formatPrice(tier.tiers[methodStep]?.price ?? 0, tier.currency)}
+                pending={pending}
+                onChoose={(mode) => start(methodStep, mode)}
+                onBack={handleBack}
+                onClose={handleClose}
+            />
+        );
+    }
 
     return (
         <div
@@ -135,14 +155,14 @@ export function TierUpgradeModal() {
             <button
                 type="button"
                 aria-label="Close"
-                onClick={close}
+                onClick={handleClose}
                 className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             />
 
             <div className="relative my-auto w-full max-w-3xl overflow-hidden rounded-3xl bg-white shadow-2xl">
                 <button
                     type="button"
-                    onClick={close}
+                    onClick={handleClose}
                     aria-label="Close"
                     className="absolute right-4 top-4 z-10 inline-flex h-8 w-8 items-center justify-center rounded-full text-site-muted transition hover:bg-site-surface hover:text-site-fg"
                 >
@@ -278,7 +298,7 @@ export function TierUpgradeModal() {
                     <button
                         type="button"
                         onClick={() => {
-                            close();
+                            handleClose();
                             router.visit(pricingRoute().url);
                         }}
                         className="font-semibold text-brand hover:underline"
@@ -286,6 +306,128 @@ export function TierUpgradeModal() {
                         pricing page
                     </button>
                     . Cancel any time, your data stays yours.
+                </div>
+            </div>
+        </div>
+    );
+}
+
+/**
+ * Inline payment-method screen shown after the user picks a tier. Card is
+ * the primary CTA — Paystack auto-renews monthly, no missed deadlines —
+ * with momo/bank as an equally functional secondary option for users
+ * without a card.
+ */
+function PaymentMethodStep({
+    target,
+    tierLabel,
+    price,
+    pending,
+    onChoose,
+    onBack,
+    onClose,
+}: {
+    target: SubscriptionTier;
+    tierLabel: string;
+    price: string;
+    pending: SubscriptionTier | null;
+    onChoose: (mode: 'auto' | 'manual') => void;
+    onBack: () => void;
+    onClose: () => void;
+}) {
+    const isPending = pending !== null;
+
+    return (
+        <div
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="upgrade-method-title"
+            className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4 sm:p-8"
+        >
+            <button
+                type="button"
+                aria-label="Close"
+                onClick={onClose}
+                className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            />
+
+            <div className="relative my-auto w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl">
+                <button
+                    type="button"
+                    onClick={onClose}
+                    aria-label="Close"
+                    className="absolute right-4 top-4 z-10 inline-flex h-8 w-8 items-center justify-center rounded-full text-site-muted transition hover:bg-site-surface hover:text-site-fg"
+                >
+                    <X className="h-4 w-4" />
+                </button>
+
+                <div className="px-6 py-7 sm:px-8">
+                    <button
+                        type="button"
+                        onClick={onBack}
+                        className="mb-4 inline-flex items-center gap-1 text-xs font-semibold text-site-muted transition hover:text-site-fg"
+                    >
+                        <ArrowLeft className="h-3.5 w-3.5" />
+                        Back to plans
+                    </button>
+
+                    <h2 id="upgrade-method-title" className="text-xl font-bold text-site-fg">
+                        How would you like to pay?
+                    </h2>
+                    <p className="mt-1 text-sm text-site-muted">
+                        {tierLabel} plan, {price} per month.
+                    </p>
+
+                    <div className="mt-6 space-y-3">
+                        <button
+                            type="button"
+                            onClick={() => onChoose('auto')}
+                            disabled={isPending}
+                            className="group flex w-full items-start gap-3 rounded-2xl border-2 border-brand bg-brand/5 p-4 text-left transition hover:bg-brand/10 disabled:opacity-60"
+                        >
+                            <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand text-white">
+                                <CreditCard className="h-4 w-4" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                                <div className="flex items-center gap-2">
+                                    <p className="text-sm font-bold text-site-fg">Pay with card</p>
+                                    <span className="rounded-full bg-brand px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest text-white">
+                                        Recommended
+                                    </span>
+                                </div>
+                                <p className="mt-1 text-xs text-site-muted">
+                                    Auto-renews monthly. Set it once and never miss a deadline. Cancel any time from your billing page.
+                                </p>
+                            </div>
+                            {pending === target ? (
+                                <Loader2 className="mt-1 h-4 w-4 shrink-0 animate-spin text-brand" />
+                            ) : (
+                                <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-brand transition group-hover:translate-x-0.5" />
+                            )}
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => onChoose('manual')}
+                            disabled={isPending}
+                            className="group flex w-full items-start gap-3 rounded-2xl border border-site-border bg-white p-4 text-left transition hover:bg-site-surface disabled:opacity-60"
+                        >
+                            <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-site-surface text-site-fg">
+                                <Wallet className="h-4 w-4" />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                                <p className="text-sm font-bold text-site-fg">Pay with momo or bank</p>
+                                <p className="mt-1 text-xs text-site-muted">
+                                    One month at a time. We&rsquo;ll remind you before it expires so you can renew with momo, bank, or card.
+                                </p>
+                            </div>
+                            {pending === target ? (
+                                <Loader2 className="mt-1 h-4 w-4 shrink-0 animate-spin text-site-fg" />
+                            ) : (
+                                <ArrowRight className="mt-1 h-4 w-4 shrink-0 text-site-fg transition group-hover:translate-x-0.5" />
+                            )}
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

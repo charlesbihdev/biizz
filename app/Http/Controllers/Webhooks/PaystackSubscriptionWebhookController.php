@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Webhooks;
 use App\Http\Controllers\Controller;
 use App\Models\Business;
 use App\Models\SubscriptionInvoice;
+use App\Notifications\SubscriptionPaymentFailedNotification;
 use App\Services\Payments\PaystackGateway;
 use App\Services\Payments\VerificationResult;
 use App\Services\Subscription\SubscriptionActivation;
@@ -167,11 +168,30 @@ class PaystackSubscriptionWebhookController extends Controller
             ->where('gateway_invoice_id', $invoiceId)
             ->update(['status' => SubscriptionInvoice::STATUS_FAILED]);
 
-        if (is_string($subscriptionId)) {
-            Business::query()
-                ->where('subscription_id', $subscriptionId)
-                ->update(['subscription_status' => Business::SUBSCRIPTION_STATUS_PAST_DUE]);
+        if (! is_string($subscriptionId)) {
+            return;
         }
+
+        $business = Business::query()
+            ->with('owner:id,name,email')
+            ->where('subscription_id', $subscriptionId)
+            ->first();
+
+        if (! $business) {
+            return;
+        }
+
+        $alreadyPastDue = $business->subscription_status === Business::SUBSCRIPTION_STATUS_PAST_DUE;
+
+        $business->update([
+            'subscription_status' => Business::SUBSCRIPTION_STATUS_PAST_DUE,
+        ]);
+
+        if ($alreadyPastDue || ! $business->owner) {
+            return;
+        }
+
+        $business->owner->notify(new SubscriptionPaymentFailedNotification($business));
     }
 
     /**

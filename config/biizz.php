@@ -182,4 +182,31 @@ return [
 
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Subscription lifecycle
+    |--------------------------------------------------------------------------
+    |
+    | Tunables for the lapse and renewal-reminder commands. Read by
+    | App\Console\Commands\ExpireSubscriptionsCommand and
+    | App\Console\Commands\DispatchSubscriptionRenewalRemindersCommand
+    | so neither has magic numbers baked in.
+    |
+    | `lapse_grace_days`: how many days AFTER current_period_end the lapse
+    | command waits before downgrading to Free. Stops same-day races between
+    | webhook and cron.
+    |
+    | `manual_renewal_reminder_days_before_end`: days BEFORE
+    | current_period_end at which manual subscribers get a renewal email.
+    |
+    */
+
+    'subscription' => [
+        'lapse_grace_days' => (int) env('BIIZZ_SUBSCRIPTION_LAPSE_GRACE_DAYS', 3),
+        'manual_renewal_reminder_days_before_end' => (int) env(
+            'BIIZZ_SUBSCRIPTION_REMINDER_DAYS_BEFORE_END',
+            3,
+        ),
+    ],
+
 ];

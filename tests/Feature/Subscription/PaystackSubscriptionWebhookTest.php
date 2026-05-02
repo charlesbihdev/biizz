@@ -4,6 +4,8 @@ use App\Enums\SubscriptionTier;
 use App\Models\Business;
 use App\Models\SubscriptionInvoice;
 use App\Models\User;
+use App\Notifications\SubscriptionPaymentFailedNotification;
+use Illuminate\Support\Facades\Notification;
 
 beforeEach(function () {
     config()->set('services.paystack.secret', 'sk_test_fake');
@@ -92,7 +94,9 @@ test('subscription.create stores the subscription code and email token', functio
         ->and($this->business->subscription_status)->toBe(Business::SUBSCRIPTION_STATUS_ACTIVE);
 });
 
-test('invoice.payment_failed flips the business to past_due', function () {
+test('invoice.payment_failed flips the business to past_due and notifies the owner once', function () {
+    Notification::fake();
+
     $this->business->update([
         'subscription_id' => 'SUB_abc',
         'subscription_status' => Business::SUBSCRIPTION_STATUS_ACTIVE,
@@ -123,6 +127,17 @@ test('invoice.payment_failed flips the business to past_due', function () {
 
     expect($invoice->fresh()->status)->toBe(SubscriptionInvoice::STATUS_FAILED)
         ->and($this->business->fresh()->subscription_status)->toBe(Business::SUBSCRIPTION_STATUS_PAST_DUE);
+
+    Notification::assertSentTo($this->owner, SubscriptionPaymentFailedNotification::class);
+
+    // Replay the same webhook — the owner is already past_due, so we
+    // must not re-notify.
+    $this->call('POST', route('webhooks.paystack.subscription'),
+        [], [], [], ['HTTP_X-Paystack-Signature' => $signed['signature'], 'CONTENT_TYPE' => 'application/json'],
+        $signed['body'],
+    )->assertOk();
+
+    Notification::assertSentToTimes($this->owner, SubscriptionPaymentFailedNotification::class, 1);
 });
 
 test('subscription.disable marks the business canceled', function () {

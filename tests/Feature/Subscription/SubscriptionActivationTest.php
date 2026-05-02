@@ -6,6 +6,7 @@ use App\Models\SubscriptionInvoice;
 use App\Models\User;
 use App\Services\Payments\VerificationResult;
 use App\Services\Subscription\SubscriptionActivation;
+use Illuminate\Support\Facades\Http;
 
 beforeEach(function () {
     $this->owner = User::factory()->create();
@@ -52,9 +53,62 @@ test('replaying activation does not double-charge the audit log', function () {
     expect($this->business->fresh()->subscriptionChanges()->count())->toBe(1);
 });
 
+test('renewal extends the period from the existing period_end, not now', function () {
+    $existingEnd = now()->addDays(5)->startOfSecond();
+    $this->business->update([
+        'subscription_status' => Business::SUBSCRIPTION_STATUS_ACTIVE,
+        'current_period_end' => $existingEnd,
+    ]);
+
+    $invoice = $this->activation->activate($this->invoice->reference, passingResult($this->invoice->reference));
+
+    expect($invoice->period_start->equalTo($existingEnd))->toBeTrue()
+        ->and($invoice->period_end->equalTo($existingEnd->copy()->addMonth()))->toBeTrue();
+
+    expect($this->business->fresh()->current_period_end->equalTo($existingEnd->copy()->addMonth()))->toBeTrue();
+});
+
 test('amount mismatch throws and leaves invoice pending', function () {
     expect(fn () => $this->activation->activate($this->invoice->reference, passingResult($this->invoice->reference, 1234)))
         ->toThrow(DomainException::class);
 
     expect($this->invoice->fresh()->status)->toBe(SubscriptionInvoice::STATUS_PENDING);
+});
+
+test('manual mode activation sets active and clears any leftover Paystack subscription', function () {
+    config()->set('services.paystack.secret', 'sk_test_fake');
+
+    Http::fake([
+        'api.paystack.co/subscription/disable' => Http::response(['status' => true], 200),
+    ]);
+
+    $this->business->update([
+        'subscription_id' => 'SUB_old',
+        'paystack_email_token' => 'tok_old',
+        'subscription_status' => Business::SUBSCRIPTION_STATUS_PAST_DUE,
+    ]);
+
+    $manualInvoice = SubscriptionInvoice::factory()
+        ->for($this->business)
+        ->state([
+            'tier' => SubscriptionTier::Pro,
+            'amount' => 69,
+            'metadata' => ['mode' => 'manual'],
+        ])
+        ->create();
+
+    $this->activation->activate($manualInvoice->reference, passingResult($manualInvoice->reference));
+
+    $this->business->refresh();
+    expect($this->business->subscription_status)->toBe(Business::SUBSCRIPTION_STATUS_ACTIVE)
+        ->and($this->business->subscription_id)->toBeNull()
+        ->and($this->business->paystack_email_token)->toBeNull();
+
+    Http::assertSent(function ($request) {
+        $body = $request->data();
+
+        return $request->url() === 'https://api.paystack.co/subscription/disable'
+            && $body['code'] === 'SUB_old'
+            && $body['token'] === 'tok_old';
+    });
 });

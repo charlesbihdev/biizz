@@ -60,11 +60,15 @@ export interface TierShared {
     flags: TierFlags;
     tiers: Record<SubscriptionTier, TierMeta>;
     currency: string;
-    expires_at: string | null;
     trial_ends_at: string | null;
     subscription_status: SubscriptionStatus;
     current_period_end: string | null;
     cancel_at_period_end: boolean;
+    // True only when Paystack drives renewal (card subscription with an
+    // active status). False for manual momo/bank lane and for past_due. UI
+    // uses this to pick "Renews on" vs "Expires on" copy and to gate the
+    // cancel section.
+    auto_renew: boolean;
 }
 
 // Live digital file storage snapshot for the active business. `null` on

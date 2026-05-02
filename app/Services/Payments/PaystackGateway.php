@@ -103,6 +103,25 @@ class PaystackGateway implements PaymentGateway
         return $response->successful() && ($response->json('status') === true);
     }
 
+    /**
+     * Fetch Paystack's hosted self-service URL for the given subscription.
+     * The customer can update their card or cancel from the resulting page.
+     * Returns null if Paystack rejects the request or omits the link.
+     */
+    public function manageSubscriptionLink(string $subscriptionCode): ?string
+    {
+        $response = Http::withToken($this->secretKey)
+            ->get($this->baseUrl().'/subscription/'.rawurlencode($subscriptionCode).'/manage/link');
+
+        if (! $response->successful()) {
+            return null;
+        }
+
+        $link = $response->json('data.link');
+
+        return is_string($link) && $link !== '' ? $link : null;
+    }
+
     public function verify(string $reference, Business $business, ?string $providerTransactionId = null): VerificationResult
     {
         $response = Http::withToken($this->secretKey)

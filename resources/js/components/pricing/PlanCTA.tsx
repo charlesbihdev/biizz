@@ -1,5 +1,5 @@
 import { Link, router, usePage } from '@inertiajs/react';
-import { Loader2 } from 'lucide-react';
+import { ArrowLeft, CreditCard, Loader2, Wallet } from 'lucide-react';
 import { useState } from 'react';
 import { checkout as checkoutRoute } from '@/routes/businesses/billing';
 import { create as createBusinessRoute } from '@/routes/businesses';
@@ -17,15 +17,17 @@ interface Props {
  * Plan card CTA on the public /pricing page. Three states:
  *  - Visitor not signed in:                  Link to /register.
  *  - Signed in, no business yet:             Link to "create business" wizard.
- *  - Signed in with at least one business:   POST to that business's
- *    billing.checkout endpoint, which redirects to Paystack.
+ *  - Signed in with at least one business:   pick a payment method (card
+ *    auto-renew or momo/bank manual), then POST to billing.checkout for
+ *    that business — Paystack redirects from there.
  *
  * Uses Wayfinder helpers throughout so route changes propagate without
  * grepping for string URLs.
  */
 export function PlanCTA({ tier, label, isPro }: Props) {
     const { auth, businesses } = usePage().props;
-    const [submitting, setSubmitting] = useState(false);
+    const [pendingMode, setPendingMode] = useState<'auto' | 'manual' | null>(null);
+    const [picking, setPicking] = useState(false);
 
     const baseClass = cn(
         'block w-full rounded-full px-5 py-2.5 text-center text-sm font-bold transition disabled:cursor-not-allowed disabled:opacity-60',
@@ -61,30 +63,77 @@ export function PlanCTA({ tier, label, isPro }: Props) {
 
     const target = businesses[0];
 
-    const handleClick = (): void => {
-        if (submitting) return;
-        setSubmitting(true);
+    const submit = (mode: 'auto' | 'manual'): void => {
+        if (pendingMode) return;
+        setPendingMode(mode);
         router.post(
             checkoutRoute({ business: target.slug }).url,
-            { target: tier },
+            { target: tier, mode },
             {
                 preserveScroll: true,
-                onError: () => setSubmitting(false),
-                onFinish: () => setSubmitting(false),
+                onError: () => setPendingMode(null),
+                onFinish: () => setPendingMode(null),
             },
         );
     };
 
+    if (!picking) {
+        return (
+            <button type="button" onClick={() => setPicking(true)} className={baseClass}>
+                Choose {label}
+            </button>
+        );
+    }
+
     return (
-        <button type="button" onClick={handleClick} disabled={submitting} className={baseClass}>
-            {submitting ? (
-                <span className="inline-flex items-center justify-center gap-1.5">
-                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                    Redirecting
-                </span>
-            ) : (
-                `Choose ${label}`
-            )}
-        </button>
+        <div className="space-y-2">
+            <button
+                type="button"
+                onClick={() => submit('auto')}
+                disabled={pendingMode !== null}
+                className={cn(baseClass, 'flex items-center justify-center gap-2')}
+            >
+                {pendingMode === 'auto' ? (
+                    <>
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        Redirecting
+                    </>
+                ) : (
+                    <>
+                        <CreditCard className="h-3.5 w-3.5" />
+                        Pay with card · auto-renew
+                    </>
+                )}
+            </button>
+
+            <button
+                type="button"
+                onClick={() => submit('manual')}
+                disabled={pendingMode !== null}
+                className="flex w-full items-center justify-center gap-2 rounded-full border border-site-border bg-white px-5 py-2.5 text-center text-sm font-bold text-site-fg transition hover:bg-site-surface disabled:cursor-not-allowed disabled:opacity-60"
+            >
+                {pendingMode === 'manual' ? (
+                    <>
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                        Redirecting
+                    </>
+                ) : (
+                    <>
+                        <Wallet className="h-3.5 w-3.5" />
+                        Pay with momo or bank
+                    </>
+                )}
+            </button>
+
+            <button
+                type="button"
+                onClick={() => setPicking(false)}
+                disabled={pendingMode !== null}
+                className="inline-flex items-center gap-1 text-xs font-semibold text-site-muted transition hover:text-site-fg disabled:opacity-60"
+            >
+                <ArrowLeft className="h-3 w-3" />
+                Back
+            </button>
+        </div>
     );
 }

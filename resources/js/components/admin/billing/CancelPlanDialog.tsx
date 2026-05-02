@@ -5,12 +5,6 @@ import { cancel as cancelRoute } from '@/routes/businesses/billing';
 import { useTier } from '@/hooks/use-tier';
 import { formatShortDate } from '@/lib/utils';
 
-/**
- * Two-step cancel: a small "Cancel plan" button that opens a centred
- * confirm sheet explaining that access continues until current_period_end.
- * Keeps the user calm — the worst outcome of misclicking is a dialog they
- * can dismiss.
- */
 export function CancelPlanDialog() {
     const business = usePage().props.business;
     const { tier } = useTier();
@@ -39,9 +33,9 @@ export function CancelPlanDialog() {
             <button
                 type="button"
                 onClick={() => setOpen(true)}
-                className="inline-flex items-center gap-1.5 rounded-full border border-site-border bg-white px-4 py-2 text-xs font-semibold text-site-muted transition hover:bg-site-surface hover:text-site-fg"
+                className="inline-flex items-center justify-center rounded-lg bg-red-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-red-700"
             >
-                Cancel plan
+                Cancel
             </button>
 
             {open && (
